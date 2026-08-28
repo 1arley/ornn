@@ -1,6 +1,6 @@
 {
   "name": "agent-engineering-skills",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Modular skills that teach AI agents to audit systems, find bugs, review UX/frontend, and research before reinventing. npx agent-engineering-skills install",
   "license": "MIT",
   "type": "module",
