@@ -1,1407 +1,2008 @@
-# Plan — Agent Engineering Skills
+# Plan: Roadmap para levar o Agent Engineering Skills a 10/10
 
-## 1. Objetivo
+**Status do plano:** pós-v1  
+**Última revisão:** 2026-08-28  
+**Objetivo:** transformar o repositório de uma coleção de skills muito bem estruturada em um sistema de skills mensurável, portátil, testado, seguro, reproduzível e fácil de evoluir.
 
-Criar um repositório de skills modulares para agentes de IA voltadas a:
-
-* engenharia de software;
-* auditoria de sistemas;
-* descoberta de bugs;
-* análise de regras de negócio;
-* segurança;
-* UX/UI;
-* acessibilidade;
-* arquitetura;
-* pesquisa de referências;
-* análise de implementações reais;
-* pesquisa de produtos e mercado.
-
-O agente deve ser capaz de **entender → pesquisar → questionar → testar → verificar → implementar → revisar**.
-
-A filosofia central:
-
-> **Don't just review the code. Attack the assumptions behind the system.**
+> Don't just review the code. Attack the assumptions behind the system.
 
 ---
 
-# 2. Princípios
+# 1. Estado atual
 
-### 2.1 Skills ensinam como pensar
+O projeto já possui uma base forte:
 
-Uma skill não deve ser apenas uma lista de comandos.
+* 24 skills organizadas por domínio.
+* Contrato consistente de `SKILL.md`.
+* 9 seções obrigatórias por skill.
+* `skill-router` e `research-router`.
+* Catálogos centralizados de referências.
+* `AGENTS.md` com princípios globais.
+* CLI própria sem dependências de runtime.
+* Validador estrutural.
+* Templates de relatórios.
+* Exemplos de auditoria.
+* Separação conceitual entre `skills/`, `knowledge/` e `references/`.
 
-Ela deve fornecer:
+O próximo salto de qualidade não deve vir de adicionar mais skills.
 
-* modelo mental;
-* perguntas;
-* heurísticas;
-* padrões de ataque;
-* processo de investigação;
-* critérios de evidência;
-* critérios de falso positivo;
+O que falta agora é provar que o sistema funciona melhor do que um agente sem essas skills, reduzir duplicação e over-routing, melhorar interoperabilidade, transformar `knowledge/` em uma camada real, criar testes automatizados e estabelecer uma disciplina de release.
+
+---
+
+# 2. Regra principal desta fase
+
+Até as fases P0 estarem concluídas:
+
+> **Não adicionar novas skills apenas por cobertura aparente.**
+
+Uma nova skill só deve entrar quando pelo menos uma destas condições for verdadeira:
+
+1. um eval real demonstra um gap de cobertura;
+2. uma skill existente está assumindo responsabilidades incompatíveis;
+3. o novo comportamento aumenta recall ou precisão de forma mensurável;
+4. existe um domínio recorrente que não pode ser representado adequadamente por composição.
+
+Se duas skills produzem os mesmos findings na maioria dos casos, o problema deve ser resolvido por:
+
+* fronteira de responsabilidade;
+* metadata;
+* composição;
+* deduplicação;
+* ou fusão.
+
+Quantidade de skills não é métrica de qualidade.
+
+---
+
+# 3. Definição de 10/10
+
+O projeto será considerado 10/10 quando satisfizer todos os gates abaixo.
+
+## 3.1 Eficácia
+
+* [ ] Existe uma suíte de evals reproduzível.
+* [ ] Existe baseline sem as skills.
+* [ ] Existe benchmark com as skills.
+* [ ] O projeto demonstra melhoria mensurável sobre o baseline.
+* [ ] Findings críticos não dependem apenas de exemplos escritos para a própria skill.
+
+## 3.2 Routing
+
+* [ ] O router seleciona o menor conjunto suficiente de skills.
+* [ ] Há métricas de precision e recall do routing.
+* [ ] Há proteção contra skill explosion.
+* [ ] A seleção é derivada de metadata estruturada.
+* [ ] O router não depende de tabelas manuais duplicadas em vários lugares.
+
+## 3.3 Qualidade dos findings
+
+* [ ] `CONFIRMED`, `HIGH CONFIDENCE`, `POSSIBLE` e `SPECULATIVE` são avaliados em testes.
+* [ ] Hipóteses sem evidência não aparecem como bugs confirmados.
+* [ ] Findings duplicados são consolidados.
+* [ ] Findings têm mecanismo, impacto e evidência rastreáveis.
+
+## 3.4 Portabilidade
+
+* [ ] O formato fonte é compatível com o padrão aberto de Agent Skills.
+* [ ] O repo instala corretamente por ferramentas genéricas do ecossistema.
+* [ ] Claude Code continua suportado.
+* [ ] Pelo menos três clientes adicionais possuem smoke tests documentados.
+
+## 3.5 Tooling
+
+* [ ] O CLI possui testes automatizados.
+* [ ] `--force` possui proteções contra remoção perigosa.
+* [ ] Existe `--dry-run`.
+* [ ] Existe um comando de diagnóstico.
+* [ ] Instalação e validação rodam em CI.
+
+## 3.6 Conhecimento
+
+* [ ] `knowledge/` deixa de ser apenas estrutura vazia.
+* [ ] Skills usam conhecimento compartilhado via progressive disclosure.
+* [ ] Conhecimento duplicado entre skills é reduzido.
+
+## 3.7 Referências
+
+* [ ] URLs possuem checagem automatizada de saúde.
+* [ ] Referências possuem data de verificação.
+* [ ] Fontes obsoletas podem ser detectadas.
+* [ ] Research diferencia fonte oficial, implementação real, opinião e inspiração.
+
+## 3.8 Open source
+
+* [ ] Há CI pública.
+* [ ] Há `CONTRIBUTING.md`.
+* [ ] Há `SECURITY.md`.
+* [ ] Há `CHANGELOG.md`.
+* [ ] Há política de versionamento.
+* [ ] Há release `v1.0.0`.
+* [ ] O GitHub possui description e topics adequados.
+
+## 3.9 Reprodutibilidade
+
+* [ ] Uma mudança de skill pode ser comparada contra a versão anterior.
+* [ ] Uma nova skill precisa trazer novos evals.
+* [ ] Uma regressão de routing ou findings bloqueia merge.
+* [ ] Os resultados do benchmark podem ser reproduzidos por outra pessoa.
+
+---
+
+# 4. Prioridades
+
+## P0: obrigatório antes de expandir o projeto
+
+1. Evals.
+2. Metadata e catálogo de skills.
+3. Router baseado em catálogo.
+4. CI.
+5. Testes do CLI.
+6. Proteções de instalação.
+
+## P1: necessário para chegar a 10/10
+
+1. Interoperabilidade Agent Skills.
+2. Knowledge layer real.
+3. Reference health.
+4. Deduplicação formal de findings.
+5. Documentação de arquitetura.
+6. Release process.
+
+## P2: refinamento
+
+1. Grafo visual de skills.
+2. Benchmark publicado.
+3. Comandos `doctor`, `list`, `graph` e `eval`.
+4. Matriz pública de compatibilidade.
+5. Skill lifecycle.
+6. Melhorias de discoverability.
+
+---
+
+# 5. Fase P0.1: criar a suíte de evals
+
+Este é o item mais importante do roadmap.
+
+Hoje o projeto valida estrutura. Ele precisa passar a validar comportamento.
+
+## 5.1 Estrutura proposta
+
+```text
+evals/
+├── README.md
+├── schema.json
+├── cases/
+│   ├── routing/
+│   ├── audit/
+│   ├── security/
+│   ├── reliability/
+│   ├── product/
+│   ├── frontend/
+│   ├── research/
+│   └── mixed/
+├── fixtures/
+├── baselines/
+├── expected/
+└── results/
+
+scripts/
+└── eval.py
+```
+
+## 5.2 Formato mínimo de um caso
+
+Cada eval deve representar uma situação que o agente pode encontrar no mundo real.
+
+```yaml
+id: duplicate-reward-001
+title: reward can be farmed by repeat/remove/repeat
+
+task: |
+  Audit a reaction system where each new reaction grants XP.
+
+context:
+  - reaction can be removed
+  - XP is granted on create
+  - no reward ledger exists
+
+risk: high
+
+expected_skills:
+  required:
+    - gamification-audit
+    - business-logic-audit
+  useful:
+    - idempotency-audit
+  forbidden:
+    - animation-review
+
+expected_findings:
+  - reward can be repeatedly earned after reversal
+
+forbidden_claims:
+  - race condition is confirmed without concurrency evidence
+
+expected_confidence:
+  reward-loop: high-confidence
+```
+
+## 5.3 Métricas de routing
+
+Medir:
+
+```text
+routing_precision
+routing_recall
+critical_skill_recall
+over_routing_rate
+average_skills_selected
+unnecessary_skill_count
+missing_required_skill_count
+```
+
+### Gates iniciais
+
+* [ ] `critical_skill_recall = 100%` nos casos críticos da suíte.
+* [ ] `routing_precision >= 90%`.
+* [ ] `routing_recall >= 90%`.
+* [ ] tarefas triviais selecionam no máximo 1 skill.
+* [ ] tarefas médias selecionam normalmente 1 ou 2 skills.
+* [ ] tarefas de alto risco selecionam normalmente 2 a 4 skills.
+* [ ] conjuntos maiores exigem justificativa explícita.
+
+Os thresholds podem evoluir quando houver dados suficientes, mas devem existir para impedir regressões silenciosas.
+
+## 5.4 Métricas de findings
+
+Medir:
+
+```text
+finding_precision
+finding_recall
+critical_finding_recall
+duplicate_finding_rate
+unsupported_confirmation_rate
+confidence_calibration
+```
+
+### Gates iniciais
+
+* [ ] Nenhum finding sem mecanismo é classificado como `CONFIRMED`.
+* [ ] Nenhum finding sem evidência forte é promovido silenciosamente.
+* [ ] Findings críticos conhecidos são encontrados.
+* [ ] O mesmo bug descoberto por várias skills aparece uma vez no relatório final.
+* [ ] O relatório preserva quais skills contribuíram para o finding.
+
+## 5.5 Baseline
+
+Para cada benchmark relevante, comparar pelo menos:
+
+```text
+A: agente sem skills
+B: agente com uma skill específica
+C: agente com skill-router e composição
+```
+
+Quando possível, adicionar:
+
+```text
+D: router + research-router
+```
+
+A pergunta central do projeto passa a ser:
+
+> O sistema de skills melhora a qualidade do agente de forma mensurável?
+
+## 5.6 Casos mínimos para a primeira suíte
+
+Criar pelo menos 30 casos:
+
+| Domínio | Casos mínimos |
+| --- | ---: |
+| Audit | 5 |
+| Security | 5 |
+| Reliability | 5 |
+| Product | 4 |
+| Frontend | 5 |
+| Research | 3 |
+| Mixed | 3 |
+
+Os exemplos existentes podem virar seeds, mas não devem ser a única fonte dos evals.
+
+Adicionar também casos negativos, onde a resposta correta é não reportar bug.
+
+## 5.7 Regra para mudanças futuras
+
+Toda alteração comportamental em uma skill deve:
+
+1. adicionar ou atualizar pelo menos um eval relevante;
+2. rodar contra a baseline atual;
+3. demonstrar que não piora outro domínio;
+4. registrar mudança de métricas quando houver impacto.
+
+### Definition of Done da fase
+
+* [ ] `evals/` existe.
+* [ ] Há 30 ou mais casos.
+* [ ] Há casos positivos e negativos.
+* [ ] Há métricas de routing.
+* [ ] Há métricas de findings.
+* [ ] Há baseline.
+* [ ] Existe comando reproduzível para rodar os evals.
+* [ ] Resultados podem ser salvos em JSON.
+
+---
+
+# 6. Fase P0.2: criar um catálogo estruturado de skills
+
+Hoje parte da lógica de routing existe no frontmatter e parte existe dentro do `skill-router`.
+
+Isso cria risco de drift.
+
+Criar uma única fonte de verdade para relações entre skills.
+
+## 6.1 Estrutura proposta
+
+```text
+catalog/
+└── skills.yaml
+```
+
+Exemplo:
+
+```yaml
+- name: race-condition-hunter
+  category: reliability
+  role: verifier
+  priority: high
+  risk_floor: medium
+
+  triggers:
+    - concurrency
+    - simultaneous mutation
+    - double spend
+    - shared mutable state
+
+  requires_signals:
+    - shared-state
+
+  composes_with:
+    - idempotency-audit
+    - data-integrity-audit
+    - business-logic-audit
+
+  overlaps_with:
+    - adversarial-review
+
+  reasoning_cost: medium
+  research_cost: low
+```
+
+## 6.2 Roles obrigatórios
+
+Cada skill deve declarar uma função principal:
+
+```text
+generator
+investigator
+verifier
+reviewer
+researcher
+router
+```
+
+Exemplos:
+
+```text
+adversarial-review        generator
+business-logic-audit      investigator
+race-condition-hunter     verifier
+accessibility-review      reviewer
+implementation-research   researcher
+skill-router              router
+```
+
+Isso permite ordenar composição sem depender apenas de texto manual.
+
+## 6.3 Campos recomendados
+
+```text
+name
+category
+role
+priority
+risk_floor
+triggers
+requires_signals
+composes_with
+overlaps_with
+reasoning_cost
+research_cost
+```
+
+Evitar metadata que não altere routing, execução ou manutenção.
+
+## 6.4 Fonte `SKILL.md`
+
+O `SKILL.md` deve permanecer focado em:
+
+* discovery pelo agente;
+* raciocínio;
+* investigação;
+* evidência;
+* falso positivo;
 * formato de saída.
 
+Relações globais entre skills devem ficar no catálogo.
+
+## 6.5 Compatibilidade com Agent Skills
+
+Migrar o frontmatter fonte para um formato compatível com o padrão aberto.
+
+Exemplo:
+
+```yaml
 ---
+name: race-condition-hunter
+description: Detects race conditions and unsafe read-decide-write flows. Use when concurrent requests can mutate shared state, balances, counters, rewards, inventory, quotas, or state transitions.
+license: MIT
+metadata:
+  aes-category: reliability
+  aes-role: verifier
+  aes-priority: high
+---
+```
 
-### 2.2 Referências ensinam onde olhar
+Metadata rica com listas continua no catálogo.
 
-Sites, projetos, produtos e documentações externas não ficam espalhados pelas skills.
-
-Eles devem existir em um catálogo centralizado.
+Isso evita depender de campos top-level proprietários como:
 
 ```text
-skills/
-    como pensar
+category
+triggers
+priority
+```
 
-knowledge/
-    o que considerar
+## 6.6 Validação
 
+Atualizar `scripts/validate.py` para verificar:
+
+* [ ] toda skill possui entrada no catálogo;
+* [ ] toda entrada no catálogo possui `SKILL.md`;
+* [ ] `name` é único;
+* [ ] `composes_with` aponta para skills existentes;
+* [ ] `overlaps_with` aponta para skills existentes;
+* [ ] `role` pertence ao enum;
+* [ ] `category` pertence ao enum;
+* [ ] `priority` pertence ao enum;
+* [ ] `risk_floor` pertence ao enum;
+* [ ] nenhuma dependência circular impossível existe;
+* [ ] descriptions seguem o padrão Agent Skills;
+* [ ] frontmatter fonte é compatível com a especificação aberta.
+
+### Definition of Done da fase
+
+* [ ] `catalog/skills.yaml` é a fonte de verdade.
+* [ ] As 24 skills estão catalogadas.
+* [ ] O validador detecta drift.
+* [ ] O frontmatter fonte é portátil.
+* [ ] O router pode ser gerado ou orientado pelo catálogo.
+
+---
+
+# 7. Fase P0.3: reescrever o skill-router para evitar skill explosion
+
+O router deve otimizar para:
+
+> menor conjunto suficiente para falsificar as suposições relevantes.
+
+Não para:
+
+> maior cobertura possível.
+
+## 7.1 Skill budget
+
+Adicionar um budget explícito.
+
+```text
+trivial:
+  0 ou 1
+
+medium:
+  1 ou 2
+
+high:
+  2 a 4
+
+critical:
+  3 a 6
+```
+
+Exceder o budget é permitido apenas quando houver razão concreta.
+
+## 7.2 Scoring
+
+Cada candidata pode receber score por:
+
+```text
+trigger_match
+domain_match
+risk_match
+required_signal
+composition_bonus
+overlap_penalty
+cost_penalty
+```
+
+Modelo conceitual:
+
+```text
+score =
+  trigger_match
+  + domain_match
+  + risk_match
+  + composition_bonus
+  - overlap_penalty
+  - unnecessary_cost
+```
+
+Não é necessário transformar isso em machine learning.
+
+O objetivo é tornar a decisão rastreável.
+
+## 7.3 Não listar todas as skills rejeitadas
+
+A saída atual pode gerar overhead ao explicar cada skill não selecionada.
+
+Trocar por:
+
+```text
+Selected
+Near misses
+Research routing
+```
+
+`Near misses` deve conter no máximo 3 skills que realmente poderiam parecer relevantes.
+
+## 7.4 Ordem de execução
+
+Usar o `role`:
+
+```text
+generator
+↓
+investigator
+↓
+verifier
+↓
+reviewer
+↓
+researcher quando necessário
+```
+
+Research pode acontecer antes quando a incerteza for o problema principal.
+
+## 7.5 Deduplicação de cobertura
+
+Antes de selecionar uma skill adicional, perguntar:
+
+```text
+Ela adiciona uma nova lente?
+Ela aumenta capacidade de confirmação?
+Ela cobre um risco ainda não coberto?
+Ou apenas repete outra skill?
+```
+
+Se apenas repetir, não selecionar.
+
+## 7.6 Avaliação
+
+Criar evals específicos para:
+
+* [ ] under-routing;
+* [ ] over-routing;
+* [ ] tarefas triviais;
+* [ ] tarefas mistas;
+* [ ] security + reliability;
+* [ ] frontend + research;
+* [ ] prompt vago;
+* [ ] prompt com palavras ambíguas;
+* [ ] problema crítico sem trigger literal.
+
+### Definition of Done da fase
+
+* [ ] Router usa catálogo.
+* [ ] Skill budget existe.
+* [ ] Over-routing é medido.
+* [ ] Relações entre skills não ficam duplicadas em tabelas manuais.
+* [ ] Routing crítico passa pelos evals.
+* [ ] A saída é menor e mais informativa.
+
+---
+
+# 8. Fase P0.4: formalizar deduplicação de findings
+
+Skills sobrepostas são aceitáveis.
+
+Relatórios duplicados não são.
+
+## 8.1 Identidade de finding
+
+Um finding deve ser normalizado por:
+
+```text
+affected_component
+invariant
+mechanism
+state_transition
+impact
+```
+
+Duas skills podem descobrir o mesmo problema por caminhos diferentes.
+
+O agregador deve produzir:
+
+```text
+Finding único
+Contributing skills
+Evidence merged
+Highest justified confidence
+```
+
+## 8.2 Regra de confidence
+
+Nunca usar simplesmente o maior confidence produzido por qualquer skill.
+
+A confidence final deve ser recalculada a partir da evidência consolidada.
+
+Exemplo:
+
+```text
+3 skills disseram CONFIRMED
++
+nenhuma reprodução
+=
+não é CONFIRMED
+```
+
+## 8.3 Provenance
+
+Cada finding final deve preservar:
+
+```text
+generated_by
+investigated_by
+verified_by
+evidence
+```
+
+### Definition of Done da fase
+
+* [ ] Relatórios não repetem o mesmo bug.
+* [ ] Confidence depende de evidência.
+* [ ] Provenance de skill é preservado.
+* [ ] Existem evals de duplicação.
+
+---
+
+# 9. Fase P0.5: adicionar CI
+
+O repositório deve validar cada PR automaticamente.
+
+## 9.1 Estrutura
+
+```text
+.github/
+└── workflows/
+    ├── ci.yml
+    ├── reference-health.yml
+    └── release.yml
+```
+
+## 9.2 `ci.yml`
+
+Rodar em:
+
+```text
+push
+pull_request
+```
+
+Checks:
+
+1. `python3 scripts/validate.py`
+2. testes do CLI;
+3. instalação em diretório temporário;
+4. instalação com `--link`;
+5. instalação com `--force`;
+6. `npm pack --dry-run`;
+7. validação Agent Skills;
+8. evals determinísticos de routing;
+9. verificação de arquivos gerados.
+
+Matriz mínima:
+
+```text
+ubuntu-latest
+node 18
+node 20
+node 22
+python 3.11+
+```
+
+Adicionar outros sistemas apenas quando houver benefício real.
+
+## 9.3 Branch protection
+
+Configurar no GitHub:
+
+* [ ] CI obrigatório.
+* [ ] merge bloqueado quando validator falha.
+* [ ] merge bloqueado quando eval crítico falha.
+* [ ] branch `main` protegida.
+
+### Definition of Done da fase
+
+* [ ] PRs têm checks automáticos.
+* [ ] `main` não aceita regressão estrutural.
+* [ ] Routing crítico é testado antes de merge.
+
+---
+
+# 10. Fase P0.6: testar e endurecer o CLI
+
+O CLI é parte do produto.
+
+Ele precisa do mesmo rigor das skills.
+
+## 10.1 Testes com `node:test`
+
+Criar:
+
+```text
+test/
+├── cli-install.test.js
+├── cli-force.test.js
+├── cli-link.test.js
+├── cli-target.test.js
+├── cli-frontmatter.test.js
+└── cli-errors.test.js
+```
+
+Usar apenas APIs nativas do Node para preservar zero dependencies.
+
+## 10.2 Proteções para `--force`
+
+Antes de `rmSync(... recursive: true)`:
+
+* resolver caminho absoluto;
+* rejeitar destino fora do target;
+* rejeitar filesystem root;
+* rejeitar home como destino de uma skill;
+* verificar que `dest !== target`;
+* evitar seguir target inesperado;
+* mostrar o path que será removido.
+
+## 10.3 Adicionar `--dry-run`
+
+Exemplo:
+
+```bash
+npx agent-engineering-skills install --dry-run
+```
+
+Saída:
+
+```text
+would install: 24
+would overwrite: 0
+would skip: 0
+target: ~/.claude/skills
+```
+
+Nenhum filesystem write.
+
+## 10.4 Adicionar `doctor`
+
+```bash
+npx agent-engineering-skills doctor
+```
+
+Verificar:
+
+```text
+node version
+python availability
+repo integrity
+catalog integrity
+installed skills
+broken symlinks
+stale installed version
+target permissions
+```
+
+## 10.5 Adicionar `list`
+
+```bash
+npx agent-engineering-skills list
+```
+
+Mostrar:
+
+```text
+name
+category
+role
+priority
+installed
+```
+
+## 10.6 Adicionar `graph`
+
+```bash
+npx agent-engineering-skills graph
+```
+
+Pode gerar Mermaid para stdout ou arquivo.
+
+## 10.7 Adicionar `eval`
+
+```bash
+npx agent-engineering-skills eval
+```
+
+Pode delegar para `scripts/eval.py`.
+
+### Definition of Done da fase
+
+* [ ] CLI possui testes.
+* [ ] `--dry-run` existe.
+* [ ] `--force` possui guardrails.
+* [ ] `doctor` existe.
+* [ ] Todos os comandos retornam exit code consistente.
+* [ ] Erros são acionáveis.
+
+---
+
+# 11. Fase P1.1: interoperabilidade com o ecossistema Agent Skills
+
+O projeto é mais geral do que Claude Code.
+
+A distribuição deve refletir isso.
+
+## 11.1 Objetivo
+
+O repositório fonte deve ser utilizável diretamente por clientes compatíveis com Agent Skills.
+
+Exemplo:
+
+```bash
+npx skills add 1arley/1arley-agent-skills
+```
+
+## 11.2 Estratégia
+
+Manter duas camadas:
+
+### Camada padrão
+
+```text
+SKILL.md compatível com Agent Skills
+```
+
+### Camada específica do projeto
+
+```text
+catalog/
+AGENTS.md
 references/
-    onde pesquisar
+knowledge/
+evals/
+scripts/
 ```
 
----
-
-### 2.3 Pesquisar antes de reinventar
-
-Para tarefas não triviais, o agente deve perguntar:
-
-> "Alguém já resolveu esse problema?"
-
-Quando apropriado, pesquisar:
-
-1. código existente no projeto;
-2. documentação oficial;
-3. GitHub;
-4. produtos reais;
-5. design systems;
-6. sites especializados;
-7. artigos técnicos;
-8. galerias de inspiração.
-
----
-
-### 2.4 Referências não são especificações
-
-O agente deve extrair:
-
-* princípios;
-* padrões;
-* decisões;
-* trade-offs;
-* soluções;
-* problemas conhecidos.
-
-Não deve copiar cegamente:
-
-* código;
-* layout;
-* branding;
-* identidade visual;
-* conteúdo;
-* componentes proprietários.
-
----
-
-### 2.5 Evidência > especulação
-
-Findings devem ser classificados como:
+O CLI próprio continua útil para:
 
 ```text
-CONFIRMED
-HIGH CONFIDENCE
-POSSIBLE
-SPECULATIVE
+validate
+doctor
+eval
+graph
 ```
 
-O agente deve evitar transformar uma hipótese em bug confirmado.
+Instalação não deve ser o único motivo de existência do CLI.
+
+## 11.3 Compatibilidade mínima documentada
+
+Testar pelo menos:
+
+* [ ] Claude Code.
+* [ ] OpenAI Codex.
+* [ ] Cursor.
+* [ ] OpenCode.
+
+Outros clientes podem ser marcados como:
+
+```text
+community reported
+untested
+unsupported
+```
+
+Não afirmar compatibilidade sem teste.
+
+## 11.4 Matriz
+
+Criar:
+
+```text
+docs/compatibility.md
+```
+
+Exemplo:
+
+| Client | Install | Discovery | Invoke | Tested version | Status |
+| --- | --- | --- | --- | --- | --- |
+| Claude Code | yes | yes | yes | x | supported |
+| Codex | yes | yes | tested | x | supported |
+| Cursor | yes | yes | tested | x | supported |
+| OpenCode | yes | yes | tested | x | supported |
+
+## 11.5 README
+
+Reposicionar de:
+
+```text
+24 skills para Claude Code
+```
+
+para:
+
+```text
+Agent Engineering Skills for coding agents
+```
+
+Claude Code continua como cliente de primeira classe.
+
+### Definition of Done da fase
+
+* [ ] O source repo segue Agent Skills.
+* [ ] `npx skills add` funciona.
+* [ ] Matriz de compatibilidade existe.
+* [ ] Nenhuma compatibilidade é anunciada sem smoke test.
 
 ---
 
-# 3. Estrutura do repositório
+# 12. Fase P1.2: transformar `knowledge/` em uma camada real
+
+Hoje a arquitetura promete:
+
+```text
+skills      = como pensar
+knowledge   = o que considerar
+references  = onde pesquisar
+```
+
+Para essa arquitetura ser verdadeira, `knowledge/` precisa conter conhecimento reutilizável.
+
+## 12.1 Estrutura inicial
+
+```text
+knowledge/
+├── engineering/
+│   ├── invariants.md
+│   ├── state-machines.md
+│   ├── transactions.md
+│   ├── concurrency.md
+│   └── failure-models.md
+├── security/
+│   ├── authorization.md
+│   ├── input-trust.md
+│   ├── abuse-models.md
+│   └── threat-boundaries.md
+├── product/
+│   ├── rewards-and-ledgers.md
+│   ├── reversals.md
+│   └── quotas-and-limits.md
+├── frontend/
+│   ├── ui-states.md
+│   ├── interaction-feedback.md
+│   ├── accessibility-basics.md
+│   └── visual-hierarchy.md
+└── research/
+    ├── evidence-quality.md
+    ├── source-authority.md
+    └── implementation-comparison.md
+```
+
+## 12.2 Regra editorial
+
+Knowledge não deve repetir uma skill inteira.
+
+Cada arquivo deve responder:
+
+```text
+What is this concept?
+Why does it fail?
+What invariants matter?
+What patterns exist?
+What evidence should an agent look for?
+```
+
+## 12.3 Progressive disclosure
+
+Skills devem apontar para knowledge apenas quando necessário.
+
+Exemplo:
+
+```text
+For transaction isolation patterns, read:
+knowledge/engineering/transactions.md
+```
+
+Evitar carregar tudo por default.
+
+## 12.4 Tamanho
+
+Preferir documentos focados.
+
+Meta inicial:
+
+```text
+100 a 300 linhas por arquivo
+```
+
+Dividir quando um documento começa a cobrir múltiplos conceitos independentes.
+
+## 12.5 Fonte e atualização
+
+Knowledge técnico deve indicar referências relevantes quando houver risco de obsolescência.
+
+### Definition of Done da fase
+
+* [ ] Nenhum diretório de knowledge principal contém apenas `.gitkeep`.
+* [ ] Pelo menos 12 documentos de knowledge úteis existem.
+* [ ] Skills relevantes apontam para knowledge.
+* [ ] Duplicação entre skills diminui.
+* [ ] Progressive disclosure continua preservado.
+
+---
+
+# 13. Fase P1.3: melhorar o sistema de referências
+
+O catálogo de referências já é um diferencial.
+
+Agora ele precisa de lifecycle.
+
+## 13.1 Novos campos
+
+Adicionar ao schema quando fizer sentido:
+
+```yaml
+last_verified: 2026-08-28
+status: active
+```
+
+Valores:
+
+```text
+active
+degraded
+archived
+```
+
+Opcionalmente:
+
+```text
+official: true
+```
+
+quando a classificação não for óbvia pelo `type`.
+
+## 13.2 Checagem de saúde
+
+Criar:
+
+```text
+scripts/check_references.py
+```
+
+Verificar:
+
+* URL responde;
+* redirect permanente;
+* domínio mudou;
+* 404;
+* timeout;
+* duplicate URL.
+
+## 13.3 Não bloquear PR por instabilidade externa
+
+Link checking completo deve rodar:
+
+```text
+schedule semanal
+workflow manual
+```
+
+CI de PR valida apenas schema e duplicação.
+
+## 13.4 Freshness
+
+Sinalizar:
+
+```text
+last_verified > 180 dias
+```
+
+como warning.
+
+Não remover automaticamente.
+
+## 13.5 Research reports
+
+Adicionar:
+
+```text
+accessed_at
+source_type
+authority
+```
+
+quando uma recomendação depender de fonte externa.
+
+### Definition of Done da fase
+
+* [ ] Referências possuem lifecycle.
+* [ ] URLs quebradas são detectadas.
+* [ ] Fontes antigas são sinalizadas.
+* [ ] Checagem externa não deixa CI de PR instável.
+
+---
+
+# 14. Fase P1.4: revisar todas as 24 skills usando evals
+
+Somente após ter métricas.
+
+## 14.1 Para cada skill responder
+
+### Necessidade
+
+Qual finding ela encontra que outras não encontram?
+
+### Papel
+
+Ela é:
+
+```text
+generator
+investigator
+verifier
+reviewer
+researcher
+router
+```
+
+### Fronteira
+
+Quais tarefas próximas não pertencem a ela?
+
+### Overlap
+
+Quais skills podem encontrar os mesmos problemas?
+
+### Ganho marginal
+
+Quando adicionada a uma composição, ela aumenta:
+
+```text
+recall
+precision
+verification
+coverage
+```
+
+ou apenas tokens?
+
+### Custo
+
+Quanto contexto e reasoning ela normalmente adiciona?
+
+## 14.2 Regra de fusão
+
+Considerar fusão se:
+
+* duas skills possuem triggers quase idênticos;
+* os mesmos evals ativam ambas quase sempre;
+* findings são majoritariamente iguais;
+* nenhuma fornece capacidade de verificação distinta.
+
+## 14.3 Regra de manutenção
+
+Uma skill pode permanecer separada mesmo com overlap se possuir função distinta.
+
+Exemplo:
+
+```text
+adversarial-review
+gera hipótese
+
+race-condition-hunter
+confirma uma classe específica de mecanismo
+```
+
+Isso é overlap saudável.
+
+## 14.4 Não implementar gaps antigos automaticamente
+
+Itens antigos do plano, como novas skills previstas mas ainda não implementadas, devem primeiro passar por evals.
+
+Se `user-flow-audit` já cobre dead ends adequadamente, não criar uma nova skill apenas porque uma especificação antiga mencionava isso.
+
+### Definition of Done da fase
+
+* [ ] Todas as 24 skills têm papel claro.
+* [ ] Todas têm casos de eval.
+* [ ] Overlaps relevantes estão documentados no catálogo.
+* [ ] Skills redundantes foram ajustadas, fundidas ou justificadas.
+
+---
+
+# 15. Fase P1.5: melhorar progressive disclosure e custo de contexto
+
+O projeto deve ensinar mais sem carregar mais contexto desnecessário.
+
+## 15.1 Meta
+
+Cada `SKILL.md` deve conter apenas o necessário para executar a skill.
+
+Detalhes reutilizáveis vão para:
+
+```text
+knowledge/
+references/
+scripts/
+assets/
+```
+
+## 15.2 Auditoria de tamanho
+
+Gerar relatório:
+
+```text
+skill
+lines
+estimated_tokens
+linked_resources
+```
+
+Adicionar warning no validator quando uma skill exceder o limite definido pelo projeto.
+
+## 15.3 Duplicação textual
+
+Detectar blocos muito semelhantes entre skills.
+
+Casos aceitáveis:
+
+* nomes de confidence levels;
+* contrato de finding;
+* regras globais mínimas.
+
+Casos a extrair:
+
+* explicações longas repetidas sobre transactions;
+* autorização;
+* idempotência;
+* source quality;
+* accessibility fundamentals.
+
+### Definition of Done da fase
+
+* [ ] Nenhuma skill é um manual gigante.
+* [ ] Conhecimento compartilhado fica fora da skill quando apropriado.
+* [ ] O custo médio de contexto é acompanhado.
+
+---
+
+# 16. Fase P1.6: documentação de arquitetura
+
+Criar:
+
+```text
+docs/
+├── architecture.md
+├── routing.md
+├── evals.md
+├── compatibility.md
+├── contributing-skills.md
+└── release-process.md
+```
+
+## 16.1 `architecture.md`
+
+Explicar:
+
+```text
+REQUEST
+↓
+ROUTING
+↓
+RESEARCH DECISION
+↓
+SKILL EXECUTION
+↓
+EVIDENCE
+↓
+DEDUP
+↓
+CONFIDENCE
+↓
+REPORT
+```
+
+## 16.2 `routing.md`
+
+Documentar:
+
+* catálogo;
+* role;
+* skill budget;
+* scoring;
+* composição;
+* near misses;
+* research routing.
+
+## 16.3 `evals.md`
+
+Documentar:
+
+* formato;
+* métricas;
+* baseline;
+* thresholds;
+* como adicionar caso;
+* como interpretar regressão.
+
+## 16.4 Grafo
+
+Gerar automaticamente um Mermaid a partir de `catalog/skills.yaml`.
+
+Exemplo:
+
+```mermaid
+graph TD
+    AR[adversarial-review] --> BL[business-logic-audit]
+    BL --> ID[idempotency-audit]
+    BL --> RC[race-condition-hunter]
+    RC --> DI[data-integrity-audit]
+```
+
+O arquivo gerado não deve ser editado manualmente.
+
+### Definition of Done da fase
+
+* [ ] A arquitetura pode ser entendida sem ler todas as skills.
+* [ ] O grafo é gerado automaticamente.
+* [ ] Routing e evals possuem documentação própria.
+
+---
+
+# 17. Fase P1.7: maturidade open source
+
+Adicionar:
+
+```text
+CONTRIBUTING.md
+SECURITY.md
+CHANGELOG.md
+CODEOWNERS
+```
+
+`CODE_OF_CONDUCT.md` é opcional enquanto o projeto for pequeno.
+
+## 17.1 CONTRIBUTING
+
+Definir:
+
+* como propor skill;
+* quando não criar skill;
+* schema;
+* eval obrigatório;
+* critérios de evidence;
+* estilo;
+* validation;
+* pull request checklist.
+
+## 17.2 SECURITY
+
+Explicar:
+
+* como reportar vulnerabilidade no CLI;
+* como reportar skill insegura;
+* quais problemas são considerados security issues.
+
+## 17.3 CHANGELOG
+
+Usar formato simples:
+
+```text
+Added
+Changed
+Fixed
+Deprecated
+Removed
+Security
+```
+
+## 17.4 Versionamento
+
+Aplicar SemVer ao pacote.
+
+Para skills, usar lifecycle:
+
+```text
+experimental
+stable
+deprecated
+```
+
+O status pode ficar no catálogo.
+
+## 17.5 Critério para `stable`
+
+Uma skill só vira stable quando:
+
+* possui evals;
+* possui fronteira de responsabilidade;
+* não possui regressão crítica conhecida;
+* passa validator;
+* possui output contract;
+* possui false-positive guidance.
+
+### Definition of Done da fase
+
+* [ ] Contribuição externa é guiada.
+* [ ] Vulnerabilidades têm canal claro.
+* [ ] Mudanças são rastreáveis.
+* [ ] Skills possuem lifecycle.
+
+---
+
+# 18. Fase P1.8: release e distribuição
+
+O projeto deve ter uma release estável reproduzível.
+
+## 18.1 Antes de `v1.0.0`
+
+Exigir:
+
+```text
+validator green
+CLI tests green
+routing evals green
+critical finding evals green
+compatibility smoke tests green
+npm pack green
+reference schema green
+```
+
+## 18.2 Release workflow
+
+Automatizar:
+
+1. validar;
+2. testar;
+3. empacotar;
+4. publicar release notes;
+5. publicar npm;
+6. anexar benchmark summary;
+7. tag `vX.Y.Z`.
+
+## 18.3 NPM
+
+Verificar:
+
+* `files` whitelist;
+* package size;
+* bin correto;
+* Node engine;
+* license;
+* repository URL;
+* keywords;
+* README;
+* version.
+
+## 18.4 GitHub metadata
+
+Configurar:
+
+**Description sugerida**
+
+```text
+Modular Agent Skills for software engineering, adversarial auditing, security, reliability, frontend review, and evidence-driven research.
+```
+
+**Topics sugeridos**
+
+```text
+agent-skills
+ai-agents
+coding-agents
+claude-code
+codex
+software-engineering
+security
+code-review
+reliability
+prompt-engineering
+```
+
+### Definition of Done da fase
+
+* [ ] Existe `v1.0.0`.
+* [ ] Release é reproduzível.
+* [ ] NPM e GitHub estão sincronizados.
+* [ ] Repo é encontrável por busca.
+
+---
+
+# 19. Fase P2.1: benchmark público
+
+Criar:
+
+```text
+docs/benchmark.md
+```
+
+Mostrar de forma transparente:
+
+```text
+baseline
+single skill
+router composition
+router + research
+```
+
+## 19.1 Reportar
+
+* dataset;
+* modelos testados;
+* versões;
+* prompts;
+* número de execuções;
+* métricas;
+* limitações;
+* custo quando mensurável;
+* resultados completos ou link para JSON.
+
+## 19.2 Não otimizar para um único modelo
+
+O benchmark deve procurar princípios transferíveis.
+
+Se uma mudança melhora Claude e piora drasticamente Codex, isso precisa aparecer.
+
+## 19.3 Resultado que importa
+
+O projeto deve conseguir mostrar algo como:
+
+```text
+critical finding recall: +X%
+unsupported confirmations: -Y%
+average selected skills: -Z%
+routing precision: X%
+```
+
+Não inventar números.
+
+Publicar apenas resultados reproduzidos.
+
+---
+
+# 20. Fase P2.2: reference benchmark
+
+Research skills também precisam de eval.
+
+Testar se o agente:
+
+* prioriza docs oficiais quando apropriado;
+* encontra implementação real quando necessário;
+* diferencia inspiração de especificação;
+* não recomenda projeto morto sem avisar;
+* verifica licença quando código externo importa;
+* sintetiza padrões em vez de listar links.
+
+Métricas possíveis:
+
+```text
+source_authority
+source_relevance
+freshness
+implementation_quality
+citation_completeness
+recommendation_grounding
+```
+
+---
+
+# 21. Fase P2.3: casos reais
+
+Além de fixtures artificiais, manter uma pequena suíte de incidentes e bugs realistas.
+
+Categorias:
+
+```text
+payment retry
+duplicate webhook
+XP farming
+IDOR
+stale frontend state
+partial transaction
+double submit
+role escalation
+quota bypass
+cache divergence
+keyboard accessibility regression
+misleading loading state
+```
+
+Cada caso deve possuir:
+
+```text
+root cause
+expected invariant
+expected skill coverage
+false-positive traps
+```
+
+Isso evita que as skills fiquem boas apenas em exemplos que elas mesmas inspiraram.
+
+---
+
+# 22. Fase P2.4: observabilidade de evolução
+
+Salvar por release:
+
+```text
+evals/results/v1.0.0.json
+evals/results/v1.1.0.json
+```
+
+Gerar diff:
+
+```text
+routing precision
+routing recall
+critical recall
+duplicate rate
+unsupported confirmation rate
+average selected skills
+```
+
+Toda release deve responder:
+
+> O agente ficou objetivamente melhor, igual ou pior?
+
+---
+
+# 23. Ordem recomendada de implementação
+
+## PR 1: reset do roadmap
+
+* [ ] Substituir o `plan.md` antigo por este roadmap.
+* [ ] Marcar explicitamente o projeto como pós-v1.
+* [ ] Não adicionar novas skills nesta PR.
+
+## PR 2: catálogo
+
+* [ ] Criar `catalog/skills.yaml`.
+* [ ] Catalogar as 24 skills.
+* [ ] Adicionar `role`, `risk_floor`, composição e overlap.
+* [ ] Atualizar validator.
+* [ ] Migrar frontmatter para formato portátil.
+
+## PR 3: routing evals
+
+* [ ] Criar framework de eval.
+* [ ] Adicionar pelo menos 15 casos de routing.
+* [ ] Medir baseline do router atual.
+* [ ] Registrar resultado.
+
+## PR 4: router v2
+
+* [ ] Implementar skill budget.
+* [ ] Usar catálogo.
+* [ ] Reduzir `Not selected` para near misses.
+* [ ] Adicionar overlap penalty.
+* [ ] Rodar benchmark antes e depois.
+
+## PR 5: findings evals
+
+* [ ] Completar 30 casos.
+* [ ] Adicionar confidence evals.
+* [ ] Adicionar dedup.
+* [ ] Criar baseline sem skills.
+
+## PR 6: CI e CLI hardening
+
+* [ ] Criar `.github/workflows/ci.yml`.
+* [ ] Adicionar `node:test`.
+* [ ] Adicionar `--dry-run`.
+* [ ] Proteger `--force`.
+* [ ] Adicionar install smoke tests.
+* [ ] Adicionar `npm pack --dry-run`.
+
+## PR 7: knowledge
+
+* [ ] Criar os primeiros 12 documentos.
+* [ ] Remover `.gitkeep` dos domínios preenchidos.
+* [ ] Referenciar knowledge a partir das skills relevantes.
+* [ ] Reduzir conteúdo duplicado.
+
+## PR 8: interoperabilidade
+
+* [ ] Validar Agent Skills.
+* [ ] Testar instalação via `npx skills add`.
+* [ ] Criar compatibility matrix.
+* [ ] Atualizar README para posicionamento vendor-neutral.
+
+## PR 9: reference lifecycle
+
+* [ ] Adicionar `last_verified`.
+* [ ] Adicionar status.
+* [ ] Criar checker.
+* [ ] Criar workflow semanal.
+
+## PR 10: open source maturity
+
+* [ ] CONTRIBUTING.
+* [ ] SECURITY.
+* [ ] CHANGELOG.
+* [ ] CODEOWNERS.
+* [ ] release process.
+* [ ] GitHub topics e description.
+
+## PR 11: benchmark
+
+* [ ] Rodar baseline.
+* [ ] Rodar composição.
+* [ ] Publicar `docs/benchmark.md`.
+* [ ] Salvar resultados reproduzíveis.
+
+## PR 12: v1.0.0
+
+* [ ] Todos os gates verdes.
+* [ ] Tag.
+* [ ] GitHub Release.
+* [ ] NPM.
+* [ ] Benchmark publicado.
+
+---
+
+# 24. Arquitetura alvo
 
 ```text
 agent-engineering-skills/
 │
 ├── AGENTS.md
 ├── README.md
-├── LICENSE
 ├── plan.md
+├── CHANGELOG.md
+├── CONTRIBUTING.md
+├── SECURITY.md
+├── LICENSE
+├── package.json
+│
+├── catalog/
+│   └── skills.yaml
 │
 ├── skills/
-│   │
 │   ├── audit/
-│   │   ├── adversarial-review/
-│   │   ├── user-flow-audit/
-│   │   ├── business-logic-audit/
-│   │   ├── edge-case-hunter/
-│   │   ├── state-consistency-audit/
-│   │   ├── error-flow-audit/
-│   │   └── dead-end-flow-audit/
-│   │
 │   ├── security/
-│   │   ├── authorization-audit/
-│   │   ├── api-abuse-audit/
-│   │   └── input-trust-audit/
-│   │
 │   ├── reliability/
-│   │   ├── race-condition-hunter/
-│   │   ├── idempotency-audit/
-│   │   └── data-integrity-audit/
-│   │
 │   ├── product/
-│   │   └── gamification-audit/
-│   │
 │   ├── frontend/
-│   │   ├── ux-review/
-│   │   ├── visual-quality-review/
-│   │   ├── interaction-design/
-│   │   ├── animation-review/
-│   │   └── accessibility-review/
-│   │
 │   ├── research/
-│   │   ├── reference-research/
-│   │   ├── github-reference-research/
-│   │   ├── market-research/
-│   │   └── implementation-research/
-│   │
 │   └── meta/
-│       ├── skill-router/
-│       └── research-router/
 │
 ├── knowledge/
-│   ├── frontend/
 │   ├── engineering/
-│   ├── security/
+│   ├── frontend/
 │   ├── product/
-│   └── research/
+│   ├── research/
+│   └── security/
 │
 ├── references/
-│   ├── frontend.yaml
-│   ├── ux.yaml
 │   ├── engineering.yaml
-│   ├── security.yaml
+│   ├── frontend.yaml
 │   ├── product.yaml
-│   └── research.yaml
+│   ├── research.yaml
+│   ├── security.yaml
+│   └── ux.yaml
+│
+├── evals/
+│   ├── cases/
+│   ├── fixtures/
+│   ├── baselines/
+│   ├── expected/
+│   └── results/
 │
 ├── templates/
-│   ├── audit-report.md
-│   ├── bug-report.md
-│   ├── design-review.md
-│   └── research-report.md
-│
 ├── examples/
-│   ├── xp-reward-loop.md
-│   ├── race-condition.md
-│   ├── authorization-bypass.md
-│   └── frontend-review.md
+├── docs/
+├── test/
+├── bin/
+├── scripts/
 │
-└── docs/
-    ├── philosophy.md
-    ├── skill-authoring.md
-    ├── reference-authoring.md
-    └── agent-integration.md
+└── .github/
+    └── workflows/
 ```
 
 ---
 
-# 4. Fase 1 — Foundation
+# 25. Contrato de qualidade para novas skills
 
-Criar:
+Nenhuma skill nova entra sem preencher:
+
+## Problem
 
 ```text
-AGENTS.md
-README.md
-plan.md
-LICENSE
+Qual gap real ela resolve?
 ```
 
-## AGENTS.md
-
-Definir as regras globais do agente:
-
-* investigar antes de concluir;
-* pensar em invariantes;
-* considerar estados;
-* testar repetição;
-* testar reversão;
-* testar concorrência;
-* não confiar no frontend;
-* verificar APIs diretamente;
-* pesquisar referências quando necessário;
-* distinguir inspiração de evidência;
-* minimizar falsos positivos;
-* reportar evidências.
-
----
-
-# 5. Fase 2 — Skill specification
-
-Definir um formato padrão para todas as skills.
-
-Cada skill deverá conter:
+## Evidence of need
 
 ```text
-SKILL.md
+Qual eval falha sem ela?
 ```
 
-Formato:
-
-```yaml
----
-name: skill-name
-description: Short description
-category: audit
-triggers:
-  - trigger
-  - another trigger
-priority: high
----
-```
-
-Estrutura:
-
-```markdown
-# Skill Name
-
-## Objective
-
-## When to Use
-
-## Mental Model
-
-## Investigation Procedure
-
-## Questions to Ask
-
-## Attack Patterns
-
-## Evidence Requirements
-
-## False Positives
-
-## Output Format
-```
-
-Nenhuma skill deve depender de conhecimento implícito que não esteja documentado ou disponível através das referências.
-
----
-
-# 6. Fase 3 — Core audit skills
-
-Implementar primeiro:
-
-### `adversarial-review`
-
-Ensina o agente a pensar como:
-
-* usuário curioso;
-* usuário malicioso;
-* power user;
-* usuário descuidado;
-* usuário concorrente;
-* usuário com estado antigo.
-
-Explorar:
+## Scope
 
 ```text
-repeat
-reverse
-reorder
-skip
-replay
-concurrent
-manipulate
+Quando ativar?
+Quando não ativar?
 ```
 
----
-
-### `user-flow-audit`
-
-Mapear:
+## Role
 
 ```text
-entry
-→ preconditions
-→ action
-→ state change
-→ feedback
-→ next state
+generator
+investigator
+verifier
+reviewer
+researcher
+router
 ```
 
-Detectar:
-
-* dead ends;
-* estados impossíveis;
-* passos puláveis;
-* estados inconsistentes;
-* refresh problems;
-* back-button problems;
-* operações duplicadas.
-
----
-
-### `business-logic-audit`
-
-Identificar:
-
-* regras;
-* invariantes;
-* limites;
-* ownership;
-* transições;
-* recompensas.
-
-Para cada regra:
+## Incremental value
 
 ```text
-Where is it enforced?
-Can it be bypassed?
-Can it be repeated?
-Can it be reversed?
-Can it race?
+O que ela encontra ou confirma que as existentes não fazem?
 ```
 
----
-
-### `edge-case-hunter`
-
-Gerar casos envolvendo:
-
-* null;
-* empty;
-* zero;
-* negative;
-* huge values;
-* duplicates;
-* Unicode;
-* stale data;
-* deleted data;
-* expired data;
-* repeated valid actions.
-
----
-
-### `state-consistency-audit`
-
-Comparar:
+## Overlap
 
 ```text
-database
-API
-server state
-cache
-client state
-URL state
+Com quais skills sobrepõe?
+Por que ainda deve existir separadamente?
 ```
 
-Procurar divergências.
-
----
-
-### `error-flow-audit`
-
-Investigar:
+## Cost
 
 ```text
-partial success
-timeouts
-lost responses
-retries
-crashes
-rollback failures
+Qual custo de contexto e reasoning?
 ```
 
----
-
-### `dead-end-flow-audit`
-
-Encontrar estados dos quais o usuário não consegue continuar ou recuperar.
-
----
-
-# 7. Fase 4 — Security skills
-
-Implementar:
-
-### `authorization-audit`
-
-Analisar:
+## Evals
 
 ```text
-authenticated
-authorized
-owner
-moderator
-admin
-resource participant
+Casos positivos
+Casos negativos
+Caso de composição
+Caso de falso positivo
 ```
 
-Verificar autorização no servidor.
-
----
-
-### `api-abuse-audit`
-
-Tratar a API como diretamente acessível.
-
-Investigar:
-
-* repetição;
-* replay;
-* manipulação de IDs;
-* campos extras;
-* endpoints alternativos;
-* ausência de rate limiting;
-* bypass da UI.
-
----
-
-### `input-trust-audit`
-
-Identificar valores que nunca deveriam ser confiados ao cliente:
+## Definition of Done
 
 ```text
-userId
-role
-price
-XP
-permissions
-ownership
-status
-reward
-timestamps
+validator green
+eval green
+docs green
+catalog green
+no unexplained regression
 ```
 
 ---
 
-# 8. Fase 5 — Reliability skills
+# 26. Anti-goals
 
-Implementar:
+O projeto não deve virar:
 
-### `race-condition-hunter`
-
-Procurar:
-
-```text
-READ
-↓
-DECISION
-↓
-WRITE
-```
-
-e perguntar:
-
-> "O que acontece se outro request modificar o estado entre essas operações?"
+* uma coleção infinita de prompts;
+* uma taxonomia com uma skill para cada bug;
+* um router que sempre ativa seis ou mais skills;
+* um framework cheio de dependências para resolver um problema simples;
+* um benchmark otimizado para um único modelo;
+* uma coleção de links sem análise;
+* um catálogo de conhecimento duplicado;
+* um sistema que chama hipótese de bug;
+* um instalador que altera diretórios sem guardrails;
+* documentação maior do que o sistema que ela explica.
 
 ---
 
-### `idempotency-audit`
+# 27. Scorecard final
 
-Testar:
+Usar este scorecard antes de declarar 10/10.
 
-```text
-request
-request
-request
-```
+| Área | Peso | Gate |
+| --- | ---: | --- |
+| Qualidade das skills | 15% | todas possuem papel, fronteira, evidence e eval |
+| Evals | 20% | baseline e benchmark reproduzíveis |
+| Routing | 15% | precision, recall e over-routing dentro dos gates |
+| Findings | 10% | confidence calibrada e dedup |
+| Portabilidade | 10% | padrão aberto + matriz testada |
+| Tooling | 10% | CLI testado e seguro |
+| Knowledge | 5% | camada real e usada |
+| References | 5% | lifecycle e health checks |
+| CI e release | 5% | checks obrigatórios + release reproduzível |
+| Documentação e OSS | 5% | arquitetura, contributing, security e changelog |
 
-e:
-
-```text
-request
-response lost
-retry
-```
-
-Especialmente:
-
-* pagamentos;
-* rewards;
-* criação;
-* webhooks;
-* notificações;
-* contadores.
-
----
-
-### `data-integrity-audit`
-
-Verificar:
-
-* unique constraints;
-* foreign keys;
-* transactions;
-* cascading;
-* soft delete;
-* enums;
-* database constraints.
-
-O banco deve impedir estados impossíveis sempre que apropriado.
-
----
-
-# 9. Fase 6 — Product skills
-
-Implementar:
-
-### `gamification-audit`
-
-Detectar abuso de:
-
-* XP;
-* pontos;
-* moedas;
-* reputação;
-* achievements;
-* streaks;
-* likes;
-* reactions;
-* referrals.
-
-Modelo:
+Para 10/10:
 
 ```text
-TRIGGER
-↓
-CONDITION
-↓
-REWARD
-↓
-REVERSAL
-```
-
-Sempre testar:
-
-```text
-ACTION
-→ REWARD
-→ REVERSE
-→ ACTION
-→ REWARD
-```
-
-Também considerar:
-
-```text
-self-reward
-multi-account
-replay
-concurrency
-automation
-```
-
----
-
-# 10. Fase 7 — Frontend skills
-
-Implementar:
-
-### `ux-review`
-
-Avaliar:
-
-* clareza;
-* hierarquia;
-* carga cognitiva;
-* feedback;
-* affordances;
-* consistência;
-* navegação;
-* estados vazios;
-* erros;
-* loading.
-
----
-
-### `visual-quality-review`
-
-Avaliar:
-
-* tipografia;
-* spacing;
-* hierarchy;
-* density;
-* contrast;
-* composition;
-* consistency;
-* visual noise;
-* generic AI patterns.
-
-Também detectar **AI slop**.
-
----
-
-### `interaction-design`
-
-Avaliar:
-
-* hover;
-* focus;
-* pressed;
-* disabled;
-* loading;
-* transitions;
-* feedback;
-* micro-interactions.
-
----
-
-### `animation-review`
-
-Avaliar:
-
-* propósito;
-* timing;
-* easing;
-* hierarchy;
-* continuity;
-* interruption;
-* accessibility;
-* reduced motion.
-
----
-
-### `accessibility-review`
-
-Avaliar:
-
-* keyboard;
-* screen readers;
-* focus;
-* semantic HTML;
-* contrast;
-* touch targets;
-* reduced motion;
-* forms;
-* errors.
-
----
-
-# 11. Fase 8 — Reference system
-
-Criar um catálogo centralizado:
-
-```text
-references/
-├── frontend.yaml
-├── ux.yaml
-├── engineering.yaml
-├── security.yaml
-├── product.yaml
-└── research.yaml
-```
-
-Cada entrada:
-
-```yaml
-- name: Example
-  url: https://example.com
-  type: methodology
-  category: ux
-
-  authority: established
-
-  use_when:
-    - reviewing usability
-    - designing flows
-
-  avoid_when:
-    - unrelated backend task
-
-  search_queries:
-    - "..."
-    - "..."
-```
-
----
-
-# 12. Fase 9 — Frontend reference catalog
-
-Inicialmente adicionar referências como:
-
-```yaml
-ux:
-  - Laws of UX
-  - Interfaces
-
-visual:
-  - Impeccable
-  - Impeccable Slop
-  - Dark.design
-
-inspiration:
-  - Dribbble
-
-implementation:
-  - Animate UI
-
-discovery:
-  - LazyWeb
-  - Shoogle
-```
-
-URLs:
-
-```text
-https://lawsofux.com/
-https://impeccable.style/
-https://impeccable.style/slop/
-https://interfaces.rauno.me/
-https://www.lazyweb.com/
-https://shoogle.dev/
-https://dribbble.com/
-https://www.dark.design/
-https://animate-ui.com/
-```
-
-Essas fontes devem ser tratadas como diferentes classes de conhecimento:
-
-```text
-methodology
-heuristic
-inspiration
-implementation
-discovery
-```
-
-Não tratar todas como igualmente confiáveis.
-
----
-
-# 13. Fase 10 — Research skills
-
-Criar:
-
-### `reference-research`
-
-Descobrir quais fontes externas são relevantes para a tarefa.
-
----
-
-### `github-reference-research`
-
-Pesquisar:
-
-```text
-feature implementation
-feature architecture
-feature database
-feature API
-feature framework
-```
-
-Avaliar:
-
-* atividade;
-* qualidade;
-* testes;
-* documentação;
-* adoção;
-* licença;
-* arquitetura.
-
-Extrair ideias, não copiar cegamente.
-
----
-
-### `market-research`
-
-Pesquisar produtos reais.
-
-Comparar:
-
-* UX;
-* onboarding;
-* navigation;
-* information architecture;
-* interaction;
-* empty states;
-* errors;
-* mobile;
-* terminology.
-
-A pergunta não deve ser:
-
-> "Qual é o design mais bonito?"
-
-Mas:
-
-> "Como produtos que resolveram esse problema em escala fazem isso?"
-
----
-
-### `implementation-research`
-
-Pesquisar como problemas técnicos específicos são resolvidos na prática.
-
-Fontes prioritárias:
-
-```text
-official documentation
-GitHub
-maintainer discussions
-production code
-technical articles
-```
-
----
-
-# 14. Fase 11 — Skill router
-
-Criar:
-
-```text
-skills/meta/skill-router/SKILL.md
-```
-
-O router deve analisar a tarefa e selecionar skills.
-
-Exemplo:
-
-```text
-"Adicionar reações que dão XP"
-
-        ↓
-
-gamification-audit
-business-logic-audit
-idempotency-audit
-race-condition-hunter
-api-abuse-audit
-user-flow-audit
-```
-
-Outro exemplo:
-
-```text
-"Melhorar a tela de criação de personagem"
-
-        ↓
-
-ux-review
-visual-quality-review
-interaction-design
-accessibility-review
-reference-research
-market-research
-```
-
----
-
-# 15. Fase 12 — Research router
-
-O research router decide **onde pesquisar**.
-
-Exemplo:
-
-```text
-Animation problem
-        ↓
-Animate UI
-Impeccable
-Interfaces
-GitHub
-real products
-```
-
-```text
-UX problem
-        ↓
-Laws of UX
-Interfaces
-real products
-design systems
-```
-
-```text
-Architecture problem
-        ↓
-GitHub
-official documentation
-production implementations
-technical literature
-```
-
----
-
-# 16. Fase 13 — Research before implementation
-
-Para tarefas não triviais, o agente deverá fazer:
-
-```text
-UNDERSTAND
-    ↓
-CLASSIFY
-    ↓
-RESEARCH
-    ↓
-COMPARE
-    ↓
-DECIDE
-    ↓
-IMPLEMENT
-```
-
-Não:
-
-```text
-UNDERSTAND
-    ↓
-IMPLEMENT
-```
-
-Mas pesquisa deve ser proporcional à complexidade.
-
-Um botão simples não precisa de pesquisa.
-
-Uma arquitetura nova provavelmente precisa.
-
----
-
-# 17. Fase 14 — Research synthesis
-
-O agente nunca deve retornar apenas uma lista de links.
-
-Formato:
-
-```markdown
-## Research
-
-### Reference
-
-[Name]
-
-### Relevant Pattern
-
-What was found.
-
-### Why It Matters
-
-Why this pattern is useful.
-
-### Adaptation
-
-How it could apply to the current project.
-
-### Trade-offs
-
-What problems it introduces.
-
-### Recommendation
-
-What should actually be adopted.
-```
-
----
-
-# 18. Fase 15 — Audit workflow
-
-O workflow completo deverá ser:
-
-```text
-┌──────────────────────┐
-│       REQUEST        │
-└──────────┬───────────┘
-           ↓
-┌──────────────────────┐
-│     UNDERSTAND       │
-└──────────┬───────────┘
-           ↓
-┌──────────────────────┐
-│    CLASSIFY TASK     │
-└──────────┬───────────┘
-           ↓
-┌──────────────────────┐
-│     SKILL ROUTER     │
-└──────────┬───────────┘
-           ↓
-┌──────────────────────┐
-│   RESEARCH ROUTER    │
-└──────────┬───────────┘
-           ↓
-┌──────────────────────┐
-│      RESEARCH        │
-└──────────┬───────────┘
-           ↓
-┌──────────────────────┐
-│       ANALYZE        │
-└──────────┬───────────┘
-           ↓
-┌──────────────────────┐
-│       IMPLEMENT      │
-└──────────┬───────────┘
-           ↓
-┌──────────────────────┐
-│   ADVERSARIAL TEST   │
-└──────────┬───────────┘
-           ↓
-┌──────────────────────┐
-│       VERIFY         │
-└──────────┬───────────┘
-           ↓
-┌──────────────────────┐
-│       REPORT         │
-└──────────────────────┘
-```
-
----
-
-# 19. Fase 16 — Report templates
-
-Criar templates para:
-
-```text
-audit-report.md
-bug-report.md
-design-review.md
-research-report.md
-```
-
-Todo finding deve conter:
-
-```text
-Severity
-Confidence
-Affected component
-Affected flow
-Reproduction
-Expected behavior
-Actual behavior
-Root cause
-Impact
-Recommendation
-```
-
----
-
-# 20. Fase 17 — Examples
-
-Criar exemplos concretos.
-
-### `xp-reward-loop.md`
-
-Demonstrar:
-
-```text
-reaction
-→ XP
-→ remove reaction
-→ reaction
-→ XP
-→ infinite farming
-```
-
----
-
-### `race-condition.md`
-
-Demonstrar:
-
-```text
-check balance
-→ two requests
-→ both pass
-→ both deduct
-```
-
----
-
-### `authorization-bypass.md`
-
-Demonstrar:
-
-```text
-GET /resource/123
-
-authenticated ≠ authorized
-```
-
----
-
-### `frontend-review.md`
-
-Demonstrar uma análise usando:
-
-```text
-UX
+score total >= 95%
 +
-visual quality
+nenhum gate P0 aberto
 +
-interaction
+nenhuma regressão crítica conhecida
 +
-accessibility
-+
-external references
+benchmark reproduzível publicado
 ```
+
+O objetivo não é obter uma nota estética.
+
+O objetivo é chegar ao ponto em que a afirmação:
+
+> "estas skills tornam um coding agent melhor"
+
+possa ser sustentada por arquitetura, testes, evidência e resultados reproduzíveis.
 
 ---
 
-# 21. Fase 18 — Qualidade das skills
-
-Toda nova skill deverá responder:
-
-### Necessidade
-
-Qual problema ela resolve?
-
-### Escopo
-
-Quando deve ser ativada?
-
-### Heurísticas
-
-Quais perguntas ela ensina?
-
-### Evidência
-
-Como confirmar o finding?
-
-### Falsos positivos
-
-Quando o comportamento é aceitável?
-
-### Composição
-
-Quais outras skills normalmente trabalham junto?
-
----
-
-# 22. Fase 19 — Composição entre skills
-
-Skills devem poder trabalhar em conjunto.
-
-Exemplo:
-
-```text
-payment
-```
-
-ativa:
-
-```text
-business-logic-audit
-idempotency-audit
-race-condition-hunter
-data-integrity-audit
-error-flow-audit
-authorization-audit
-```
-
-Outro:
-
-```text
-social reactions
-```
-
-ativa:
-
-```text
-gamification-audit
-business-logic-audit
-idempotency-audit
-race-condition-hunter
-api-abuse-audit
-```
-
----
-
-# 23. Fase 20 — Evitar overengineering
-
-O sistema deve evitar:
-
-* pesquisar tudo sempre;
-* executar todas as skills;
-* produzir relatórios gigantes;
-* consultar referências irrelevantes;
-* transformar qualquer comportamento estranho em bug;
-* adicionar dependências desnecessárias.
-
-Princípio:
-
-> **Research proportional to uncertainty and impact.**
-
-Quanto maior:
-
-```text
-uncertainty
-+
-impact
-+
-irreversibility
-```
-
-maior deve ser o nível de pesquisa.
-
----
-
-# 24. Fase 21 — Futuras extensões
-
-Depois da primeira versão:
-
-```text
-financial/
-├── payment-flow-audit/
-├── pricing-manipulation/
-└── refund-abuse/
-
-architecture/
-├── dependency-audit/
-├── boundary-audit/
-└── failure-domain-audit/
-
-performance/
-├── query-audit/
-├── caching-audit/
-└── frontend-performance/
-
-observability/
-├── logging-audit/
-├── monitoring-audit/
-└── incident-debugging/
-
-mobile/
-├── mobile-ux-review/
-└── offline-state-audit/
-```
-
----
-
-# 25. Definition of Done
-
-O projeto será considerado funcional quando:
-
-* [ ] `AGENTS.md` estiver completo.
-* [ ] O formato padrão de `SKILL.md` estiver definido.
-* [ ] As skills core estiverem implementadas.
-* [ ] As skills de segurança estiverem implementadas.
-* [ ] As skills de reliability estiverem implementadas.
-* [ ] As skills frontend estiverem implementadas.
-* [ ] O catálogo de referências existir.
-* [ ] O catálogo possuir categorias e autoridade.
-* [ ] GitHub estiver integrado ao processo de research.
-* [ ] Market research estiver definido.
-* [ ] Skill router estiver implementado.
-* [ ] Research router estiver implementado.
-* [ ] Templates de relatório existirem.
-* [ ] Exemplos reais existirem.
-* [ ] As skills puderem ser combinadas.
-* [ ] O agente souber distinguir evidência de especulação.
-* [ ] O agente pesquisar antes de reinventar soluções complexas.
-
----
-
-# 26. Primeira versão
-
-A primeira release não precisa ter centenas de skills.
-
-### Core
-
-```text
-adversarial-review
-user-flow-audit
-business-logic-audit
-edge-case-hunter
-state-consistency-audit
-error-flow-audit
-```
-
-### Security
-
-```text
-authorization-audit
-api-abuse-audit
-input-trust-audit
-```
-
-### Reliability
-
-```text
-race-condition-hunter
-idempotency-audit
-data-integrity-audit
-```
-
-### Product
-
-```text
-gamification-audit
-```
-
-### Frontend
-
-```text
-ux-review
-visual-quality-review
-interaction-design
-animation-review
-accessibility-review
-```
-
-### Research
-
-```text
-reference-research
-github-reference-research
-market-research
-implementation-research
-```
-
-### Meta
-
-```text
-skill-router
-research-router
-```
-
-Total inicial:
-
-**24 skills.**
-
-A prioridade deve ser qualidade, composição e capacidade de raciocínio — não quantidade.
-
----
-
-# 27. Visão final
-
-O projeto deve funcionar como uma camada de inteligência sobre agentes de desenvolvimento:
-
-```text
-                    AGENT
-                      │
-                      ↓
-                SKILL ROUTER
-                      │
-          ┌───────────┼───────────┐
-          ↓           ↓           ↓
-       AUDIT       PRODUCT     FRONTEND
-          │           │           │
-          └───────────┼───────────┘
-                      ↓
-               RESEARCH ROUTER
-                      │
-        ┌─────────────┼─────────────┐
-        ↓             ↓             ↓
-      GitHub       Products      References
-        │             │             │
-        └─────────────┼─────────────┘
-                      ↓
-                  SYNTHESIS
-                      │
-                      ↓
-                 IMPLEMENT
-                      │
-                      ↓
-              ADVERSARIAL TEST
-                      │
-                      ↓
-                   VERIFY
-                      │
-                      ↓
-                   REPORT
-```
-
-O objetivo final não é criar um agente que **sabe mais**.
-
-É criar um agente que **sabe como descobrir mais, onde procurar, quais perguntas fazer e como verificar se está certo**.
+# 28. Definition of Done final
+
+## P0
+
+* [ ] Evals implementados.
+* [ ] Baseline implementado.
+* [ ] Catálogo de skills implementado.
+* [ ] Router v2 implementado.
+* [ ] Skill budget implementado.
+* [ ] Deduplicação implementada.
+* [ ] CI implementada.
+* [ ] CLI testado.
+* [ ] Guardrails de filesystem implementados.
+
+## P1
+
+* [ ] Frontmatter compatível com Agent Skills.
+* [ ] Instalação genérica testada.
+* [ ] Matriz de compatibilidade publicada.
+* [ ] Knowledge layer preenchida.
+* [ ] Reference health implementado.
+* [ ] Todas as skills possuem evals.
+* [ ] Documentação de arquitetura publicada.
+* [ ] CONTRIBUTING, SECURITY e CHANGELOG adicionados.
+* [ ] Release process automatizado.
+
+## P2
+
+* [ ] Benchmark público.
+* [ ] Resultados versionados.
+* [ ] Casos reais adicionados.
+* [ ] Grafo gerado automaticamente.
+* [ ] GitHub metadata configurada.
+* [ ] `v1.0.0` publicado.
+
+Quando todos os itens acima estiverem fechados, adicionar novas skills volta a ser uma prioridade válida.
