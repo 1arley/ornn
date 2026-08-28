@@ -1,0 +1,45 @@
+{
+  "name": "agent-engineering-skills",
+  "version": "1.0.0",
+  "description": "Modular skills that teach AI agents to audit systems, find bugs, review UX/frontend, and research before reinventing. npx agent-engineering-skills install",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "agent-engineering-skills": "./bin/cli.js"
+  },
+  "files": [
+    "bin/",
+    "skills/",
+    "references/",
+    "templates/",
+    "examples/",
+    "docs/",
+    "scripts/",
+    "AGENTS.md",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "claude-code",
+    "agent",
+    "skills",
+    "audit",
+    "security",
+    "frontend",
+    "ux",
+    "research",
+    "bug-finding",
+    "ai-agent"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/1arley/1arley-agent-skills.git"
+  },
+  "bugs": {
+    "url": "https://github.com/1arley/1arley-agent-skills/issues"
+  },
+  "homepage": "https://github.com/1arley/1arley-agent-skills#readme"
+}
