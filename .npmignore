@@ -1,0 +1,16 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Local scratch
+node_modules/
+*.tgz
+
+# User scratch docs (not part of the package)
+mvp.md
+audit-report-mesa-redonda.md
+
+# Internal planning / CI-only
+plan.md
+test/
+.github/

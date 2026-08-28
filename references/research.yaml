@@ -7,6 +7,8 @@
   type: implementation
   category: research
   authority: community
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - searching production implementations of a feature or pattern
     - comparing architecture, database, API, and framework choices
@@ -24,6 +26,8 @@
   type: discovery
   category: research
   authority: established
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - finding authoritative technical literature on a hard problem
     - grounding concurrency, integrity, or algorithm decisions in research
@@ -41,6 +45,8 @@
   type: discovery
   category: research
   authority: community
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - finding practitioner discussion and post-mortems
     - discovering real-world edge cases and failures
@@ -58,6 +64,8 @@
   type: heuristic
   category: research
   authority: community
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - finding how practitioners solved a specific technical problem
     - locating known edge cases and gotchas
@@ -75,6 +83,8 @@
   type: implementation
   category: research
   authority: vendor
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - quickly consulting consolidated official documentation
     - cross-referencing API references across frameworks

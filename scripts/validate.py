@@ -21,6 +21,7 @@ import json
 import os
 import re
 import sys
+from datetime import date
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -51,6 +52,8 @@ VALID_REF_TYPES = {
     "methodology", "heuristic", "inspiration", "implementation", "discovery",
 }
 VALID_AUTHORITIES = {"established", "community", "vendor", "curated"}
+VALID_REF_STATUS = {"active", "degraded", "archived"}
+REF_FRESHNESS_DAYS = 180
 
 # All skill names defined by plan.md (the known universe). The router may reference
 # skills from later milestones before they are implemented; references to names in
@@ -483,6 +486,27 @@ def check_references() -> list[str]:
                     f"{rel}: entry #{n} invalid authority {entry['authority']!r} "
                     f"(valid: {sorted(VALID_AUTHORITIES)})"
                 )
+            if "status" in entry and entry["status"] not in VALID_REF_STATUS:
+                errors.append(
+                    f"{rel}: entry #{n} invalid status {entry['status']!r} "
+                    f"(valid: {sorted(VALID_REF_STATUS)})"
+                )
+            if "last_verified" not in entry:
+                errors.append(f"{rel}: entry #{n} missing 'last_verified'")
+            elif entry["last_verified"]:
+                try:
+                    verified = date.fromisoformat(str(entry["last_verified"]))
+                except ValueError:
+                    errors.append(
+                        f"{rel}: entry #{n} invalid last_verified "
+                        f"{entry['last_verified']!r}"
+                    )
+                else:
+                    if (date.today() - verified).days > REF_FRESHNESS_DAYS:
+                        warnings_.append(
+                            f"{rel}: entry #{n} {entry.get('name')} last verified "
+                            f"> {REF_FRESHNESS_DAYS} days ago"
+                        )
             if "category" in entry and entry["category"] != expected_category:
                 errors.append(
                     f"{rel}: entry #{n} category {entry['category']!r} != "

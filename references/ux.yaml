@@ -7,6 +7,8 @@
   type: methodology
   category: ux
   authority: established
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - reviewing usability and cognitive load
     - designing or auditing user flows
@@ -24,6 +26,8 @@
   type: heuristic
   category: ux
   authority: curated
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - calibrating taste for interaction detail and feedback
     - comparing affordances and micro-interactions

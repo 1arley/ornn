@@ -1725,12 +1725,12 @@ Toda release deve responder:
 
 ## PR 6: CI e CLI hardening
 
-* [ ] Criar `.github/workflows/ci.yml`.
-* [ ] Adicionar `node:test`.
-* [ ] Adicionar `--dry-run`.
-* [ ] Proteger `--force`.
-* [ ] Adicionar install smoke tests.
-* [ ] Adicionar `npm pack --dry-run`.
+* [x] Criar `.github/workflows/ci.yml`.
+* [x] Adicionar `node:test`.
+* [x] Adicionar `--dry-run`.
+* [x] Proteger `--force`.
+* [x] Adicionar install smoke tests.
+* [x] Adicionar `npm pack --dry-run`.
 
 ## PR 7: knowledge
 

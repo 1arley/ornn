@@ -122,6 +122,17 @@ def _parse_block(lines: list[tuple[int, str]], start: int, indent: int):
             else:
                 items.append(_parse_scalar(payload))
                 i += 1
+            # Continue collecting the mapping fields of this list item if they
+            # are indented deeper than the list marker (reference catalogs).
+            if i < len(lines) and lines[i][0] > indent:
+                tail, i = _parse_block(lines, i, lines[i][0])
+                if isinstance(items[-1], dict) and isinstance(tail, dict):
+                    items[-1].update(tail)
+                elif isinstance(items[-1], dict) and isinstance(tail, list):
+                    # A scalar list that continues the last key is handled by
+                    # _parse_block returning a list only when the block starts
+                    # with a list marker; merge into the existing value.
+                    items[-1] = {**items[-1], **(tail[-1] if tail and isinstance(tail[-1], dict) else {})}
         return items, i
 
     # ---- mapping block: lines are 'key: ...'

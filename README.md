@@ -74,9 +74,20 @@ npx agent-engineering-skills install --force
 **Outros comandos:**
 
 ```bash
-npx agent-engineering-skills validate   # roda o validador
-npx agent-engineering-skills --help     # ajuda completa
-npx agent-engineering-skills --version  # versão instalada
+npx agent-engineering-skills validate            # roda o validador (contratos + catálogo + evals)
+npx agent-engineering-skills doctor              # diagnóstico do repo e instalação
+npx agent-engineering-skills list                # lista skills do catálogo (role, priority, installed)
+npx agent-engineering-skills graph               # grafo Mermaid da composição (stdout ou --out)
+npx agent-engineering-skills eval --json         # evals determinísticos de routing
+npx agent-engineering-skills --help              # ajuda completa
+npx agent-engineering-skills --version           # versão instalada
+```
+
+**Instalação segura:**
+
+```bash
+npx agent-engineering-skills install --dry-run   # mostra o que aconteceria, sem escrever nada
+npx agent-engineering-skills install --force     # sobrescreve skills, com guardrails de path
 ```
 
 ### Opção 2 — clonando o repositório
@@ -201,11 +212,15 @@ referências.
 │
 ├── references/            # catálogo YAML de fontes externas (6 catálogos)
 ├── knowledge/             # material "o que considerar" (estrutura pronta)
+├── catalog/               # single source of truth para routing (skills.yaml)
+├── evals/                 # casos, fixtures, baselines e resultados
 ├── templates/             # templates de relatório (audit, bug, design, research)
 ├── examples/              # exemplos concretos de auditorias completas
 ├── docs/                  # filosofia, authoring, integração
+├── test/                  # testes unitários (node:test + unittest)
 ├── bin/                   # CLI (node, zero deps)
-└── scripts/               # validação (lint de skills e referências)
+├── .github/workflows/     # CI, reference health e release gates
+└── scripts/               # validação, router, eval, findings, health checks
 ```
 
 ---

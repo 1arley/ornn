@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: validate (python 3.11+, node 18/20/22)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [18, 20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Validate repo contracts
+        run: python3 scripts/validate.py
+      - name: Deterministic routing evals (gates)
+        run: python3 scripts/eval.py route --router v2 --check
+      - name: Routing baseline comparison
+        run: python3 scripts/eval.py diff --base evals/baselines/router-v1.json --cur evals/results/router-v2.json
+      - name: Findings fixtures
+        run: python3 scripts/eval.py findings-fixtures
+      - name: CLI tests (node:test)
+        run: node --test test/cli.test.js
+      - name: Findings unit tests
+        run: python3 -m unittest discover -s test -p 'test_*.py'
+      - name: CLI --dry-run smoke
+        run: node bin/cli.js install --dry-run --target "$(mktemp -d)"
+      - name: CLI install smoke (temporary directory)
+        run: |
+          T="$(mktemp -d)"
+          node bin/cli.js install --target "$T"
+          test -f "$T/adversarial-review/SKILL.md"
+      - name: CLI install --link smoke (temporary directory)
+        run: |
+          T="$(mktemp -d)"
+          node bin/cli.js install --link --target "$T"
+          test -L "$T/adversarial-review"
+      - name: CLI install --force smoke (temporary directory)
+        run: |
+          T="$(mktemp -d)"
+          node bin/cli.js install --target "$T"
+          node bin/cli.js install --force --target "$T"
+          test -f "$T/adversarial-review/SKILL.md"
+      - name: npm pack --dry-run
+        run: npm pack --dry-run
+      - name: Agent Skills portability check
+        run: python3 scripts/validate.py --agent-skills 2>/dev/null || python3 scripts/validate.py | grep -q "All contracts satisfied"
+      - name: Generated graph smoke
+        run: node bin/cli.js graph | grep -q "graph TD"

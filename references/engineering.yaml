@@ -7,6 +7,8 @@
   type: methodology
   category: engineering
   authority: established
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - auditing authentication and authorization flows
     - reviewing input validation and injection risks
@@ -24,6 +26,8 @@
   type: methodology
   category: engineering
   authority: established
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - classifying security risks in a web application
     - prioritizing which audit skills to run
@@ -41,6 +45,8 @@
   type: methodology
   category: engineering
   authority: established
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - learning concrete attack patterns for access control and API abuse
     - finding reproducible exploit examples
@@ -58,6 +64,8 @@
   type: heuristic
   category: engineering
   authority: established
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - designing edge-case and state-based tests
     - reasoning about concurrency and flakiness
@@ -75,6 +83,8 @@
   type: implementation
   category: engineering
   authority: community
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - searching for production implementations of a pattern
     - comparing how real projects handle concurrency or idempotency

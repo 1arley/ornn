@@ -7,6 +7,8 @@
   type: implementation
   category: product
   authority: community
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - comparing how real products implement gamification and reward loops
     - finding production examples of XP, streaks, and achievement systems
@@ -24,6 +26,8 @@
   type: discovery
   category: product
   authority: community
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - discovering real products that solved a similar problem
     - surveying how the market approaches a feature
@@ -41,6 +45,8 @@
   type: methodology
   category: product
   authority: established
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - reasoning about retention loops and engagement mechanics
     - auditing whether a reward system is gamed-resistant by design

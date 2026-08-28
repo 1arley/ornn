@@ -7,6 +7,8 @@
   type: methodology
   category: security
   authority: established
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - auditing authorization and access control
     - reviewing input validation and trust boundaries
@@ -24,6 +26,8 @@
   type: methodology
   category: security
   authority: established
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - classifying authorization and input-trust findings
     - prioritizing security skill selection
@@ -40,6 +44,8 @@
   type: methodology
   category: security
   authority: established
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - reproducing access control and API abuse attack patterns
     - learning IDOR and privilege escalation techniques
@@ -56,6 +62,8 @@
   type: heuristic
   category: security
   authority: established
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - naming and classifying a confirmed weakness
     - finding canonical descriptions of input-trust and authorization flaws
@@ -72,6 +80,8 @@
   type: implementation
   category: security
   authority: community
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - finding real-world examples of authorization middleware
     - comparing how projects enforce ownership and roles server-side

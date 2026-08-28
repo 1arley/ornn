@@ -1,0 +1,37 @@
+name: reference-health
+
+on:
+  schedule:
+    # Weekly, off the busy hour marks (plan: PR CI must not depend on
+    # external link health; this job owns the external checks).
+    - cron: "23 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  check:
+    name: URL health and duplicate detection
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate reference schema and duplicates (offline)
+        run: python3 scripts/validate.py
+      - name: Check reference URLs (online)
+        run: |
+          if [ -f scripts/check_references.py ]; then
+            python3 scripts/check_references.py --json --out reference-health.json || true
+          else
+            echo "check_references.py not implemented yet; scheduling offline schema checks only."
+          fi
+      - name: Upload health report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reference-health
+          path: reference-health.json
+          if-no-files-found: ignore

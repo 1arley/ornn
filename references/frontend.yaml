@@ -7,6 +7,8 @@
   type: heuristic
   category: frontend
   authority: established
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - reviewing visual quality and craft
     - auditing spacing, typography, hierarchy, and density
@@ -24,6 +26,8 @@
   type: heuristic
   category: frontend
   authority: established
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - detecting AI slop and generic AI visual patterns
     - auditing visual-quality-review findings for templated output
@@ -41,6 +45,8 @@
   type: heuristic
   category: frontend
   authority: curated
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - referencing high-craft interaction and visual detail
     - comparing micro-interaction polish
@@ -58,6 +64,8 @@
   type: inspiration
   category: frontend
   authority: curated
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - seeking visual inspiration for composition and style
     - exploring alternative treatments for a screen
@@ -76,6 +84,8 @@
   type: inspiration
   category: frontend
   authority: curated
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - exploring dark-mode and high-contrast visual treatments
     - seeking non-generic aesthetic direction
@@ -92,6 +102,8 @@
   type: implementation
   category: frontend
   authority: community
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - implementing or reviewing concrete animation components
     - referencing real transition and motion patterns
@@ -109,6 +121,8 @@
   type: discovery
   category: frontend
   authority: community
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - discovering more frontend sources and tools
     - finding what the community is using for a given problem
@@ -126,6 +140,8 @@
   type: discovery
   category: frontend
   authority: community
+  last_verified: 2026-08-28
+  status: active
   use_when:
     - discovering frontend libraries and components
     - surveying implementation options for a UI need
