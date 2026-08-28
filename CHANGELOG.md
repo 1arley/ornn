@@ -9,6 +9,24 @@ Deprecated, Removed, Security.
 
 ### Added
 
+- Universal interactive installer with agent detection and provider selection
+  (`npx agent-engineering-skills install`).
+- Provider registry with Claude Code, Codex, OpenCode, Cursor, and Gemini CLI
+  adapters; universal `.agents/skills` mode.
+- `--scope project|global`, `--providers`, `--universal`, `--yes`, `--dry-run`,
+  and short aliases `-g`, `-y`, `-a`.
+- Installation manifest (`.agent-engineering-skills.json`) recording managed
+  providers and skills.
+- `update` and `uninstall` commands driven by the manifest; only managed files
+  are touched.
+- `list` and `doctor` now report installations per provider.
+- Non-interactive (CI) mode: no TTY means no prompts; insufficient flags yield
+  an actionable error.
+- 24 installer tests (provider detection, scope, adapters, manifest, update,
+  uninstall, dry-run, force, path safety).
+- `src/installer/` modular architecture (providers, detect, install, prompts,
+  paths, manifest, orchestrator).
+
 - Structured skill catalog (`catalog/skills.yaml`) as single source of truth
   for triggers, roles, risk floors, composition, overlap, and cost.
 - Frontmatter migration to portable Agent Skills format

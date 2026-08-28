@@ -1,0 +1,314 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, rmSync, mkdirSync, writeFileSync, readdirSync, readFileSync, existsSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const ROOT = resolve(fileURLToPath(import.meta.url), "..", "..");
+const CLI = join(ROOT, "bin", "cli.js");
+
+function run(args, opts = {}) {
+  return spawnSync("node", [CLI, ...args], { encoding: "utf8", ...opts });
+}
+
+function tmpProject() {
+  const dir = mkdtempSync(join(tmpdir(), "aes-u-"));
+  return { dir, cleanup: () => rmSync(dir, { recursive: true, force: true }) };
+}
+
+// Helper: run a command from inside a temp project dir.
+function runIn(dir, args) {
+  return run(args, { cwd: dir });
+}
+
+test("--help mentions scope, providers, universal, update, uninstall", () => {
+  const r = run(["--help"]);
+  assert.equal(r.status, 0);
+  for (const word of ["--scope", "--providers", "--universal", "update", "uninstall", "--dry-run"]) {
+    assert.ok(r.stdout.includes(word), `help should mention ${word}`);
+  }
+});
+
+test("--version prints the package version", () => {
+  const r = run(["--version"]);
+  assert.equal(r.status, 0);
+  assert.match(r.stdout.trim(), /^\d+\.\d+\.\d+$/);
+});
+
+test("universal install writes to .agents/skills and creates a manifest", () => {
+  const { dir, cleanup } = tmpProject();
+  try {
+    const r = runIn(dir, ["install", "--scope", "project", "--universal", "--yes"]);
+    assert.equal(r.status, 0);
+    const skillDirs = readdirSync(join(dir, ".agents", "skills"));
+    assert.ok(skillDirs.includes("adversarial-review"));
+    assert.ok(readFileSync(join(dir, ".agent-engineering-skills.json"), "utf8").includes("universal"));
+  } finally {
+    cleanup();
+  }
+});
+
+test("universal install preserves the Agent Skills source (no claude adaptation)", () => {
+  const { dir, cleanup } = tmpProject();
+  try {
+    runIn(dir, ["install", "--scope", "project", "--universal", "--yes"]);
+    const content = readFileSync(join(dir, ".agents", "skills", "adversarial-review", "SKILL.md"), "utf8");
+    assert.match(content, /license: MIT/);
+    assert.match(content, /metadata:/);
+    assert.ok(!content.includes("user_invocable"));
+  } finally {
+    cleanup();
+  }
+});
+
+test("claude provider install adds user_invocable", () => {
+  const { dir, cleanup } = tmpProject();
+  try {
+    runIn(dir, ["install", "--scope", "project", "--providers", "claude", "--yes"]);
+    const content = readFileSync(join(dir, ".claude", "skills", "adversarial-review", "SKILL.md"), "utf8");
+    assert.match(content, /user_invocable: true/);
+  } finally {
+    cleanup();
+  }
+});
+
+test("opencode provider install uses universal adapter (no user_invocable)", () => {
+  const { dir, cleanup } = tmpProject();
+  try {
+    runIn(dir, ["install", "--scope", "project", "--providers", "opencode", "--yes"]);
+    const content = readFileSync(join(dir, ".opencode", "skills", "adversarial-review", "SKILL.md"), "utf8");
+    assert.ok(!content.includes("user_invocable"));
+    assert.match(content, /license: MIT/);
+  } finally {
+    cleanup();
+  }
+});
+
+test("multiple providers install into multiple targets", () => {
+  const { dir, cleanup } = tmpProject();
+  try {
+    const r = runIn(dir, ["install", "--scope", "project", "--providers", "claude,codex,opencode", "--yes"]);
+    assert.equal(r.status, 0);
+    for (const p of [".claude", ".codex", ".opencode"]) {
+      assert.ok(existsSync(join(dir, p, "skills", "adversarial-review", "SKILL.md")), `${p} should have skills`);
+    }
+  } finally {
+    cleanup();
+  }
+});
+
+test("global scope installs into ~/.agents/skills for universal (dry-run)", () => {
+  const { dir, cleanup } = tmpProject();
+  try {
+    const r = runIn(dir, ["install", "--scope", "global", "--universal", "--yes", "--dry-run"]);
+    assert.equal(r.status, 0);
+    assert.match(r.stdout, /\.agents\/skills/);
+  } finally {
+    cleanup();
+  }
+});
+
+test("non-interactive (CI) mode with insufficient flags still works when universal given", () => {
+  // In a non-TTY environment, --yes + --universal should install without prompts.
+  const { dir, cleanup } = tmpProject();
+  try {
+    const r = runIn(dir, ["install", "--universal", "--yes"]);
+    assert.equal(r.status, 0);
+    assert.ok(existsSync(join(dir, ".agents", "skills")));
+  } finally {
+    cleanup();
+  }
+});
+
+test("--providers detected resolves provider ids", () => {
+  const { dir, cleanup } = tmpProject();
+  try {
+    const r = runIn(dir, ["install", "--providers", "detected", "--scope", "project", "--universal", "--yes", "--dry-run"]);
+    // The combination may install to universal; ensure no error and a plan printed.
+    assert.equal(r.status, 0);
+    assert.match(r.stdout, /skills/);
+  } finally {
+    cleanup();
+  }
+});
+
+test("--providers all installs into every provider target (dry-run)", () => {
+  const { dir, cleanup } = tmpProject();
+  try {
+    const r = runIn(dir, ["install", "--providers", "all", "--scope", "project", "--dry-run"]);
+    assert.equal(r.status, 0);
+    for (const p of [".claude", ".codex", ".opencode", ".cursor", ".gemini"]) {
+      assert.match(r.stdout, new RegExp(p));
+    }
+  } finally {
+    cleanup();
+  }
+});
+
+test("unknown provider is rejected with an actionable error", () => {
+  const { dir, cleanup } = tmpProject();
+  try {
+    const r = runIn(dir, ["install", "--providers", "nope", "--scope", "project", "--yes"]);
+    assert.notEqual(r.status, 0);
+    assert.match(r.stderr, /Unknown provider/);
+  } finally {
+    cleanup();
+  }
+});
+
+test("dry-run makes no filesystem changes", () => {
+  const { dir, cleanup } = tmpProject();
+  try {
+    const r = runIn(dir, ["install", "--scope", "project", "--universal", "--yes", "--dry-run"]);
+    assert.equal(r.status, 0);
+    assert.ok(!existsSync(join(dir, ".agents")));
+    assert.ok(!existsSync(join(dir, ".agent-engineering-skills.json")));
+  } finally {
+    cleanup();
+  }
+});
+
+test("install skips existing skills without --force", () => {
+  const { dir, cleanup } = tmpProject();
+  try {
+    runIn(dir, ["install", "--scope", "project", "--universal", "--yes"]);
+    mkdirSync(join(dir, ".agents", "skills", "adversarial-review"), { recursive: true });
+    writeFileSync(join(dir, ".agents", "skills", "adversarial-review", "marker.txt"), "keep");
+    const r = runIn(dir, ["install", "--scope", "project", "--universal", "--yes"]);
+    assert.equal(r.status, 0);
+    assert.equal(readFileSync(join(dir, ".agents", "skills", "adversarial-review", "marker.txt"), "utf8"), "keep");
+  } finally {
+    cleanup();
+  }
+});
+
+test("install --force overwrites existing skills", () => {
+  const { dir, cleanup } = tmpProject();
+  try {
+    runIn(dir, ["install", "--scope", "project", "--universal", "--yes"]);
+    writeFileSync(join(dir, ".agents", "skills", "adversarial-review", "extra.txt"), "x");
+    const r = runIn(dir, ["install", "--scope", "project", "--universal", "--yes", "--force"]);
+    assert.equal(r.status, 0);
+    assert.ok(!existsSync(join(dir, ".agents", "skills", "adversarial-review", "extra.txt")));
+  } finally {
+    cleanup();
+  }
+});
+
+test("update reads the manifest and refreshes managed skills", () => {
+  const { dir, cleanup } = tmpProject();
+  try {
+    runIn(dir, ["install", "--scope", "project", "--universal", "--yes"]);
+    // Remove one managed skill, then update restores it.
+    rmSync(join(dir, ".agents", "skills", "adversarial-review"), { recursive: true, force: true });
+    const r = runIn(dir, ["update", "--scope", "project", "--yes"]);
+    assert.equal(r.status, 0);
+    assert.ok(existsSync(join(dir, ".agents", "skills", "adversarial-review", "SKILL.md")));
+  } finally {
+    cleanup();
+  }
+});
+
+test("update --dry-run reports but does not write", () => {
+  const { dir, cleanup } = tmpProject();
+  try {
+    runIn(dir, ["install", "--scope", "project", "--universal", "--yes"]);
+    rmSync(join(dir, ".agents", "skills", "adversarial-review"), { recursive: true, force: true });
+    const r = runIn(dir, ["update", "--scope", "project", "--dry-run"]);
+    assert.equal(r.status, 0);
+    assert.ok(!existsSync(join(dir, ".agents", "skills", "adversarial-review")));
+  } finally {
+    cleanup();
+  }
+});
+
+test("update with no manifest reports an error", () => {
+  const { dir, cleanup } = tmpProject();
+  try {
+    const r = runIn(dir, ["update", "--scope", "project"]);
+    assert.notEqual(r.status, 0);
+    assert.match(r.stdout, /No installation manifest found/);
+  } finally {
+    cleanup();
+  }
+});
+
+test("uninstall removes managed skills but not the whole provider directory", () => {
+  const { dir, cleanup } = tmpProject();
+  try {
+    runIn(dir, ["install", "--scope", "project", "--universal", "--yes"]);
+    // Add an unrelated file to the provider dir that must survive.
+    mkdirSync(join(dir, ".agents", "other"), { recursive: true });
+    writeFileSync(join(dir, ".agents", "other", "keep.txt"), "keep");
+    const r = runIn(dir, ["uninstall", "--scope", "project", "--providers", "universal", "--yes"]);
+    assert.equal(r.status, 0);
+    assert.ok(!existsSync(join(dir, ".agents", "skills", "adversarial-review")));
+    assert.ok(existsSync(join(dir, ".agents", "other", "keep.txt")));
+  } finally {
+    cleanup();
+  }
+});
+
+test("uninstall --dry-run does not remove", () => {
+  const { dir, cleanup } = tmpProject();
+  try {
+    runIn(dir, ["install", "--scope", "project", "--universal", "--yes"]);
+    const r = runIn(dir, ["uninstall", "--scope", "project", "--providers", "universal", "--yes", "--dry-run"]);
+    assert.equal(r.status, 0);
+    assert.ok(existsSync(join(dir, ".agents", "skills", "adversarial-review")));
+  } finally {
+    cleanup();
+  }
+});
+
+test("legacy --target install still works (backward compat)", () => {
+  const { dir, cleanup } = tmpProject();
+  try {
+    const target = join(dir, "legacy-skills");
+    const r = runIn(dir, ["install", "--target", target, "--dry-run"]);
+    assert.equal(r.status, 0);
+    assert.match(r.stdout, /would install: 24/);
+  } finally {
+    cleanup();
+  }
+});
+
+test("manifest only records managed skills and providers", () => {
+  const { dir, cleanup } = tmpProject();
+  try {
+    runIn(dir, ["install", "--scope", "project", "--providers", "claude", "--yes"]);
+    const manifest = JSON.parse(readFileSync(join(dir, ".agent-engineering-skills.json"), "utf8"));
+    assert.deepEqual(manifest.providers, ["claude"]);
+    assert.ok(Array.isArray(manifest.skills));
+    assert.ok(manifest.skills.includes("adversarial-review"));
+    assert.ok(manifest.skills.length >= 20);
+  } finally {
+    cleanup();
+  }
+});
+
+test("path safety: refusing to remove outside target", async (t) => {
+  const { safeDestFor } = await import("../src/installer/paths.js");
+  const { dir, cleanup } = tmpProject();
+  try {
+    const escapeName = "..";
+    const target = join(dir, "target");
+    const refused = safeDestFor(target, escapeName, { warn: () => {} });
+    assert.equal(refused, null);
+  } finally {
+    cleanup();
+  }
+});
+
+test("no agents detected still allows universal install", () => {
+  const { dir, cleanup } = tmpProject();
+  try {
+    // Even with no providers detected, --universal must work without prompts.
+    const r = runIn(dir, ["install", "--universal", "--yes", "--dry-run"]);
+    assert.equal(r.status, 0);
+  } finally {
+    cleanup();
+  }
+});

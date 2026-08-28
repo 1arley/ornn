@@ -119,10 +119,10 @@ test("force removal of a skill destination is scoped to that skill", () => {
   }
 });
 
-test("doctor reports node version and exits 0 when healthy", () => {
+test("doctor reports and exits 0 when healthy", () => {
   const r = run(["doctor"]);
   assert.equal(r.status, 0);
-  assert.match(r.stdout, /node version/);
+  assert.match(r.stdout, /Node version/);
 });
 
 test("list prints catalog rows with installed column", () => {

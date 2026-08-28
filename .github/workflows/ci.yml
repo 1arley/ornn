@@ -33,27 +33,37 @@ jobs:
       - name: Findings fixtures
         run: python3 scripts/eval.py findings-fixtures
       - name: CLI tests (node:test)
-        run: node --test test/cli.test.js
+        run: node --test test/cli.test.js test/universal-installer.test.js
       - name: Findings unit tests
         run: python3 -m unittest discover -s test -p 'test_*.py'
       - name: CLI --dry-run smoke
         run: node bin/cli.js install --dry-run --target "$(mktemp -d)"
-      - name: CLI install smoke (temporary directory)
+      - name: CLI universal install smoke (temporary directory)
+        run: |
+          T="$(mktemp -d)"
+          cd "$T"
+          node "$GITHUB_WORKSPACE/bin/cli.js" install --universal --yes
+          test -f "$T/.agents/skills/adversarial-review/SKILL.md"
+          test -f "$T/.agent-engineering-skills.json"
+      - name: CLI provider install smoke (temporary directory)
+        run: |
+          T="$(mktemp -d)"
+          cd "$T"
+          node "$GITHUB_WORKSPACE/bin/cli.js" install --providers opencode --yes
+          test -f "$T/.opencode/skills/adversarial-review/SKILL.md"
+      - name: CLI legacy install smoke (temporary directory)
         run: |
           T="$(mktemp -d)"
           node bin/cli.js install --target "$T"
           test -f "$T/adversarial-review/SKILL.md"
-      - name: CLI install --link smoke (temporary directory)
+      - name: CLI update + uninstall smoke (temporary directory)
         run: |
           T="$(mktemp -d)"
-          node bin/cli.js install --link --target "$T"
-          test -L "$T/adversarial-review"
-      - name: CLI install --force smoke (temporary directory)
-        run: |
-          T="$(mktemp -d)"
-          node bin/cli.js install --target "$T"
-          node bin/cli.js install --force --target "$T"
-          test -f "$T/adversarial-review/SKILL.md"
+          cd "$T"
+          node "$GITHUB_WORKSPACE/bin/cli.js" install --universal --yes
+          node "$GITHUB_WORKSPACE/bin/cli.js" update --yes
+          node "$GITHUB_WORKSPACE/bin/cli.js" uninstall --providers universal --yes
+          test ! -d "$T/.agents/skills/adversarial-review"
       - name: npm pack --dry-run
         run: npm pack --dry-run
       - name: Agent Skills portability check

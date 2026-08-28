@@ -17,6 +17,7 @@
     "scripts/",
     "catalog/",
     "evals/",
+    "src/",
     "AGENTS.md",
     "README.md",
     "LICENSE"

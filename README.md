@@ -38,56 +38,115 @@ O objetivo não é criar um agente que sabe mais. É criar um agente que **sabe 
 
 ## Instalação
 
-### Opção 1 — npx (recomendado)
+### Instalação interativa (recomendada)
 
 ```bash
-# Instala as 24 skills no diretório padrão (~/.claude/skills/)
 npx agent-engineering-skills install
 ```
 
-O que acontece:
-1. Detecta `~/.claude/skills/` (ou o `--target` que você informar)
-2. Cria uma pasta por skill, com `SKILL.md` no formato nativo do Claude Code (`user_invocable`)
-3. Não sobrescreve skills existentes (a menos que use `--force`)
+O instalador detecta automaticamente os agentes instalados no sistema e abre uma
+interface interativa:
 
-**Opções:**
+```text
+Agent Engineering Skills
 
-| Opção | Descrição |
-|---|---|
-| `--target <dir>` | Diretório de destino (default: `~/.claude/skills/`) |
-| `--link` | Cria symlinks para o repositório (útil em desenvolvimento) |
-| `--force` | Sobrescreve skills existentes com o mesmo nome |
+Detected agents:
 
-**Exemplos:**
+  ✓ Claude Code
+  ✓ Codex
+  ✓ OpenCode
+  ○ Cursor
+  ○ Gemini CLI
 
-```bash
-# Instalar em um diretório custom
-npx agent-engineering-skills install --target ~/meus-skills
+Where do you want to install?
 
-# Instalar como symlinks (edita skills e o efeito é imediato no Claude Code)
-npx agent-engineering-skills install --link
+  ● Current project
+  ○ Globally
 
-# Reinstalar tudo
-npx agent-engineering-skills install --force
+Providers:
+
+  ☑ Claude Code
+  ☑ Codex
+  ☑ OpenCode
+  ☐ Cursor
+  ☐ Gemini CLI
+
+24 skills will be installed.
+
+Continue? Y/n
 ```
 
-**Outros comandos:**
+Após a confirmação, cada provider recebe as skills com o adapter correto:
+
+```text
+Installing Agent Engineering Skills
+
+✓ Claude Code     .claude/skills        24 skills
+✓ Codex           .codex/skills         24 skills
+✓ OpenCode        .opencode/skills      24 skills
+
+Done. 3 providers configured. 72 skill installations.
+```
+
+### Instalação não interativa (CI/scripts)
 
 ```bash
-npx agent-engineering-skills validate            # roda o validador (contratos + catálogo + evals)
-npx agent-engineering-skills doctor              # diagnóstico do repo e instalação
-npx agent-engineering-skills list                # lista skills do catálogo (role, priority, installed)
-npx agent-engineering-skills graph               # grafo Mermaid da composição (stdout ou --out)
+# Universal: instala em .agents/skills (formato Agent Skills puro)
+npx agent-engineering-skills install --universal --yes
+
+# Provider específico
+npx agent-engineering-skills install --providers claude --yes
+
+# Vários providers
+npx agent-engineering-skills install --providers claude,codex,opencode --yes
+
+# Escopo global
+npx agent-engineering-skills install --scope global --providers claude --yes
+
+# Dry-run (preview sem alterar nada)
+npx agent-engineering-skills install --scope project --providers detected --dry-run
+
+# Todos os providers
+npx agent-engineering-skills install --providers all --scope project --dry-run
+```
+
+### Outros comandos
+
+```bash
+npx agent-engineering-skills update              # atualiza skills instaladas via manifesto
+npx agent-engineering-skills uninstall           # remove skills gerenciadas
+npx agent-engineering-skills validate            # validador (contratos + catálogo + evals)
+npx agent-engineering-skills doctor              # diagnóstico de providers e instalações
+npx agent-engineering-skills list                # lista skills do catálogo e instalações
+npx agent-engineering-skills graph               # grafo Mermaid da composição
 npx agent-engineering-skills eval --json         # evals determinísticos de routing
 npx agent-engineering-skills --help              # ajuda completa
 npx agent-engineering-skills --version           # versão instalada
 ```
 
-**Instalação segura:**
+### Aliases
+
+```bash
+-g              --scope global
+-y              --yes
+-a              --providers
+```
+
+### Instalação segura
 
 ```bash
 npx agent-engineering-skills install --dry-run   # mostra o que aconteceria, sem escrever nada
 npx agent-engineering-skills install --force     # sobrescreve skills, com guardrails de path
+```
+
+### Instalação legada (compatibilidade)
+
+```bash
+# Instala no diretório informado, adaptando frontmatter para Claude Code
+npx agent-engineering-skills install --target ~/meus-skills
+
+# Symlinks para desenvolvimento
+npx agent-engineering-skills install --link
 ```
 
 ### Opção 2 — clonando o repositório
@@ -219,6 +278,7 @@ referências.
 ├── docs/                  # filosofia, authoring, integração
 ├── test/                  # testes unitários (node:test + unittest)
 ├── bin/                   # CLI (node, zero deps)
+├── src/installer/         # provider registry, detecção, adapters, manifest
 ├── .github/workflows/     # CI, reference health e release gates
 └── scripts/               # validação, router, eval, findings, health checks
 ```
