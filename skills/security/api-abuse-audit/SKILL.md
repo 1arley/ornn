@@ -1,14 +1,16 @@
 ---
 name: api-abuse-audit
 description: Treats the API as directly accessible and investigates repetition, replay, ID manipulation, extra fields, alternative endpoints, missing rate limiting, and UI bypass to find abuse the server fails to prevent.
-category: security
-triggers:
-  - "audit api abuse"
-  - "treat api as directly accessible"
-  - "bypass the ui"
-  - "missing rate limiting"
-  - "replay and id manipulation"
-priority: high
+license: MIT
+metadata:
+    aes-category: security
+    aes-triggers:
+      - audit api abuse
+      - treat api as directly accessible
+      - bypass the ui
+      - missing rate limiting
+      - replay and id manipulation
+    aes-priority: high
 ---
 
 # API Abuse Audit

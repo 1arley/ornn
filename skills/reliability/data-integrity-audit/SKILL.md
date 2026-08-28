@@ -1,14 +1,16 @@
 ---
 name: data-integrity-audit
 description: Verifies unique constraints, foreign keys, transactions, cascading, soft delete, enums, and database constraints to confirm the database prevents impossible states instead of trusting application logic to do so.
-category: reliability
-triggers:
-  - "audit data integrity"
-  - "check database constraints"
-  - "unique constraint and foreign keys"
-  - "soft delete and orphaned data"
-  - "prevent impossible states at the db"
-priority: high
+license: MIT
+metadata:
+    aes-category: reliability
+    aes-triggers:
+      - audit data integrity
+      - check database constraints
+      - unique constraint and foreign keys
+      - soft delete and orphaned data
+      - prevent impossible states at the db
+    aes-priority: high
 ---
 
 # Data Integrity Audit

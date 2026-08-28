@@ -1,14 +1,16 @@
 ---
 name: interaction-design
 description: Evaluates hover, focus, pressed, disabled, loading, transitions, feedback, and micro-interactions to verify every state of every interactive element is intentionally designed.
-category: frontend
-triggers:
-  - "audit interaction design"
-  - "check hover focus pressed disabled states"
-  - "review micro-interactions"
-  - "loading and transition feedback"
-  - "every interactive state designed"
-priority: high
+license: MIT
+metadata:
+    aes-category: frontend
+    aes-triggers:
+      - audit interaction design
+      - check hover focus pressed disabled states
+      - review micro-interactions
+      - loading and transition feedback
+      - every interactive state designed
+    aes-priority: high
 ---
 
 # Interaction Design

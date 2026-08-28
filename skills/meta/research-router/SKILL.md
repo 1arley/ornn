@@ -1,14 +1,16 @@
 ---
 name: research-router
 description: Decides where to research based on the problem type (animation, UX, architecture, security, product, implementation), routing to the right sources in references/ and the right research skills.
-category: meta
-triggers:
-  - "where should I research"
-  - "route a problem to sources"
-  - "which references to consult"
-  - "select research sources"
-  - "research router"
-priority: high
+license: MIT
+metadata:
+    aes-category: meta
+    aes-triggers:
+      - where should I research
+      - route a problem to sources
+      - which references to consult
+      - select research sources
+      - research router
+    aes-priority: high
 ---
 
 # Research Router

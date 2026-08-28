@@ -1,14 +1,16 @@
 ---
 name: ux-review
 description: Evaluates clarity, hierarchy, cognitive load, feedback, affordances, consistency, navigation, empty states, errors, loading, and progress indicators in a user interface against established UX principles.
-category: frontend
-triggers:
-  - "review ux"
-  - "audit usability"
-  - "evaluate clarity and cognitive load"
-  - "check empty states and errors"
-  - "review navigation and feedback"
-priority: high
+license: MIT
+metadata:
+    aes-category: frontend
+    aes-triggers:
+      - review ux
+      - audit usability
+      - evaluate clarity and cognitive load
+      - check empty states and errors
+      - review navigation and feedback
+    aes-priority: high
 ---
 
 # UX Review

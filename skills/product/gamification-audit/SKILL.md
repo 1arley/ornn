@@ -1,14 +1,16 @@
 ---
 name: gamification-audit
 description: Detects abuse of XP, points, coins, reputation, achievements, streaks, likes, reactions, and referrals using the TRIGGER → CONDITION → REWARD → REVERSAL model, including self-reward, multi-account, replay, concurrency, and automation.
-category: product
-triggers:
-  - "audit gamification"
-  - "xp points coins reputation abuse"
-  - "streak and achievement farming"
-  - "like reaction referral abuse"
-  - "reward loop manipulation"
-priority: high
+license: MIT
+metadata:
+    aes-category: product
+    aes-triggers:
+      - audit gamification
+      - xp points coins reputation abuse
+      - streak and achievement farming
+      - like reaction referral abuse
+      - reward loop manipulation
+    aes-priority: high
 ---
 
 # Gamification Audit

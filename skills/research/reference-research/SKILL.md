@@ -1,14 +1,16 @@
 ---
 name: reference-research
 description: Discovers which external sources from the references catalog (methodology, heuristic, inspiration, implementation, discovery) are relevant to the current task and synthesizes findings into actionable patterns, not just a link list.
-category: research
-triggers:
-  - "research references"
-  - "find external sources for a task"
-  - "consult methodology and heuristics"
-  - "reference catalog lookup"
-  - "discover relevant sources"
-priority: high
+license: MIT
+metadata:
+    aes-category: research
+    aes-triggers:
+      - research references
+      - find external sources for a task
+      - consult methodology and heuristics
+      - reference catalog lookup
+      - discover relevant sources
+    aes-priority: high
 ---
 
 # Reference Research

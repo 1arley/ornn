@@ -1,14 +1,16 @@
 ---
 name: edge-case-hunter
 description: Generates edge cases around null, empty, zero, negative, huge values, duplicates, Unicode, stale data, deleted data, expired data, and repeated valid actions, then checks whether the system handles each.
-category: audit
-triggers:
-  - "find edge cases"
-  - "test boundary values"
-  - "what about null empty zero negative huge"
-  - "stress inputs with edge values"
-  - "unicode and duplicate handling"
-priority: high
+license: MIT
+metadata:
+    aes-category: audit
+    aes-triggers:
+      - find edge cases
+      - test boundary values
+      - what about null empty zero negative huge
+      - stress inputs with edge values
+      - unicode and duplicate handling
+    aes-priority: high
 ---
 
 # Edge Case Hunter

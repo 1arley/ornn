@@ -1,16 +1,18 @@
 ---
 name: accessibility-review
 description: Evaluates keyboard navigation, screen readers, focus management, semantic HTML, contrast, touch targets, reduced motion, forms, and error handling against WCAG standards.
-category: frontend
-triggers:
-  - "audit accessibility"
-  - "check keyboard navigation"
-  - "review screen reader support"
-  - "semantic html and aria"
-  - "wcag compliance"
-  - "touch targets and focus"
-  - "reduced motion and forms"
-priority: high
+license: MIT
+metadata:
+    aes-category: frontend
+    aes-triggers:
+      - audit accessibility
+      - check keyboard navigation
+      - review screen reader support
+      - semantic html and aria
+      - wcag compliance
+      - touch targets and focus
+      - reduced motion and forms
+    aes-priority: high
 ---
 
 # Accessibility Review

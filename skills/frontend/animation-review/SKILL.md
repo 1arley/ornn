@@ -1,14 +1,16 @@
 ---
 name: animation-review
 description: Evaluates purpose, timing, easing, hierarchy, continuity, interruption, accessibility, and reduced motion compliance of every animation in the interface.
-category: frontend
-triggers:
-  - "audit animations"
-  - "review motion and transitions"
-  - "check timing and easing"
-  - "verify reduced motion"
-  - "animation hierarchy and interruption"
-priority: high
+license: MIT
+metadata:
+    aes-category: frontend
+    aes-triggers:
+      - audit animations
+      - review motion and transitions
+      - check timing and easing
+      - verify reduced motion
+      - animation hierarchy and interruption
+    aes-priority: high
 ---
 
 # Animation Review

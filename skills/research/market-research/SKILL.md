@@ -1,14 +1,16 @@
 ---
 name: market-research
 description: Researches real products and how they solved a problem at scale, comparing UX, onboarding, navigation, information architecture, interaction, empty states, errors, mobile, and terminology.
-category: research
-triggers:
-  - "research the market"
-  - "compare with real products"
-  - "how do products solve this at scale"
-  - "onboarding navigation information architecture"
-  - "market benchmark"
-priority: high
+license: MIT
+metadata:
+    aes-category: research
+    aes-triggers:
+      - research the market
+      - compare with real products
+      - how do products solve this at scale
+      - onboarding navigation information architecture
+      - market benchmark
+    aes-priority: high
 ---
 
 # Market Research

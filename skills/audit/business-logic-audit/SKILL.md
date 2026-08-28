@@ -1,14 +1,16 @@
 ---
 name: business-logic-audit
 description: Identifies business rules, invariants, limits, ownership, transitions, and rewards and for each asks where it is enforced, whether it can be bypassed, repeated, reversed, or raced.
-category: audit
-triggers:
-  - "audit business rules"
-  - "review invariants and limits"
-  - "check ownership and permissions logic"
-  - "audit a reward or scoring system"
-  - "verify rule enforcement server-side"
-priority: high
+license: MIT
+metadata:
+    aes-category: audit
+    aes-triggers:
+      - audit business rules
+      - review invariants and limits
+      - check ownership and permissions logic
+      - audit a reward or scoring system
+      - verify rule enforcement server-side
+    aes-priority: high
 ---
 
 # Business Logic Audit

@@ -1,14 +1,16 @@
 ---
 name: race-condition-hunter
 description: Hunts for READ → DECISION → WRITE sequences and asks what happens if another request modifies the shared state between the read and the write, exposing double-spend, over-limit grants, and counter inflation under concurrency.
-category: reliability
-triggers:
-  - "audit race conditions"
-  - "find concurrency bugs"
-  - "read then write check-then-act"
-  - "double-spend and over-limit under concurrency"
-  - "two simultaneous requests"
-priority: high
+license: MIT
+metadata:
+    aes-category: reliability
+    aes-triggers:
+      - audit race conditions
+      - find concurrency bugs
+      - read then write check-then-act
+      - double-spend and over-limit under concurrency
+      - two simultaneous requests
+    aes-priority: high
 ---
 
 # Race Condition Hunter

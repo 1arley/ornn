@@ -1,14 +1,16 @@
 ---
 name: adversarial-review
 description: Teaches the agent to attack the system as curious, malicious, power, careless, competitor, and stale-state users using repeat, reverse, reorder, skip, replay, concurrent, and manipulate operations.
-category: audit
-triggers:
-  - "audit a feature"
-  - "test a flow adversarially"
-  - "find bugs by attacking assumptions"
-  - "review before shipping"
-  - "what could a malicious user do"
-priority: high
+license: MIT
+metadata:
+    aes-category: audit
+    aes-triggers:
+      - audit a feature
+      - test a flow adversarially
+      - find bugs by attacking assumptions
+      - review before shipping
+      - what could a malicious user do
+    aes-priority: high
 ---
 
 # Adversarial Review

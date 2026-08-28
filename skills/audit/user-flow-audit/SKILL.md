@@ -1,14 +1,16 @@
 ---
 name: user-flow-audit
 description: Maps a user flow as entry → preconditions → action → state change → feedback → next state and detects dead ends, impossible states, skippable steps, refresh and back-button problems, and duplicate operations.
-category: audit
-triggers:
-  - "audit a user flow"
-  - "map the states of a feature"
-  - "find dead ends in a flow"
-  - "review onboarding or checkout flow"
-  - "what happens on refresh or back button"
-priority: high
+license: MIT
+metadata:
+    aes-category: audit
+    aes-triggers:
+      - audit a user flow
+      - map the states of a feature
+      - find dead ends in a flow
+      - review onboarding or checkout flow
+      - what happens on refresh or back button
+    aes-priority: high
 ---
 
 # User Flow Audit

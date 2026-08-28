@@ -1,14 +1,16 @@
 ---
 name: state-consistency-audit
 description: Compares state across database, API, server state, cache, client state, and URL state, and looks for divergences where the layers disagree about what is true.
-category: audit
-triggers:
-  - "audit state consistency"
-  - "find cache and database divergence"
-  - "client and server state out of sync"
-  - "url state vs server state"
-  - "stale cache bugs"
-priority: high
+license: MIT
+metadata:
+    aes-category: audit
+    aes-triggers:
+      - audit state consistency
+      - find cache and database divergence
+      - client and server state out of sync
+      - url state vs server state
+      - stale cache bugs
+    aes-priority: high
 ---
 
 # State Consistency Audit

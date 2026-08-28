@@ -1,14 +1,16 @@
 ---
 name: authorization-audit
 description: Analyzes authenticated vs authorized vs owner vs moderator vs admin vs resource-participant and verifies that authorization is enforced on the server for every resource access, not just authentication.
-category: security
-triggers:
-  - "audit authorization"
-  - "check access control"
-  - "authenticated vs authorized"
-  - "owner and moderator permissions"
-  - "idor and privilege escalation"
-priority: high
+license: MIT
+metadata:
+    aes-category: security
+    aes-triggers:
+      - audit authorization
+      - check access control
+      - authenticated vs authorized
+      - owner and moderator permissions
+      - idor and privilege escalation
+    aes-priority: high
 ---
 
 # Authorization Audit

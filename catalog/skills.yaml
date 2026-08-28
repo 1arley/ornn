@@ -1,0 +1,612 @@
+# catalog/skills.yaml — single source of truth for cross-skill relationships
+#
+# This catalog is the authoritative registry for routing. It holds every
+# relationship that cannot be derived from a single SKILL.md in isolation:
+# role, priority, risk_floor, composition, overlap and cost. The skill-router
+# is generated from / guided by this file; scripts/validate.py detects drift
+# between this catalog and the filesystem.
+#
+# Roles (from plan.md § 6.2):
+#   generator     — produces hypotheses to be confirmed elsewhere
+#   investigator  — maps and probes a specific class of mechanism
+#   verifier      — confirms or refutes a specific class of evidence
+#   reviewer      — evaluates against a normative standard
+#   researcher    — discovers and synthesizes external knowledge
+#   router        — dispatches work to other skills
+#
+# Priority:  low | medium | high   (matches SKILL.md frontmatter enum)
+# Risk floor: trivial | medium | high | critical — the minimum risk level at which
+#             the skill becomes relevant (matches the skill-budget risk scale).
+# Lifecycle:  experimental | stable | deprecated
+
+- name: adversarial-review
+  category: audit
+  role: generator
+  priority: high
+  risk_floor: medium
+  triggers:
+    - "audit a feature"
+    - "test a flow adversarially"
+    - "find bugs by attacking assumptions"
+    - "review before shipping"
+    - "what could a malicious user do"
+  requires_signals:
+    - adversarial-intent
+  composes_with:
+    - business-logic-audit
+    - race-condition-hunter
+    - idempotency-audit
+    - authorization-audit
+    - api-abuse-audit
+  overlaps_with:
+    - user-flow-audit
+    - edge-case-hunter
+  reasoning_cost: low
+  research_cost: low
+  lifecycle: stable
+
+- name: user-flow-audit
+  category: audit
+  role: generator
+  priority: high
+  risk_floor: medium
+  triggers:
+    - "audit a user flow"
+    - "map the states of a feature"
+    - "find dead ends in a flow"
+    - "review onboarding or checkout flow"
+    - "what happens on refresh or back button"
+  requires_signals:
+    - multi-step-flow
+  composes_with:
+    - state-consistency-audit
+    - error-flow-audit
+    - edge-case-hunter
+    - interaction-design
+  overlaps_with:
+    - adversarial-review
+    - state-consistency-audit
+  reasoning_cost: medium
+  research_cost: low
+  lifecycle: stable
+
+- name: business-logic-audit
+  category: audit
+  role: investigator
+  priority: high
+  risk_floor: trivial
+  triggers:
+    - "audit business rules"
+    - "review invariants and limits"
+    - "check ownership and permissions logic"
+    - "audit a reward or scoring system"
+    - "verify rule enforcement server-side"
+  requires_signals:
+    - business-rule
+    - shared-state
+  composes_with:
+    - idempotency-audit
+    - race-condition-hunter
+    - data-integrity-audit
+    - authorization-audit
+    - input-trust-audit
+  overlaps_with:
+    - gamification-audit
+    - data-integrity-audit
+  reasoning_cost: medium
+  research_cost: low
+  lifecycle: stable
+
+- name: edge-case-hunter
+  category: audit
+  role: generator
+  priority: high
+  risk_floor: trivial
+  triggers:
+    - "find edge cases"
+    - "test boundary values"
+    - "what about null empty zero negative huge"
+    - "stress inputs with edge values"
+    - "unicode and duplicate handling"
+  requires_signals:
+    - untrusted-input
+  composes_with:
+    - input-trust-audit
+    - api-abuse-audit
+    - business-logic-audit
+  overlaps_with:
+    - adversarial-review
+    - input-trust-audit
+  reasoning_cost: low
+  research_cost: low
+  lifecycle: stable
+
+- name: state-consistency-audit
+  category: audit
+  role: investigator
+  priority: high
+  risk_floor: medium
+  triggers:
+    - "audit state consistency"
+    - "find cache and database divergence"
+    - "client and server state out of sync"
+    - "url state vs server state"
+    - "stale cache bugs"
+  requires_signals:
+    - shared-state
+    - multiple-copies
+  composes_with:
+    - user-flow-audit
+    - data-integrity-audit
+    - error-flow-audit
+  overlaps_with:
+    - user-flow-audit
+    - data-integrity-audit
+  reasoning_cost: medium
+  research_cost: low
+  lifecycle: stable
+
+- name: error-flow-audit
+  category: audit
+  role: investigator
+  priority: high
+  risk_floor: medium
+  triggers:
+    - "audit error handling"
+    - "what happens on failure mid-flow"
+    - "partial success and rollback"
+    - "retry and timeout behavior"
+    - "crash recovery and lost responses"
+  requires_signals:
+    - multi-step-flow
+    - external-dependency
+  composes_with:
+    - idempotency-audit
+    - data-integrity-audit
+    - state-consistency-audit
+  overlaps_with:
+    - idempotency-audit
+  reasoning_cost: medium
+  research_cost: low
+  lifecycle: stable
+
+- name: authorization-audit
+  category: security
+  role: verifier
+  priority: high
+  risk_floor: high
+  triggers:
+    - "audit authorization"
+    - "check access control"
+    - "authenticated vs authorized"
+    - "owner and moderator permissions"
+    - "idor and privilege escalation"
+  requires_signals:
+    - permissions
+    - ownership
+  composes_with:
+    - input-trust-audit
+    - business-logic-audit
+    - api-abuse-audit
+  overlaps_with:
+    - api-abuse-audit
+    - input-trust-audit
+  reasoning_cost: medium
+  research_cost: low
+  lifecycle: stable
+
+- name: api-abuse-audit
+  category: security
+  role: investigator
+  priority: high
+  risk_floor: high
+  triggers:
+    - "audit api abuse"
+    - "treat api as directly accessible"
+    - "bypass the ui"
+    - "missing rate limiting"
+    - "replay and id manipulation"
+  requires_signals:
+    - untrusted-input
+    - directly-accessible-api
+  composes_with:
+    - authorization-audit
+    - input-trust-audit
+    - edge-case-hunter
+    - idempotency-audit
+  overlaps_with:
+    - authorization-audit
+    - input-trust-audit
+    - idempotency-audit
+  reasoning_cost: medium
+  research_cost: low
+  lifecycle: stable
+
+- name: input-trust-audit
+  category: security
+  role: verifier
+  priority: high
+  risk_floor: high
+  triggers:
+    - "audit input trust"
+    - "what should not be trusted from the client"
+    - "server-side derivation of role price xp"
+    - "mass assignment and client-supplied ownership"
+    - "never trust the frontend"
+  requires_signals:
+    - untrusted-input
+    - client-supplied-values
+  composes_with:
+    - authorization-audit
+    - api-abuse-audit
+    - business-logic-audit
+  overlaps_with:
+    - authorization-audit
+    - api-abuse-audit
+  reasoning_cost: medium
+  research_cost: low
+  lifecycle: stable
+
+- name: race-condition-hunter
+  category: reliability
+  role: verifier
+  priority: high
+  risk_floor: high
+  triggers:
+    - "audit race conditions"
+    - "find concurrency bugs"
+    - "read then write check-then-act"
+    - "double-spend and over-limit under concurrency"
+    - "two simultaneous requests"
+  requires_signals:
+    - shared-state
+    - concurrent-access
+  composes_with:
+    - idempotency-audit
+    - data-integrity-audit
+    - business-logic-audit
+  overlaps_with:
+    - idempotency-audit
+    - business-logic-audit
+  reasoning_cost: medium
+  research_cost: low
+  lifecycle: stable
+
+- name: idempotency-audit
+  category: reliability
+  role: verifier
+  priority: high
+  risk_floor: medium
+  triggers:
+    - "audit idempotency"
+    - "duplicate effects on retry"
+    - "double submit double charge"
+    - "webhook replay"
+    - "request repeated N times"
+  requires_signals:
+    - retry-path
+    - side-effect
+  composes_with:
+    - race-condition-hunter
+    - error-flow-audit
+    - api-abuse-audit
+    - business-logic-audit
+  overlaps_with:
+    - race-condition-hunter
+    - error-flow-audit
+    - api-abuse-audit
+  reasoning_cost: medium
+  research_cost: low
+  lifecycle: stable
+
+- name: data-integrity-audit
+  category: reliability
+  role: verifier
+  priority: high
+  risk_floor: medium
+  triggers:
+    - "audit data integrity"
+    - "check database constraints"
+    - "unique constraint and foreign keys"
+    - "soft delete and orphaned data"
+    - "prevent impossible states at the db"
+  requires_signals:
+    - persistent-state
+    - schema
+  composes_with:
+    - business-logic-audit
+    - state-consistency-audit
+    - error-flow-audit
+  overlaps_with:
+    - business-logic-audit
+    - state-consistency-audit
+  reasoning_cost: medium
+  research_cost: low
+  lifecycle: stable
+
+- name: gamification-audit
+  category: product
+  role: investigator
+  priority: high
+  risk_floor: medium
+  triggers:
+    - "audit gamification"
+    - "xp points coins reputation abuse"
+    - "streak and achievement farming"
+    - "like reaction referral abuse"
+    - "reward loop manipulation"
+  requires_signals:
+    - reward
+    - scoring
+  composes_with:
+    - business-logic-audit
+    - idempotency-audit
+    - race-condition-hunter
+    - api-abuse-audit
+    - user-flow-audit
+  overlaps_with:
+    - business-logic-audit
+  reasoning_cost: medium
+  research_cost: low
+  lifecycle: stable
+
+- name: ux-review
+  category: frontend
+  role: reviewer
+  priority: medium
+  risk_floor: trivial
+  triggers:
+    - "review ux"
+    - "audit usability"
+    - "evaluate clarity and cognitive load"
+    - "check empty states and errors"
+    - "review navigation and feedback"
+  requires_signals:
+    - interface
+  composes_with:
+    - interaction-design
+    - accessibility-review
+    - visual-quality-review
+    - reference-research
+  overlaps_with:
+    - interaction-design
+    - visual-quality-review
+    - accessibility-review
+  reasoning_cost: low
+  research_cost: low
+  lifecycle: stable
+
+- name: visual-quality-review
+  category: frontend
+  role: reviewer
+  priority: medium
+  risk_floor: trivial
+  triggers:
+    - "audit visual quality"
+    - "review typography spacing hierarchy"
+    - "check contrast and density"
+    - "detect AI slop"
+    - "evaluate visual craft"
+  requires_signals:
+    - interface
+  composes_with:
+    - ux-review
+    - interaction-design
+    - reference-research
+  overlaps_with:
+    - ux-review
+    - interaction-design
+  reasoning_cost: low
+  research_cost: low
+  lifecycle: stable
+
+- name: interaction-design
+  category: frontend
+  role: reviewer
+  priority: medium
+  risk_floor: trivial
+  triggers:
+    - "audit interaction design"
+    - "check hover focus pressed disabled states"
+    - "review micro-interactions"
+    - "loading and transition feedback"
+    - "every interactive state designed"
+  requires_signals:
+    - interface
+  composes_with:
+    - ux-review
+    - animation-review
+    - accessibility-review
+  overlaps_with:
+    - ux-review
+    - animation-review
+    - accessibility-review
+  reasoning_cost: low
+  research_cost: low
+  lifecycle: stable
+
+- name: animation-review
+  category: frontend
+  role: reviewer
+  priority: medium
+  risk_floor: trivial
+  triggers:
+    - "audit animations"
+    - "review motion and transitions"
+    - "check timing and easing"
+    - "verify reduced motion"
+    - "animation hierarchy and interruption"
+  requires_signals:
+    - interface
+    - motion
+  composes_with:
+    - interaction-design
+    - accessibility-review
+  overlaps_with:
+    - interaction-design
+    - accessibility-review
+  reasoning_cost: low
+  research_cost: low
+  lifecycle: stable
+
+- name: accessibility-review
+  category: frontend
+  role: reviewer
+  priority: high
+  risk_floor: trivial
+  triggers:
+    - "audit accessibility"
+    - "check keyboard navigation"
+    - "review screen reader support"
+    - "semantic html and aria"
+    - "wcag compliance"
+    - "touch targets and focus"
+    - "reduced motion and forms"
+  requires_signals:
+    - interface
+  composes_with:
+    - ux-review
+    - interaction-design
+    - animation-review
+  overlaps_with:
+    - ux-review
+    - interaction-design
+  reasoning_cost: low
+  research_cost: low
+  lifecycle: stable
+
+- name: reference-research
+  category: research
+  role: researcher
+  priority: medium
+  risk_floor: trivial
+  triggers:
+    - "research references"
+    - "find external sources for a task"
+    - "consult methodology and heuristics"
+    - "reference catalog lookup"
+    - "discover relevant sources"
+  requires_signals:
+    - external-knowledge
+  composes_with:
+    - market-research
+    - implementation-research
+    - research-router
+  overlaps_with:
+    - market-research
+    - implementation-research
+  reasoning_cost: low
+  research_cost: medium
+  lifecycle: stable
+
+- name: github-reference-research
+  category: research
+  role: researcher
+  priority: medium
+  risk_floor: trivial
+  triggers:
+    - "research github"
+    - "find production implementations"
+    - "compare feature architecture database api framework"
+    - "evaluate a github project"
+    - "what are real projects doing"
+  requires_signals:
+    - external-knowledge
+    - implementation
+  composes_with:
+    - implementation-research
+    - reference-research
+  overlaps_with:
+    - implementation-research
+    - market-research
+  reasoning_cost: low
+  research_cost: high
+  lifecycle: stable
+
+- name: market-research
+  category: research
+  role: researcher
+  priority: medium
+  risk_floor: trivial
+  triggers:
+    - "research the market"
+    - "compare with real products"
+    - "how do products solve this at scale"
+    - "onboarding navigation information architecture"
+    - "market benchmark"
+  requires_signals:
+    - external-knowledge
+  composes_with:
+    - reference-research
+    - github-reference-research
+  overlaps_with:
+    - reference-research
+    - github-reference-research
+  reasoning_cost: low
+  research_cost: high
+  lifecycle: stable
+
+- name: implementation-research
+  category: research
+  role: researcher
+  priority: medium
+  risk_floor: trivial
+  triggers:
+    - "research a technical problem"
+    - "find how to implement a pattern"
+    - "official documentation lookup"
+    - "maintainer discussions and production code"
+    - "technical article research"
+  requires_signals:
+    - external-knowledge
+    - implementation
+  composes_with:
+    - github-reference-research
+    - reference-research
+  overlaps_with:
+    - github-reference-research
+  reasoning_cost: low
+  research_cost: high
+  lifecycle: stable
+
+- name: skill-router
+  category: meta
+  role: router
+  priority: high
+  risk_floor: trivial
+  triggers:
+    - "which skills should I run"
+    - "route a task to skills"
+    - "select skills for an audit"
+    - "compose skills for a feature"
+    - "start an audit"
+  requires_signals:
+    - routing-decision
+  composes_with:
+    - research-router
+  reasoning_cost: low
+  research_cost: low
+  lifecycle: stable
+
+- name: research-router
+  category: meta
+  role: router
+  priority: high
+  risk_floor: trivial
+  triggers:
+    - "where should I research"
+    - "route a problem to sources"
+    - "which references to consult"
+    - "select research sources"
+    - "research router"
+  requires_signals:
+    - external-knowledge
+  composes_with:
+    - skill-router
+    - reference-research
+    - implementation-research
+  overlaps_with:
+    - reference-research
+  reasoning_cost: low
+  research_cost: low
+  lifecycle: stable

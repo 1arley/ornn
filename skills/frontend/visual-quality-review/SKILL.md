@@ -1,14 +1,16 @@
 ---
 name: visual-quality-review
 description: Evaluates typography, spacing, hierarchy, density, contrast, composition, consistency, visual noise, and generic AI slop patterns against a high craft bar.
-category: frontend
-triggers:
-  - "audit visual quality"
-  - "review typography spacing hierarchy"
-  - "check contrast and density"
-  - "detect AI slop"
-  - "evaluate visual craft"
-priority: high
+license: MIT
+metadata:
+    aes-category: frontend
+    aes-triggers:
+      - audit visual quality
+      - review typography spacing hierarchy
+      - check contrast and density
+      - detect AI slop
+      - evaluate visual craft
+    aes-priority: high
 ---
 
 # Visual Quality Review

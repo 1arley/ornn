@@ -1,14 +1,16 @@
 ---
 name: github-reference-research
 description: Researches how features are implemented on GitHub, searching for feature implementation, architecture, database, API, and framework patterns, and evaluating activity, quality, tests, documentation, adoption, license, and architecture to extract ideas without copying.
-category: research
-triggers:
-  - "research github"
-  - "find production implementations"
-  - "compare feature architecture database api framework"
-  - "evaluate a github project"
-  - "what are real projects doing"
-priority: high
+license: MIT
+metadata:
+    aes-category: research
+    aes-triggers:
+      - research github
+      - find production implementations
+      - compare feature architecture database api framework
+      - evaluate a github project
+      - what are real projects doing
+    aes-priority: high
 ---
 
 # GitHub Reference Research

@@ -1,14 +1,16 @@
 ---
 name: skill-router
 description: Analyzes a task and selects which audit, security, reliability, product, frontend, and research skills to activate, with composition tables mapping task phrases to ordered skill sets.
-category: meta
-triggers:
-  - "which skills should I run"
-  - "route a task to skills"
-  - "select skills for an audit"
-  - "compose skills for a feature"
-  - "start an audit"
-priority: high
+license: MIT
+metadata:
+    aes-category: meta
+    aes-triggers:
+      - which skills should I run
+      - route a task to skills
+      - select skills for an audit
+      - compose skills for a feature
+      - start an audit
+    aes-priority: high
 ---
 
 # Skill Router

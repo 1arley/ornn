@@ -1,14 +1,16 @@
 ---
 name: idempotency-audit
 description: Tests request → request → request and request → response-lost → retry, especially for payments, rewards, creation, webhooks, notifications, and counters, to find operations that duplicate effects on repeat or retry.
-category: reliability
-triggers:
-  - "audit idempotency"
-  - "duplicate effects on retry"
-  - "double submit double charge"
-  - "webhook replay"
-  - "request repeated N times"
-priority: high
+license: MIT
+metadata:
+    aes-category: reliability
+    aes-triggers:
+      - audit idempotency
+      - duplicate effects on retry
+      - double submit double charge
+      - webhook replay
+      - request repeated N times
+    aes-priority: high
 ---
 
 # Idempotency Audit

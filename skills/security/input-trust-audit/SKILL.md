@@ -1,14 +1,16 @@
 ---
 name: input-trust-audit
 description: Identifies values that should never be trusted from the client (userId, role, price, XP, permissions, ownership, status, reward, timestamps) and verifies the server derives them from the session or database instead of the request payload.
-category: security
-triggers:
-  - "audit input trust"
-  - "what should not be trusted from the client"
-  - "server-side derivation of role price xp"
-  - "mass assignment and client-supplied ownership"
-  - "never trust the frontend"
-priority: high
+license: MIT
+metadata:
+    aes-category: security
+    aes-triggers:
+      - audit input trust
+      - what should not be trusted from the client
+      - server-side derivation of role price xp
+      - mass assignment and client-supplied ownership
+      - never trust the frontend
+    aes-priority: high
 ---
 
 # Input Trust Audit

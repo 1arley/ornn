@@ -1,14 +1,16 @@
 ---
 name: implementation-research
 description: Researches how specific technical problems are solved in practice, prioritizing official documentation, GitHub, maintainer discussions, production code, and technical articles, and synthesizes findings into an actionable recommendation.
-category: research
-triggers:
-  - "research a technical problem"
-  - "find how to implement a pattern"
-  - "official documentation lookup"
-  - "maintainer discussions and production code"
-  - "technical article research"
-priority: high
+license: MIT
+metadata:
+    aes-category: research
+    aes-triggers:
+      - research a technical problem
+      - find how to implement a pattern
+      - official documentation lookup
+      - maintainer discussions and production code
+      - technical article research
+    aes-priority: high
 ---
 
 # Implementation Research
