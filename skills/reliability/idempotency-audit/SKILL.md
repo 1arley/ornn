@@ -4,12 +4,6 @@ description: Tests request → request → request and request → response-lost
 license: MIT
 metadata:
     aes-category: reliability
-    aes-triggers:
-      - audit idempotency
-      - duplicate effects on retry
-      - double submit double charge
-      - webhook replay
-      - request repeated N times
     aes-priority: high
 ---
 

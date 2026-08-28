@@ -4,12 +4,6 @@ description: Decides where to research based on the problem type (animation, UX,
 license: MIT
 metadata:
     aes-category: meta
-    aes-triggers:
-      - where should I research
-      - route a problem to sources
-      - which references to consult
-      - select research sources
-      - research router
     aes-priority: high
 ---
 

@@ -4,12 +4,6 @@ description: Compares state across database, API, server state, cache, client st
 license: MIT
 metadata:
     aes-category: audit
-    aes-triggers:
-      - audit state consistency
-      - find cache and database divergence
-      - client and server state out of sync
-      - url state vs server state
-      - stale cache bugs
     aes-priority: high
 ---
 

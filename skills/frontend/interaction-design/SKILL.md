@@ -4,13 +4,7 @@ description: Evaluates hover, focus, pressed, disabled, loading, transitions, fe
 license: MIT
 metadata:
     aes-category: frontend
-    aes-triggers:
-      - audit interaction design
-      - check hover focus pressed disabled states
-      - review micro-interactions
-      - loading and transition feedback
-      - every interactive state designed
-    aes-priority: high
+    aes-priority: medium
 ---
 
 # Interaction Design

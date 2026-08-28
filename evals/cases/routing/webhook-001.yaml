@@ -1,0 +1,19 @@
+id: routing-webhook-001
+title: duplicate webhook delivery leads to double processing
+task: Our webhook endpoint processed a Stripe event twice after a retry; investigate.
+context:
+  - webhook delivered twice for the same event
+  - side effect: order marked fulfilled twice
+  - notification sent twice
+risk: high
+category: routing
+expected_skills:
+  required:
+    - idempotency-audit
+  useful:
+    - error-flow-audit
+    - api-abuse-audit
+    - business-logic-audit
+  forbidden:
+    - animation-review
+    - ux-review

@@ -1,0 +1,18 @@
+id: routing-implementation-001
+title: idempotency keys for a payment webhook
+task: Find how to implement idempotency keys for a payment webhook in production.
+context:
+  - webhook can be delivered more than once
+  - compare production implementations in active GitHub repositories
+risk: medium
+category: routing
+expected_skills:
+  required:
+    - implementation-research
+    - github-reference-research
+  useful:
+    - reference-research
+    - idempotency-audit
+  forbidden:
+    - animation-review
+    - visual-quality-review

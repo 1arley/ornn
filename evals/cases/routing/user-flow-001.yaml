@@ -1,0 +1,19 @@
+id: routing-user-flow-001
+title: dead ends in a 4-step onboarding wizard
+task: Audit the onboarding wizard for dead ends, impossible states and refresh problems.
+context:
+  - 4 steps
+  - back/refresh behavior unclear
+  - progress exists in client state and server state and can diverge after refresh
+risk: medium
+category: routing
+expected_skills:
+  required:
+    - user-flow-audit
+    - state-consistency-audit
+  useful:
+    - error-flow-audit
+    - edge-case-hunter
+  forbidden:
+    - market-research
+    - gamification-audit

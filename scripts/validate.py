@@ -30,6 +30,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 SKILLS_DIR = ROOT / "skills"
 REFERENCES_DIR = ROOT / "references"
+EVAL_CASES_DIR = ROOT / "evals" / "cases"
 CATALOG = ROOT / "catalog" / "skills.yaml"
 ROUTER = SKILLS_DIR / "meta" / "skill-router" / "SKILL.md"
 
@@ -352,9 +353,35 @@ def check_skill(path: Path) -> list[str]:
         project = meta
         aes = lambda key: meta.get(key)  # noqa: E731
 
-    for field in ("name", "description"):
+    for field in ("name", "description", "license"):
         if field not in meta:
             errors.append(f"{rel}: missing frontmatter field '{field}'")
+
+    if not portable:
+        errors.append(
+            f"{rel}: frontmatter is not Agent Skills portable; use the "
+            "metadata.aes-* namespace"
+        )
+    else:
+        for field in ("aes-category", "aes-priority"):
+            if field not in metadata:
+                errors.append(f"{rel}: metadata missing '{field}'")
+
+    name_value = str(meta.get("name", ""))
+    if name_value and not re.match(r"^[a-z0-9]+(?:-[a-z0-9]+)*$", name_value):
+        errors.append(f"{rel}: invalid Agent Skills name {name_value!r}")
+    if len(name_value) > 64:
+        errors.append(f"{rel}: Agent Skills name exceeds 64 characters")
+    description = str(meta.get("description", ""))
+    if description and len(description) > 1024:
+        errors.append(f"{rel}: description exceeds 1024 characters")
+
+    proprietary_top_level = {"category", "triggers", "priority"} & set(meta)
+    if proprietary_top_level:
+        errors.append(
+            f"{rel}: proprietary top-level fields are not portable: "
+            + ", ".join(sorted(proprietary_top_level))
+        )
 
     # name == directory name (the skill dir, two levels up from SKILL.md)
     skill_dir = path.parent.name
@@ -378,8 +405,14 @@ def check_skill(path: Path) -> list[str]:
         )
 
     triggers = aes("triggers")
-    if triggers is not None and not isinstance(triggers, list):
-        errors.append(f"{rel}: 'triggers' must be a list")
+    if triggers is not None:
+        if portable:
+            errors.append(
+                f"{rel}: 'metadata.aes-triggers' duplicates catalog/skills.yaml; "
+                "keep routing lists only in the catalog"
+            )
+        elif not isinstance(triggers, list):
+            errors.append(f"{rel}: 'triggers' must be a list")
 
     # 9 sections, in order, as '## Heading' (allow trailing text after the heading).
     headings = re.findall(r"^##\s+(.+?)\s*$", body, flags=re.MULTILINE)
@@ -511,6 +544,7 @@ def check_catalog() -> list[str]:
 
     existing = collect_skill_names()
     names: list[str] = []
+    skill_paths = {path.parent.name: path for path in find_skills()}
 
     for n, entry in enumerate(entries, 1):
         prefix = f"catalog/skills.yaml entry #{n}"
@@ -528,6 +562,28 @@ def check_catalog() -> list[str]:
                 errors.append(
                     f"{prefix} catalogs '{name}' but no SKILL.md exists on disk"
                 )
+            else:
+                try:
+                    frontmatter, _ = parse_frontmatter(
+                        skill_paths[name].read_text(encoding="utf-8")
+                    )
+                    skill_meta = frontmatter.get("metadata", {})
+                    expected_category = entry.get("category")
+                    expected_priority = entry.get("priority")
+                    if skill_meta.get("aes-category") != expected_category:
+                        errors.append(
+                            f"{prefix} category {expected_category!r} != "
+                            f"{name} frontmatter aes-category "
+                            f"{skill_meta.get('aes-category')!r}"
+                        )
+                    if skill_meta.get("aes-priority") != expected_priority:
+                        errors.append(
+                            f"{prefix} priority {expected_priority!r} != "
+                            f"{name} frontmatter aes-priority "
+                            f"{skill_meta.get('aes-priority')!r}"
+                        )
+                except YAMLError as e:
+                    errors.append(f"{prefix} cannot parse {name} frontmatter: {e}")
 
         if "category" in entry and entry["category"] not in VALID_CATEGORIES:
             errors.append(
@@ -665,6 +721,106 @@ def check_router_integrity() -> tuple[list[str], list[str]]:
 
 
 # ---------------------------------------------------------------------------
+# Eval-case checks
+# ---------------------------------------------------------------------------
+
+VALID_EVAL_CATEGORIES = {
+    "routing", "audit", "security", "reliability", "product",
+    "frontend", "research", "mixed",
+}
+VALID_EVAL_RISKS = {"trivial", "medium", "high", "critical"}
+
+
+def check_eval_cases() -> list[str]:
+    """Validate eval case contracts and skill references."""
+    errors: list[str] = []
+    if not EVAL_CASES_DIR.is_dir():
+        return ["evals/cases: eval case directory missing"]
+
+    # Import the shared recursive subset parser only here to keep validate.py
+    # runnable directly without package setup.
+    from yaml_mini import parse_yaml, YAMLError as MiniYAMLError
+
+    skill_names = collect_skill_names()
+    seen_ids: dict[str, Path] = {}
+    paths = sorted(EVAL_CASES_DIR.rglob("*.yaml"))
+    if not paths:
+        return ["evals/cases: no eval cases found"]
+
+    for path in paths:
+        rel = path.relative_to(ROOT)
+        try:
+            case = parse_yaml(path.read_text(encoding="utf-8"))
+        except MiniYAMLError as e:
+            errors.append(f"{rel}: YAML parse error: {e}")
+            continue
+        if not isinstance(case, dict):
+            errors.append(f"{rel}: case must be a mapping")
+            continue
+
+        for field in ("id", "title", "task", "category", "expected_skills"):
+            if field not in case:
+                errors.append(f"{rel}: missing field '{field}'")
+
+        case_id = case.get("id")
+        if case_id:
+            if not re.match(r"^[a-z0-9-]+$", str(case_id)):
+                errors.append(f"{rel}: invalid id {case_id!r}")
+            if case_id in seen_ids:
+                errors.append(
+                    f"{rel}: duplicate id {case_id!r} (also in "
+                    f"{seen_ids[case_id].relative_to(ROOT)})"
+                )
+            else:
+                seen_ids[str(case_id)] = path
+
+        category = case.get("category")
+        if category not in VALID_EVAL_CATEGORIES:
+            errors.append(f"{rel}: invalid category {category!r}")
+        risk = case.get("risk")
+        if risk is not None and risk not in VALID_EVAL_RISKS:
+            errors.append(f"{rel}: invalid risk {risk!r}")
+
+        expected = case.get("expected_skills")
+        if not isinstance(expected, dict):
+            errors.append(f"{rel}: expected_skills must be a mapping")
+            continue
+        if "required" not in expected:
+            errors.append(f"{rel}: expected_skills missing 'required'")
+
+        buckets: dict[str, set[str]] = {}
+        for field in ("required", "useful", "forbidden"):
+            value = expected.get(field, []) or []
+            if not isinstance(value, list):
+                errors.append(f"{rel}: expected_skills.{field} must be a list")
+                continue
+            names = {str(x) for x in value}
+            buckets[field] = names
+            unknown = names - skill_names
+            if unknown:
+                errors.append(
+                    f"{rel}: expected_skills.{field} references unknown skills: "
+                    + ", ".join(sorted(unknown))
+                )
+
+        for left, right in (("required", "useful"), ("required", "forbidden"),
+                            ("useful", "forbidden")):
+            overlap = buckets.get(left, set()) & buckets.get(right, set())
+            if overlap:
+                errors.append(
+                    f"{rel}: skills cannot be both {left} and {right}: "
+                    + ", ".join(sorted(overlap))
+                )
+
+        if case.get("negative") is True and (case.get("expected_findings") or []):
+            errors.append(
+                f"{rel}: negative case must not declare expected_findings"
+            )
+
+    return errors
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -682,7 +838,8 @@ def main() -> int:
         warnings.extend(check_agent_skills_compatibility(path, portable))
 
     errors.extend(check_references())
-    errors.extend(check_catalog())  # catalog validation
+    errors.extend(check_catalog())
+    errors.extend(check_eval_cases())
     e, w = check_router_integrity()
     errors.extend(e)
     warnings.extend(w)

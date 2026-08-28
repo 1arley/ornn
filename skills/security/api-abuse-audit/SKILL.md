@@ -4,12 +4,6 @@ description: Treats the API as directly accessible and investigates repetition, 
 license: MIT
 metadata:
     aes-category: security
-    aes-triggers:
-      - audit api abuse
-      - treat api as directly accessible
-      - bypass the ui
-      - missing rate limiting
-      - replay and id manipulation
     aes-priority: high
 ---
 

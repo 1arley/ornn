@@ -81,6 +81,8 @@
     - "check ownership and permissions logic"
     - "audit a reward or scoring system"
     - "verify rule enforcement server-side"
+    - "payment checkout invariants"
+    - "money transfer business rules"
   requires_signals:
     - business-rule
     - shared-state
@@ -132,6 +134,8 @@
     - "client and server state out of sync"
     - "url state vs server state"
     - "stale cache bugs"
+    - "client and server state diverge after refresh"
+    - "progress state lost on refresh"
   requires_signals:
     - shared-state
     - multiple-copies
@@ -157,6 +161,8 @@
     - "partial success and rollback"
     - "retry and timeout behavior"
     - "crash recovery and lost responses"
+    - "failure between payment steps"
+    - "partial payment processing"
   requires_signals:
     - multi-step-flow
     - external-dependency
@@ -310,6 +316,8 @@
     - "unique constraint and foreign keys"
     - "soft delete and orphaned data"
     - "prevent impossible states at the db"
+    - "atomic balance update"
+    - "persistent shared-state write"
   requires_signals:
     - persistent-state
     - schema
@@ -534,6 +542,8 @@
     - "how do products solve this at scale"
     - "onboarding navigation information architecture"
     - "market benchmark"
+    - "compare products at scale"
+    - "how other products solve this"
   requires_signals:
     - external-knowledge
   composes_with:
@@ -557,6 +567,8 @@
     - "official documentation lookup"
     - "maintainer discussions and production code"
     - "technical article research"
+    - "implement a production pattern"
+    - "find production guidance for implementation"
   requires_signals:
     - external-knowledge
     - implementation

@@ -4,14 +4,6 @@ description: Evaluates keyboard navigation, screen readers, focus management, se
 license: MIT
 metadata:
     aes-category: frontend
-    aes-triggers:
-      - audit accessibility
-      - check keyboard navigation
-      - review screen reader support
-      - semantic html and aria
-      - wcag compliance
-      - touch targets and focus
-      - reduced motion and forms
     aes-priority: high
 ---
 

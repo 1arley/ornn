@@ -4,13 +4,7 @@ description: Discovers which external sources from the references catalog (metho
 license: MIT
 metadata:
     aes-category: research
-    aes-triggers:
-      - research references
-      - find external sources for a task
-      - consult methodology and heuristics
-      - reference catalog lookup
-      - discover relevant sources
-    aes-priority: high
+    aes-priority: medium
 ---
 
 # Reference Research

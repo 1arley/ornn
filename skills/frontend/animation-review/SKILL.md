@@ -4,13 +4,7 @@ description: Evaluates purpose, timing, easing, hierarchy, continuity, interrupt
 license: MIT
 metadata:
     aes-category: frontend
-    aes-triggers:
-      - audit animations
-      - review motion and transitions
-      - check timing and easing
-      - verify reduced motion
-      - animation hierarchy and interruption
-    aes-priority: high
+    aes-priority: medium
 ---
 
 # Animation Review

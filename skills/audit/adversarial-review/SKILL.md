@@ -4,12 +4,6 @@ description: Teaches the agent to attack the system as curious, malicious, power
 license: MIT
 metadata:
     aes-category: audit
-    aes-triggers:
-      - audit a feature
-      - test a flow adversarially
-      - find bugs by attacking assumptions
-      - review before shipping
-      - what could a malicious user do
     aes-priority: high
 ---
 

@@ -1,0 +1,19 @@
+id: routing-frontend-001
+title: login page UX — clarity, empty states, loading feedback
+task: Review the login page UX for clarity, empty states, errors and loading feedback.
+context:
+  - multi-field form
+  - several error states possible
+  - loading on submit
+risk: medium
+category: routing
+expected_skills:
+  required:
+    - ux-review
+    - interaction-design
+  useful:
+    - accessibility-review
+  forbidden:
+    - race-condition-hunter
+    - gamification-audit
+    - business-logic-audit

@@ -4,12 +4,6 @@ description: Investigates partial success, timeouts, lost responses, retries, cr
 license: MIT
 metadata:
     aes-category: audit
-    aes-triggers:
-      - audit error handling
-      - what happens on failure mid-flow
-      - partial success and rollback
-      - retry and timeout behavior
-      - crash recovery and lost responses
     aes-priority: high
 ---
 

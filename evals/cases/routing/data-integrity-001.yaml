@@ -1,0 +1,19 @@
+id: routing-data-integrity-001
+title: orphaned rows and missing FK constraints
+task: Audit the database schema for missing foreign keys and soft-delete orphans.
+context:
+  - posts can be deleted leaving comments orphaned
+  - no cascade visible
+  - enum values drift from code
+risk: medium
+category: routing
+expected_skills:
+  required:
+    - data-integrity-audit
+  useful:
+    - business-logic-audit
+    - state-consistency-audit
+    - edge-case-hunter
+  forbidden:
+    - animation-review
+    - market-research

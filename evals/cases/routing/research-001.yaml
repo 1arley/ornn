@@ -1,0 +1,17 @@
+id: routing-research-001
+title: research how other products handle empty cart states
+task: Research how other products handle empty cart states before we design ours.
+context:
+  - greenfield cart design
+  - need external patterns, not code review
+risk: medium
+category: routing
+expected_skills:
+  required:
+    - market-research
+  useful:
+    - reference-research
+    - ux-review
+  forbidden:
+    - race-condition-hunter
+    - idempotency-audit

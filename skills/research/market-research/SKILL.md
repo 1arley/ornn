@@ -4,13 +4,7 @@ description: Researches real products and how they solved a problem at scale, co
 license: MIT
 metadata:
     aes-category: research
-    aes-triggers:
-      - research the market
-      - compare with real products
-      - how do products solve this at scale
-      - onboarding navigation information architecture
-      - market benchmark
-    aes-priority: high
+    aes-priority: medium
 ---
 
 # Market Research

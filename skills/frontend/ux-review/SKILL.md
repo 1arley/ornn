@@ -4,13 +4,7 @@ description: Evaluates clarity, hierarchy, cognitive load, feedback, affordances
 license: MIT
 metadata:
     aes-category: frontend
-    aes-triggers:
-      - review ux
-      - audit usability
-      - evaluate clarity and cognitive load
-      - check empty states and errors
-      - review navigation and feedback
-    aes-priority: high
+    aes-priority: medium
 ---
 
 # UX Review

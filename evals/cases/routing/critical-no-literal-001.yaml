@@ -1,0 +1,25 @@
+id: routing-critical-no-literal-001
+title: critical shared-balance mutation without concurrency vocabulary
+task: Audit withdrawals from a shared account balance before launch.
+context:
+  - handler reads the balance
+  - handler checks it is sufficient
+  - handler persists the reduced balance as a database update
+  - no transaction or atomic database constraint is visible
+  - two requests may execute at the same time
+  - money is irreversible after transfer
+risk: critical
+category: routing
+expected_skills:
+  required:
+    - business-logic-audit
+    - race-condition-hunter
+    - data-integrity-audit
+  useful:
+    - idempotency-audit
+    - adversarial-review
+    - authorization-audit
+  forbidden:
+    - animation-review
+    - market-research
+negative: false

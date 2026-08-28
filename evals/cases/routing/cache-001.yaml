@@ -1,0 +1,19 @@
+id: routing-cache-001
+title: stale cache vs database divergence after purchase
+task: Users see stale data: the frontend cache and the database disagree after a purchase is refunded.
+context:
+  - cache in frontend and CDN
+  - refund updates database only
+  - url state also holds a copy
+risk: medium
+category: routing
+expected_skills:
+  required:
+    - state-consistency-audit
+  useful:
+    - data-integrity-audit
+    - user-flow-audit
+    - error-flow-audit
+  forbidden:
+    - animation-review
+    - gamification-audit

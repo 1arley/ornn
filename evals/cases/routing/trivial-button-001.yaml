@@ -1,0 +1,18 @@
+id: routing-trivial-button-001
+title: change button color — trivial, no audit needed
+task: Change the submit button color to blue.
+context:
+  - cosmetic change, fully reversible
+  - no state, no permissions, no shared data
+risk: trivial
+category: routing
+expected_skills:
+  required:
+  useful:
+    - visual-quality-review
+  forbidden:
+    - adversarial-review
+    - race-condition-hunter
+    - gamification-audit
+    - idempotency-audit
+negative: true

@@ -4,13 +4,7 @@ description: Evaluates typography, spacing, hierarchy, density, contrast, compos
 license: MIT
 metadata:
     aes-category: frontend
-    aes-triggers:
-      - audit visual quality
-      - review typography spacing hierarchy
-      - check contrast and density
-      - detect AI slop
-      - evaluate visual craft
-    aes-priority: high
+    aes-priority: medium
 ---
 
 # Visual Quality Review

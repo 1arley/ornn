@@ -4,12 +4,6 @@ description: Verifies unique constraints, foreign keys, transactions, cascading,
 license: MIT
 metadata:
     aes-category: reliability
-    aes-triggers:
-      - audit data integrity
-      - check database constraints
-      - unique constraint and foreign keys
-      - soft delete and orphaned data
-      - prevent impossible states at the db
     aes-priority: high
 ---
 

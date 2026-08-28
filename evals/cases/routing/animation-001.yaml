@@ -1,0 +1,17 @@
+id: routing-animation-001
+title: onboarding animations — timing, easing, reduced motion
+task: Audit the animations in onboarding for timing, easing, hierarchy and reduced-motion support.
+context:
+  - several animated steps
+  - reduced motion setting exists
+risk: medium
+category: routing
+expected_skills:
+  required:
+    - animation-review
+  useful:
+    - interaction-design
+    - accessibility-review
+  forbidden:
+    - idempotency-audit
+    - race-condition-hunter

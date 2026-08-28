@@ -4,13 +4,7 @@ description: Researches how specific technical problems are solved in practice, 
 license: MIT
 metadata:
     aes-category: research
-    aes-triggers:
-      - research a technical problem
-      - find how to implement a pattern
-      - official documentation lookup
-      - maintainer discussions and production code
-      - technical article research
-    aes-priority: high
+    aes-priority: medium
 ---
 
 # Implementation Research

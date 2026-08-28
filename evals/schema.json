@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/1arley/1arley-agent-skills/evals/schema.json",
+  "title": "Agent Engineering Skills — eval case schema",
+  "description": "Schema for an individual eval case (routing or findings). A case describes a real-world situation the agent may encounter, the skills it should (and should not) select, and the findings/evidence expectations. Runtime is deterministic; it does not require an external model.",
+  "type": "object",
+  "required": ["id", "title", "task", "category", "expected_skills"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique stable identifier, e.g. routing-twitter-001.",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "title": { "type": "string" },
+    "task": {
+      "type": "string",
+      "description": "The situation the agent must route for / find bugs in."
+    },
+    "context": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Facts about the system under test (may include real bugs)."
+    },
+    "risk": {
+      "type": "string",
+      "enum": ["trivial", "medium", "high", "critical"],
+      "description": "Matches the skill-budget risk scale in plan.md § 7.1."
+    },
+    "category": {
+      "type": "string",
+      "enum": ["routing", "audit", "security", "reliability", "product", "frontend", "research", "mixed"]
+    },
+    "expected_skills": {
+      "type": "object",
+      "required": ["required"],
+      "properties": {
+        "required": { "type": "array", "items": { "type": "string" } },
+        "useful": { "type": "array", "items": { "type": "string" } },
+        "forbidden": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "expected_findings": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Bugs / defects the agent should surface. Empty for negative (no-bug) cases."
+    },
+    "forbidden_claims": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Claims the agent must NOT assert. Especially: no confirming without evidence."
+    },
+    "expected_confidence": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "description": "Map of finding id → confidence level the consolidator should produce."
+    },
+    "negative": {
+      "type": "boolean",
+      "description": "true when the correct answer is to find no bug (a negative case)."
+    }
+  }
+}

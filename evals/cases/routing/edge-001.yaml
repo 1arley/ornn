@@ -1,0 +1,18 @@
+id: routing-edge-001
+title: edge cases on a profile form — unicode, huge values, nulls
+task: Find edge cases in the profile form handler: null, empty, unicode, huge strings.
+context:
+  - name and bio fields
+  - server-side validation suspected weak
+risk: medium
+category: routing
+expected_skills:
+  required:
+    - edge-case-hunter
+  useful:
+    - input-trust-audit
+    - api-abuse-audit
+    - business-logic-audit
+  forbidden:
+    - animation-review
+    - gamification-audit

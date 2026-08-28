@@ -4,13 +4,7 @@ description: Researches how features are implemented on GitHub, searching for fe
 license: MIT
 metadata:
     aes-category: research
-    aes-triggers:
-      - research github
-      - find production implementations
-      - compare feature architecture database api framework
-      - evaluate a github project
-      - what are real projects doing
-    aes-priority: high
+    aes-priority: medium
 ---
 
 # GitHub Reference Research

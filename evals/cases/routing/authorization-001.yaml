@@ -1,0 +1,19 @@
+id: routing-authorization-001
+title: cross-user document access (IDOR)
+task: Check authorization on the document API: can user A access or modify user B documents by changing the id?
+context:
+  - endpoints take a document id
+  - ownership check not obvious
+  - roles: owner, collaborator, viewer
+risk: high
+category: routing
+expected_skills:
+  required:
+    - authorization-audit
+    - api-abuse-audit
+  useful:
+    - input-trust-audit
+    - business-logic-audit
+  forbidden:
+    - animation-review
+    - ux-review

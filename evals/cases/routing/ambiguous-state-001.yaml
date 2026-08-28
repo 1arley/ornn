@@ -1,0 +1,19 @@
+id: routing-ambiguous-state-001
+title: ambiguous word state in a visual-only request
+task: Change the disabled state color of the button and its hover state.
+context:
+  - visual and interaction states only
+  - no persisted data
+  - no cache or multiple copies
+risk: trivial
+category: routing
+expected_skills:
+  required:
+    - interaction-design
+  useful:
+    - visual-quality-review
+  forbidden:
+    - state-consistency-audit
+    - data-integrity-audit
+    - race-condition-hunter
+negative: false

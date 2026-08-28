@@ -1,0 +1,18 @@
+id: routing-a11y-001
+title: keyboard navigation and focus in a modal
+task: Check keyboard navigation, focus management and screen reader support for the settings modal.
+context:
+  - modal dialog
+  - focus trap needed
+  - aria roles in question
+risk: medium
+category: routing
+expected_skills:
+  required:
+    - accessibility-review
+  useful:
+    - ux-review
+    - interaction-design
+  forbidden:
+    - business-logic-audit
+    - idempotency-audit

@@ -4,12 +4,6 @@ description: Identifies values that should never be trusted from the client (use
 license: MIT
 metadata:
     aes-category: security
-    aes-triggers:
-      - audit input trust
-      - what should not be trusted from the client
-      - server-side derivation of role price xp
-      - mass assignment and client-supplied ownership
-      - never trust the frontend
     aes-priority: high
 ---
 

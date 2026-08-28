@@ -4,12 +4,6 @@ description: Hunts for READ → DECISION → WRITE sequences and asks what happe
 license: MIT
 metadata:
     aes-category: reliability
-    aes-triggers:
-      - audit race conditions
-      - find concurrency bugs
-      - read then write check-then-act
-      - double-spend and over-limit under concurrency
-      - two simultaneous requests
     aes-priority: high
 ---
 

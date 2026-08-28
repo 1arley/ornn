@@ -1,0 +1,21 @@
+id: routing-gamification-001
+title: XP reward farming via remove/re-add reactions
+task: Audit the XP reward system for farming: reactions grant points and can be removed then re-added.
+context:
+  - reaction removal reverses XP
+  - no reward ledger
+  - points matter for leaderboard
+risk: high
+category: routing
+expected_skills:
+  required:
+    - gamification-audit
+    - business-logic-audit
+  useful:
+    - idempotency-audit
+    - race-condition-hunter
+    - api-abuse-audit
+    - user-flow-audit
+  forbidden:
+    - visual-quality-review
+    - animation-review

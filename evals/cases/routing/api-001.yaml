@@ -1,0 +1,20 @@
+id: routing-api-001
+title: public API abuse — UI bypass, ID manipulation, missing rate limits
+task: Audit the public API: callers bypass the UI and hit endpoints directly, manipulating ids and replaying requests.
+context:
+  - API directly accessible
+  - no rate limit visible
+  - client sends role and price in the payload
+risk: high
+category: routing
+expected_skills:
+  required:
+    - api-abuse-audit
+    - input-trust-audit
+  useful:
+    - authorization-audit
+    - edge-case-hunter
+    - idempotency-audit
+  forbidden:
+    - ux-review
+    - animation-review

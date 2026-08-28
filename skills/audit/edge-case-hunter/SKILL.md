@@ -4,12 +4,6 @@ description: Generates edge cases around null, empty, zero, negative, huge value
 license: MIT
 metadata:
     aes-category: audit
-    aes-triggers:
-      - find edge cases
-      - test boundary values
-      - what about null empty zero negative huge
-      - stress inputs with edge values
-      - unicode and duplicate handling
     aes-priority: high
 ---
 

@@ -69,11 +69,11 @@ O projeto será considerado 10/10 quando satisfizer todos os gates abaixo.
 
 ## 3.2 Routing
 
-* [ ] O router seleciona o menor conjunto suficiente de skills.
-* [ ] Há métricas de precision e recall do routing.
-* [ ] Há proteção contra skill explosion.
-* [ ] A seleção é derivada de metadata estruturada.
-* [ ] O router não depende de tabelas manuais duplicadas em vários lugares.
+* [x] O router seleciona o menor conjunto suficiente de skills.
+* [x] Há métricas de precision e recall do routing.
+* [x] Há proteção contra skill explosion.
+* [x] A seleção é derivada de metadata estruturada.
+* [x] O router não depende de tabelas manuais duplicadas em vários lugares.
 
 ## 3.3 Qualidade dos findings
 
@@ -243,13 +243,13 @@ missing_required_skill_count
 
 ### Gates iniciais
 
-* [ ] `critical_skill_recall = 100%` nos casos críticos da suíte.
-* [ ] `routing_precision >= 90%`.
-* [ ] `routing_recall >= 90%`.
-* [ ] tarefas triviais selecionam no máximo 1 skill.
-* [ ] tarefas médias selecionam normalmente 1 ou 2 skills.
-* [ ] tarefas de alto risco selecionam normalmente 2 a 4 skills.
-* [ ] conjuntos maiores exigem justificativa explícita.
+* [x] `critical_skill_recall = 100%` nos casos críticos da suíte.
+* [x] `routing_precision >= 90%`.
+* [x] `routing_recall >= 90%`.
+* [x] tarefas triviais selecionam no máximo 1 skill.
+* [x] tarefas médias selecionam normalmente 1 ou 2 skills.
+* [x] tarefas de alto risco selecionam normalmente 2 a 4 skills.
+* [x] conjuntos maiores exigem justificativa explícita.
 
 Os thresholds podem evoluir quando houver dados suficientes, mas devem existir para impedir regressões silenciosas.
 
@@ -468,26 +468,26 @@ priority
 
 Atualizar `scripts/validate.py` para verificar:
 
-* [ ] toda skill possui entrada no catálogo;
-* [ ] toda entrada no catálogo possui `SKILL.md`;
-* [ ] `name` é único;
-* [ ] `composes_with` aponta para skills existentes;
-* [ ] `overlaps_with` aponta para skills existentes;
-* [ ] `role` pertence ao enum;
-* [ ] `category` pertence ao enum;
-* [ ] `priority` pertence ao enum;
-* [ ] `risk_floor` pertence ao enum;
-* [ ] nenhuma dependência circular impossível existe;
-* [ ] descriptions seguem o padrão Agent Skills;
-* [ ] frontmatter fonte é compatível com a especificação aberta.
+* [x] toda skill possui entrada no catálogo;
+* [x] toda entrada no catálogo possui `SKILL.md`;
+* [x] `name` é único;
+* [x] `composes_with` aponta para skills existentes;
+* [x] `overlaps_with` aponta para skills existentes;
+* [x] `role` pertence ao enum;
+* [x] `category` pertence ao enum;
+* [x] `priority` pertence ao enum;
+* [x] `risk_floor` pertence ao enum;
+* [x] nenhuma dependência circular impossível existe (autorreferência é erro; `composes_with`/`overlaps_with` são relações simétricas e podem ser mútuas);
+* [x] descriptions seguem o padrão Agent Skills;
+* [x] frontmatter fonte é compatível com a especificação aberta.
 
 ### Definition of Done da fase
 
-* [ ] `catalog/skills.yaml` é a fonte de verdade.
-* [ ] As 24 skills estão catalogadas.
-* [ ] O validador detecta drift.
-* [ ] O frontmatter fonte é portátil.
-* [ ] O router pode ser gerado ou orientado pelo catálogo.
+* [x] `catalog/skills.yaml` é a fonte de verdade.
+* [x] As 24 skills estão catalogadas.
+* [x] O validador detecta drift.
+* [x] O frontmatter fonte é portátil.
+* [x] O router pode ser gerado ou orientado pelo catálogo.
 
 ---
 
@@ -612,12 +612,12 @@ Criar evals específicos para:
 
 ### Definition of Done da fase
 
-* [ ] Router usa catálogo.
-* [ ] Skill budget existe.
-* [ ] Over-routing é medido.
-* [ ] Relações entre skills não ficam duplicadas em tabelas manuais.
-* [ ] Routing crítico passa pelos evals.
-* [ ] A saída é menor e mais informativa.
+* [x] Router usa catálogo.
+* [x] Skill budget existe.
+* [x] Over-routing é medido.
+* [x] Relações entre skills não ficam duplicadas em tabelas manuais.
+* [x] Routing crítico passa pelos evals.
+* [x] A saída é menor e mais informativa.
 
 ---
 
@@ -1695,26 +1695,26 @@ Toda release deve responder:
 
 ## PR 2: catálogo
 
-* [ ] Criar `catalog/skills.yaml`.
-* [ ] Catalogar as 24 skills.
-* [ ] Adicionar `role`, `risk_floor`, composição e overlap.
-* [ ] Atualizar validator.
-* [ ] Migrar frontmatter para formato portátil.
+* [x] Criar `catalog/skills.yaml`.
+* [x] Catalogar as 24 skills.
+* [x] Adicionar `role`, `risk_floor`, composição e overlap.
+* [x] Atualizar validator.
+* [x] Migrar frontmatter para formato portátil.
 
 ## PR 3: routing evals
 
-* [ ] Criar framework de eval.
-* [ ] Adicionar pelo menos 15 casos de routing.
-* [ ] Medir baseline do router atual.
-* [ ] Registrar resultado.
+* [x] Criar framework de eval.
+* [x] Adicionar pelo menos 15 casos de routing.
+* [x] Medir baseline do router atual.
+* [x] Registrar resultado.
 
 ## PR 4: router v2
 
-* [ ] Implementar skill budget.
-* [ ] Usar catálogo.
-* [ ] Reduzir `Not selected` para near misses.
-* [ ] Adicionar overlap penalty.
-* [ ] Rodar benchmark antes e depois.
+* [x] Implementar skill budget.
+* [x] Usar catálogo.
+* [x] Reduzir `Not selected` para near misses.
+* [x] Adicionar overlap penalty.
+* [x] Rodar benchmark antes e depois.
 
 ## PR 5: findings evals
 

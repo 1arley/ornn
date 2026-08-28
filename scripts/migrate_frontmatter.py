@@ -1,30 +1,17 @@
 #!/usr/bin/env python3
-"""Migrate SKILL.md frontmatter from legacy to the portable Agent Skills format.
+"""Migrate legacy SKILL.md frontmatter to portable Agent Skills form.
+
+Legacy routing lists are intentionally NOT copied: catalog/skills.yaml is the
+single source of truth for triggers and relationships. Only scalar project
+metadata stays in the source frontmatter under the `aes-` namespace.
 
 Legacy:
-  ---
-  name: adversarial-review
-  description: ...
-  category: audit
-  triggers:
-    - "..."
-  priority: high
-  ---
+  name, description, category, triggers, priority
 
-Portable (Agent Skills compatible, project data under metadata:aes-*):
-  ---
-  name: adversarial-review
-  description: ...
-  license: MIT
-  metadata:
-    aes-category: audit
-    aes-triggers:
-      - "..."
-    aes-priority: high
-  ---
+Portable:
+  name, description, license, metadata:{aes-category, aes-priority}
 
-Idempotent: a file already in portable form (with aes-triggers) is left
-untouched. Re-running after a partial migration repairs missing fields.
+No skill body text is modified. Idempotent.
 """
 from __future__ import annotations
 
@@ -33,23 +20,20 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SKILLS_DIR = ROOT / "skills"
-
-LEGACY_FIELDS = ("category", "triggers", "priority")
 NEWLINE = "\n"
 
 
 def _parse_fields(fm: str) -> dict[str, str | list[str]]:
-    """Parse a frontmatter block into {field: scalar-or-list}. Handles both the
-    legacy shape and the portable 'metadata:' shape (aes-* keys are collapsed)."""
     fields: dict[str, str | list[str]] = {}
     current_key: str | None = None
     for raw in fm.splitlines():
         line = raw.strip()
-        if not line or line.startswith("#"):
+        if not line or line.startswith("#") or line == "metadata:":
             continue
         if line.startswith("- "):
             if current_key:
-                fields.setdefault(current_key, []).append(line[2:].strip().strip('"\''))
+                fields.setdefault(current_key, []).append(
+                    line[2:].strip().strip('"\''))
             continue
         if ":" in line:
             key, _, val = line.partition(":")
@@ -69,38 +53,26 @@ def _parse_fields(fm: str) -> dict[str, str | list[str]]:
 def migrate(text: str, license_name: str = "MIT") -> str:
     if not text.startswith("---"):
         return text
-
     parts = text.split("\n---", 1)
     if len(parts) < 2:
         return text
     fm_block, body = parts
-    fm = fm_block[3:].strip()
-    fields = _parse_fields(fm)
-
-    # A complete portable frontmatter (with triggers) needs no change.
-    if "aes-triggers" not in fm or "metadata:" not in fm:
-        pass  # may still be partially migrated; reconstruct below
-
+    fields = _parse_fields(fm_block[3:].strip())
     name = fields.get("name")
     description = fields.get("description")
     if not name or not description:
         return text
 
-    out = [f"name: {name}", f"description: {description}", f"license: {license_name}"]
-    metadata_lines = []
-    for key in LEGACY_FIELDS:
-        val = fields.get(key)
-        if val is None:
-            continue
-        if isinstance(val, list) and val:
-            metadata_lines.append(f"    aes-{key}:")
-            for item in val:
-                metadata_lines.append(f"      - {item}")
-        elif isinstance(val, str):
-            metadata_lines.append(f"    aes-{key}: {val}")
-    if metadata_lines:
-        out.append("metadata:")
-        out.extend(metadata_lines)
+    out = [
+        f"name: {name}",
+        f"description: {description}",
+        f"license: {license_name}",
+        "metadata:",
+    ]
+    if fields.get("category"):
+        out.append(f"    aes-category: {fields['category']}")
+    if fields.get("priority"):
+        out.append(f"    aes-priority: {fields['priority']}")
 
     return "---" + NEWLINE + NEWLINE.join(out) + NEWLINE + "---" + body
 

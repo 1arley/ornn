@@ -4,12 +4,6 @@ description: Analyzes authenticated vs authorized vs owner vs moderator vs admin
 license: MIT
 metadata:
     aes-category: security
-    aes-triggers:
-      - audit authorization
-      - check access control
-      - authenticated vs authorized
-      - owner and moderator permissions
-      - idor and privilege escalation
     aes-priority: high
 ---
 

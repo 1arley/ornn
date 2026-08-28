@@ -1,0 +1,16 @@
+id: routing-vague-001
+title: vague prompt — 'make it better'
+task: Make the profile page better.
+context:
+  - no specifics on what to improve
+  - broad surface
+risk: medium
+category: routing
+expected_skills:
+  required: []
+  useful:
+    - ux-review
+    - adversarial-review
+  forbidden:
+    - race-condition-hunter
+    - idempotency-audit

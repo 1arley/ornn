@@ -1,0 +1,24 @@
+id: routing-payment-001
+title: payment checkout — double charge on retry and races
+task: Audit the payment checkout flow for double-charge on retry and race conditions.
+context:
+  - money transfers between accounts
+  - retries re-run the charge endpoint
+  - no idempotency key visible
+risk: critical
+category: routing
+expected_skills:
+  required:
+    - business-logic-audit
+    - idempotency-audit
+    - race-condition-hunter
+    - error-flow-audit
+  useful:
+    - data-integrity-audit
+    - authorization-audit
+    - adversarial-review
+    - api-abuse-audit
+    - user-flow-audit
+  forbidden:
+    - animation-review
+    - accessibility-review

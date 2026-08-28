@@ -1,0 +1,20 @@
+id: routing-error-flow-001
+title: partial success when a multi-step signup fails mid-way
+task: Audit what happens when signup fails after the account is created but before the welcome email is sent.
+context:
+  - account insert, then email send
+  - email can fail
+  - retry exists but unclear
+risk: high
+category: routing
+expected_skills:
+  required:
+    - error-flow-audit
+  useful:
+    - idempotency-audit
+    - data-integrity-audit
+    - state-consistency-audit
+    - adversarial-review
+  forbidden:
+    - visual-quality-review
+    - market-research
