@@ -1061,11 +1061,11 @@ Knowledge técnico deve indicar referências relevantes quando houver risco de o
 
 ### Definition of Done da fase
 
-* [ ] Nenhum diretório de knowledge principal contém apenas `.gitkeep`.
-* [ ] Pelo menos 12 documentos de knowledge úteis existem.
-* [ ] Skills relevantes apontam para knowledge.
-* [ ] Duplicação entre skills diminui.
-* [ ] Progressive disclosure continua preservado.
+* [x] Nenhum diretório de knowledge principal contém apenas `.gitkeep`.
+* [x] Pelo menos 12 documentos de knowledge úteis existem (19 criados).
+* [x] Skills relevantes apontam para knowledge.
+* [x] Duplicação entre skills diminui.
+* [x] Progressive disclosure continua preservado.
 
 ---
 
@@ -1734,10 +1734,10 @@ Toda release deve responder:
 
 ## PR 7: knowledge
 
-* [ ] Criar os primeiros 12 documentos.
-* [ ] Remover `.gitkeep` dos domínios preenchidos.
-* [ ] Referenciar knowledge a partir das skills relevantes.
-* [ ] Reduzir conteúdo duplicado.
+* [x] Criar os primeiros 12 documentos (19 criados).
+* [x] Remover `.gitkeep` dos domínios preenchidos.
+* [x] Referenciar knowledge a partir das skills relevantes.
+* [x] Reduzir conteúdo duplicado.
 
 ## PR 8: interoperabilidade
 
