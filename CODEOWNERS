@@ -1,0 +1,14 @@
+# CODEOWNERS — default reviewers for repository paths.
+# See https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+* @1arley
+
+# The installer, CLI, and the validator are security-sensitive paths.
+bin/cli.js @1arley
+scripts/validate.py @1arley
+scripts/check_references.py @1arley
+scripts/eval.py @1arley
+
+# The catalog and router determine routing behavior.
+catalog/skills.yaml @1arley
+scripts/router.py @1arley

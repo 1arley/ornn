@@ -335,6 +335,15 @@ Warnings:           0
 * `docs/skill-authoring.md` — como escrever uma skill (formato `SKILL.md`).
 * `docs/reference-authoring.md` — como adicionar referências (schema YAML).
 * `docs/agent-integration.md` — como o agente integra skills, routers e workflows.
+* `docs/architecture.md` — arquitetura do sistema (pipeline, camadas, trust boundaries).
+* `docs/routing.md` — catálogo, scoring, budget, overlap e composição.
+* `docs/evals.md` — formato, métricas, gates e como interpretar regressão.
+* `docs/compatibility.md` — matriz de compatibilidade Agent Skills.
+* `docs/contributing-skills.md` — contrato para novas skills.
+* `docs/release-process.md` — versionamento e release gate.
+* `CONTRIBUTING.md` — como contribuir.
+* `SECURITY.md` — como reportar vulnerabilidades.
+* `CHANGELOG.md` — histórico de mudanças.
 * `plan.md` — especificação completa e Definition of Done.
 
 ---
