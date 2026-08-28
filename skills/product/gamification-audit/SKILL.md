@@ -80,6 +80,12 @@ automation      — bots executando o comportamento "incentivado"
 
 ## Investigation Procedure
 
+> **Shared knowledge:** for reward ledgers, reversals and quota abuse models,
+> read `knowledge/product/rewards-and-ledgers.md`, `knowledge/product/reversals.md`
+> and `knowledge/product/quotas-and-limits.md`.
+
+
+
 1. **Mapear cada recompensa como um loop** TRIGGER → CONDITION → REWARD → REVERSAL.
    Liste o trigger (ação), a condição (quem/quando), a reward (quantidade, como
    emitida), e a reversão (existe? remove a reward?).

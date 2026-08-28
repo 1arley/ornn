@@ -68,6 +68,12 @@ rewards      — o que concede valor e sob quais condições
 
 ## Investigation Procedure
 
+> **Shared knowledge:** for the concept behind these rules, read
+> `knowledge/engineering/invariants.md` and `knowledge/product/quotas-and-limits.md`
+> only when you need the enforcement model or quota patterns.
+
+
+
 1. **Inventariar regras.** Leia o fluxo e liste todas as regras implícitas. Para cada,
    rotule a classe (rule/invariant/limit/ownership/transition/reward).
 2. **Para cada regra, responder às 5 perguntas:**

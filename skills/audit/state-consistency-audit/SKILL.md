@@ -54,6 +54,12 @@ todas as outras convergiram para ela?**
 
 ## Investigation Procedure
 
+> **Shared knowledge:** for copies-of-truth and divergence causes, read
+> `knowledge/engineering/failure-models.md` and `knowledge/engineering/concurrency.md`
+> when cache or multi-writer divergence is suspected.
+
+
+
 1. **Inventariar as camadas de estado** para o componente/fluxo. Nem todos os fluxos
    usam todas as seis; liste só as que existem.
 2. **Para cada fato relevante** (saldo, status do recurso, permissão, contador), rotule

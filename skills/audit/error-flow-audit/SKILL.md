@@ -65,6 +65,12 @@ rollback failures — tentou desfazer e o rollback também falhou; agora o quê?
 
 ## Investigation Procedure
 
+> **Shared knowledge:** for failure models, compensation and the outbox pattern,
+> read `knowledge/engineering/failure-models.md` and `knowledge/engineering/transactions.md`
+> when the flow spans external services or a rollback path.
+
+
+
 1. **Decompor a operação em passos.** Liste cada efeito (write DB, call API externa,
    enqueue, send email, update cache, emit event).
 2. **Rotular cada passo:** idempotente? reversível? efeito externo (irreversível)?

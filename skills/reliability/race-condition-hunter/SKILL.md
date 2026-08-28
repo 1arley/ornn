@@ -63,6 +63,12 @@ A skill procura a janela e pergunta qual defesa (se alguma) a fecha.
 
 ## Investigation Procedure
 
+> **Shared knowledge:** for read-modify-write, locking and atomic update patterns,
+> read `knowledge/engineering/concurrency.md` and `knowledge/engineering/transactions.md`
+> before designing the confirmation test.
+
+
+
 1. **Encontrar sequências READ → DECISION → WRITE.** Para cada operação que muta
    estado baseada em leitura, mapeie as três etapas.
 2. **Identificar o estado compartilhado** — linha de DB, contador, cache, arquivo.

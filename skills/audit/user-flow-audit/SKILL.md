@@ -50,6 +50,12 @@ impede de ir para onde não deveria?*
 
 ## Investigation Procedure
 
+> **Shared knowledge:** for modeling flows as state machines and finding dead ends,
+> read `knowledge/engineering/state-machines.md` when the flow has states, guards
+> or refresh/back concerns.
+
+
+
 1. **Desenhar o fluxo nominal** como `entry → preconditions → action → state change →
    feedback → next state`. Um nó por estado.
 2. **Rotular onde cada estado vive** — servidor, cliente, URL, ou cache. (Isto

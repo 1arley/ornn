@@ -65,6 +65,11 @@ A skill percorre a matriz e procura células não-impostas.
 
 ## Investigation Procedure
 
+> **Shared knowledge:** for the authN/authZ model, ownership predicates and IDOR,
+> read `knowledge/security/authorization.md` when auditing resource access.
+
+
+
 1. **Listar recursos** e suas ações (CRUD + ações de domínio: approve, invite, transfer).
 2. **Para cada par (recurso, ação), determinar o papel exigido** — owner?
    participant? moderator? admin? ou basta authenticated?

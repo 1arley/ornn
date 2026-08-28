@@ -72,6 +72,12 @@ counters      — incremento dobrado
 
 ## Investigation Procedure
 
+> **Shared knowledge:** for retry/failure semantics and compensation,
+> read `knowledge/engineering/failure-models.md` and `knowledge/engineering/concurrency.md`
+> when retries interact with transactions.
+
+
+
 1. **Listar operações que criam/concedem/debitam/incrementam.**
 2. **Para cada, identificar a chave de idempotência natural** — existe no request
    (header, idempotency key, eventId) ou no payload?

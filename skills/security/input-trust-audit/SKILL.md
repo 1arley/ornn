@@ -61,6 +61,11 @@ que a UI nem envia (`role`, `isAdmin`), porque não há allowlist.
 
 ## Investigation Procedure
 
+> **Shared knowledge:** for client-supplied control, mass assignment and
+> server-side derivation, read `knowledge/security/input-trust.md`.
+
+
+
 1. **Listar todos os campos** que cada endpoint relevante aceita no body/params.
 2. **Rotular cada campo**: não-sensível (nome, bio, preferência) vs **valor de
    autoridade** (qualquer da lista canônica, ou qualquer campo que determine
