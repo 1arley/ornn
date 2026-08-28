@@ -1,0 +1,85 @@
+# references/security.yaml
+# Catálogo de fontes para segurança: autorização, abuso de API, confiança de input.
+# Schema: ver docs/reference-authoring.md
+
+- name: OWASP Cheat Sheet Series
+  url: https://cheatsheetseries.owasp.org/
+  type: methodology
+  category: security
+  authority: established
+  use_when:
+    - auditing authorization and access control
+    - reviewing input validation and trust boundaries
+    - designing server-side enforcement of permissions
+  avoid_when:
+    - pure UX or visual review
+    - non-web security contexts
+  search_queries:
+    - "OWASP authorization cheat sheet"
+    - "OWASP injection prevention"
+    - "OWASP server-side validation"
+
+- name: OWASP Top 10
+  url: https://owasp.org/Top10/
+  type: methodology
+  category: security
+  authority: established
+  use_when:
+    - classifying authorization and input-trust findings
+    - prioritizing security skill selection
+    - mapping defects to Broken Access Control / Identification & Auth Failures
+  avoid_when:
+    - narrow investigations already scoped to one issue
+  search_queries:
+    - "OWASP broken access control A01"
+    - "OWASP identification authentication A07"
+    - "OWASP security by design"
+
+- name: PortSwigger Web Security Academy
+  url: https://portswigger.net/web-security
+  type: methodology
+  category: security
+  authority: established
+  use_when:
+    - reproducing access control and API abuse attack patterns
+    - learning IDOR and privilege escalation techniques
+    - training input-trust adversarial thinking
+  avoid_when:
+    - non-web targets
+  search_queries:
+    - "PortSwigger access control"
+    - "PortSwigger IDOR insecure direct object reference"
+    - "PortSwigger API abuse mass assignment"
+
+- name: CWE — Common Weakness Enumeration
+  url: https://cwe.mitre.org/
+  type: heuristic
+  category: security
+  authority: established
+  use_when:
+    - naming and classifying a confirmed weakness
+    - finding canonical descriptions of input-trust and authorization flaws
+    - referencing a finding to a recognized standard
+  avoid_when:
+    - discovery of novel patterns (CWE classifies known ones)
+  search_queries:
+    - "CWE authorization missing"
+    - "CWE improper input validation"
+    - "CWE trust boundary violation"
+
+- name: GitHub
+  url: https://github.com/
+  type: implementation
+  category: security
+  authority: community
+  use_when:
+    - finding real-world examples of authorization middleware
+    - comparing how projects enforce ownership and roles server-side
+    - locating test suites for access control
+  avoid_when:
+    - when official guidance is more authoritative
+    - copying middleware blindly without adapting to the project's model
+  search_queries:
+    - "<framework> authorization middleware"
+    - "<framework> role based access control implementation"
+    - "<feature> ownership check server side"

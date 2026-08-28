@@ -1,0 +1,88 @@
+# references/research.yaml
+# Catálogo de fontes para pesquisa: descoberta de referências, implementações e mercado.
+# Schema: ver docs/reference-authoring.md
+
+- name: GitHub
+  url: https://github.com/
+  type: implementation
+  category: research
+  authority: community
+  use_when:
+    - searching production implementations of a feature or pattern
+    - comparing architecture, database, API, and framework choices
+    - evaluating activity, quality, tests, docs, adoption, license
+  avoid_when:
+    - when official documentation is more authoritative
+    - copying code instead of extracting ideas
+  search_queries:
+    - "<feature> implementation architecture"
+    - "<feature> database schema API"
+    - "<feature> framework tests adoption"
+
+- name: Google Scholar
+  url: https://scholar.google.com/
+  type: discovery
+  category: research
+  authority: established
+  use_when:
+    - finding authoritative technical literature on a hard problem
+    - grounding concurrency, integrity, or algorithm decisions in research
+    - when uncertainty and impact are both high
+  avoid_when:
+    - routine implementation tasks
+    - when practitioner sources already answer the question
+  search_queries:
+    - "<topic> race condition formal"
+    - "<topic> idempotency distributed systems"
+    - "<topic> consensus integrity"
+
+- name: Hacker News
+  url: https://news.ycombinator.com/
+  type: discovery
+  category: research
+  authority: community
+  use_when:
+    - finding practitioner discussion and post-mortems
+    - discovering real-world edge cases and failures
+    - surveying community sentiment on a library or approach
+  avoid_when:
+    - as primary technical evidence
+    - when authoritative docs exist
+  search_queries:
+    - "Hacker News <library> experience"
+    - "Hacker News <feature> post-mortem"
+    - "Hacker News <pattern> pitfalls"
+
+- name: Stack Overflow
+  url: https://stackoverflow.com/
+  type: heuristic
+  category: research
+  authority: community
+  use_when:
+    - finding how practitioners solved a specific technical problem
+    - locating known edge cases and gotchas
+    - debugging an obscure error during investigation
+  avoid_when:
+    - when official documentation covers the topic
+    - as justification for a security finding
+  search_queries:
+    - "<error message> stack overflow"
+    - "<library> <edge case>"
+    - "<pattern> concurrency gotcha"
+
+- name: DevDocs
+  url: https://devdocs.io/
+  type: implementation
+  category: research
+  authority: vendor
+  use_when:
+    - quickly consulting consolidated official documentation
+    - cross-referencing API references across frameworks
+    - during implementation-research for canonical signatures
+  avoid_when:
+    - when the vendor's own docs have fuller guides
+    - non-documented, behavioral questions
+  search_queries:
+    - "devdocs <framework> api reference"
+    - "devdocs <method> signature"
+    - "devdocs <library> documentation"

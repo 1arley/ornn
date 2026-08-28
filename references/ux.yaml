@@ -1,0 +1,37 @@
+# references/ux.yaml
+# Catálogo de fontes para UX: usabilidade, heurísticas, fluxos, carga cognitiva.
+# Schema: ver docs/reference-authoring.md
+
+- name: Laws of UX
+  url: https://lawsofux.com/
+  type: methodology
+  category: ux
+  authority: established
+  use_when:
+    - reviewing usability and cognitive load
+    - designing or auditing user flows
+    - justifying a UX decision with a recognized principle
+  avoid_when:
+    - pure visual or aesthetic review
+    - backend-only tasks
+  search_queries:
+    - "Laws of UX heuristics"
+    - "Laws of UX cognitive load"
+    - "Laws of UX Hick's law Fitts's law"
+
+- name: Interfaces
+  url: https://interfaces.rauno.me/
+  type: heuristic
+  category: ux
+  authority: curated
+  use_when:
+    - calibrating taste for interaction detail and feedback
+    - comparing affordances and micro-interactions
+    - seeking reference for high-craft interface patterns
+  avoid_when:
+    - needing authoritative methodology
+    - copying visual identity
+  search_queries:
+    - "interfaces rauno interaction detail"
+    - "high craft UI affordances"
+    - "interface micro-interactions reference"

@@ -1,0 +1,54 @@
+# references/product.yaml
+# Catálogo de fontes para produto: regras de negócio, gamificação, comportamento de mercado.
+# Schema: ver docs/reference-authoring.md
+
+- name: GitHub
+  url: https://github.com/
+  type: implementation
+  category: product
+  authority: community
+  use_when:
+    - comparing how real products implement gamification and reward loops
+    - finding production examples of XP, streaks, and achievement systems
+    - locating test cases for reward abuse
+  avoid_when:
+    - copying logic blindly
+    - when official documentation for a framework's reward primitives exists
+  search_queries:
+    - "<product> XP reward implementation"
+    - "gamification streak system github"
+    - "achievement reward loop implementation"
+
+- name: Product Hunt
+  url: https://www.producthunt.com/
+  type: discovery
+  category: product
+  authority: community
+  use_when:
+    - discovering real products that solved a similar problem
+    - surveying how the market approaches a feature
+    - feeding market-research before deeper analysis
+  avoid_when:
+    - as primary evidence for a technical finding
+    - when authoritative methodology is needed
+  search_queries:
+    - "product hunt gamification"
+    - "product hunt <feature category>"
+    - "product hunt reward systems"
+
+- name: Reforge
+  url: https://reforge.com/resources
+  type: methodology
+  category: product
+  authority: established
+  use_when:
+    - reasoning about retention loops and engagement mechanics
+    - auditing whether a reward system is gamed-resistant by design
+    - grounding a gamification-audit in recognized product thinking
+  avoid_when:
+    - pure visual or frontend review
+    - tasks unrelated to engagement or business metrics
+  search_queries:
+    - "Reforge retention loops"
+    - "Reforge gamification mechanics"
+    - "Reforge engagement systems"

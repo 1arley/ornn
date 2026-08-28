@@ -1,0 +1,88 @@
+# references/engineering.yaml
+# Catálogo de fontes para engenharia, arquitetura, concorrência, integridade e bugs.
+# Schema: ver docs/reference-authoring.md
+
+- name: OWASP Cheat Sheet Series
+  url: https://cheatsheetseries.owasp.org/
+  type: methodology
+  category: engineering
+  authority: established
+  use_when:
+    - auditing authentication and authorization flows
+    - reviewing input validation and injection risks
+    - securing session management and error handling
+  avoid_when:
+    - pure frontend visual review
+    - tasks with no security-relevant surface
+  search_queries:
+    - "OWASP cheat sheet authorization"
+    - "OWASP input validation"
+    - "OWASP race condition concurrency"
+
+- name: OWASP Top 10
+  url: https://owasp.org/Top10/
+  type: methodology
+  category: engineering
+  authority: established
+  use_when:
+    - classifying security risks in a web application
+    - prioritizing which audit skills to run
+    - mapping findings to recognized risk categories
+  avoid_when:
+    - mobile-specific or desktop-specific concerns not covered
+    - already-classified, narrow single-issue investigations
+  search_queries:
+    - "OWASP Top 10 broken access control"
+    - "OWASP Top 10 identification authentication failures"
+    - "OWASP security risk categories"
+
+- name: PortSwigger Web Security Academy
+  url: https://portswigger.net/web-security
+  type: methodology
+  category: engineering
+  authority: established
+  use_when:
+    - learning concrete attack patterns for access control and API abuse
+    - finding reproducible exploit examples
+    - training adversarial-review mental models
+  avoid_when:
+    - non-web targets
+    - when a quick checklist suffices
+  search_queries:
+    - "PortSwigger access control vulnerabilities"
+    - "PortSwigger business logic vulnerabilities"
+    - "PortSwigger API testing"
+
+- name: Google Testing Blog
+  url: https://testing.googleblog.com/
+  type: heuristic
+  category: engineering
+  authority: established
+  use_when:
+    - designing edge-case and state-based tests
+    - reasoning about concurrency and flakiness
+    - evaluating testing strategy for race conditions
+  avoid_when:
+    - frontend visual or UX review
+    - operational/infra concerns
+  search_queries:
+    - "Google testing blog flaky tests"
+    - "Google testing blog concurrency"
+    - "testing blog state machine testing"
+
+- name: GitHub
+  url: https://github.com/
+  type: implementation
+  category: engineering
+  authority: community
+  use_when:
+    - searching for production implementations of a pattern
+    - comparing how real projects handle concurrency or idempotency
+    - finding test cases for edge conditions
+  avoid_when:
+    - when official documentation exists and is authoritative
+    - copying code blindly instead of extracting principles
+  search_queries:
+    - "<feature> idempotency implementation"
+    - "<feature> race condition test"
+    - "<feature> transaction integrity"

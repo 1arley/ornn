@@ -1,0 +1,139 @@
+# references/frontend.yaml
+# Catálogo de fontes para frontend: visual, implementação, animação, acessibilidade.
+# Schema: ver docs/reference-authoring.md
+
+- name: Impeccable
+  url: https://impeccable.style/
+  type: heuristic
+  category: frontend
+  authority: established
+  use_when:
+    - reviewing visual quality and craft
+    - auditing spacing, typography, hierarchy, and density
+    - calibrating design taste against a high bar
+  avoid_when:
+    - backend-only tasks
+    - when a strict component spec already exists
+  search_queries:
+    - "impeccable style visual quality"
+    - "impeccable spacing typography hierarchy"
+    - "impeccable frontend craft"
+
+- name: Impeccable Slop
+  url: https://impeccable.style/slop/
+  type: heuristic
+  category: frontend
+  authority: established
+  use_when:
+    - detecting AI slop and generic AI visual patterns
+    - auditing visual-quality-review findings for templated output
+    - training the eye to recognize low-craft generated UI
+  avoid_when:
+    - non-frontend review
+    - when evaluating genuinely bespoke design
+  search_queries:
+    - "impeccable slop AI generated UI patterns"
+    - "detect AI slop frontend"
+    - "generic AI visual patterns"
+
+- name: Interfaces
+  url: https://interfaces.rauno.me/
+  type: heuristic
+  category: frontend
+  authority: curated
+  use_when:
+    - referencing high-craft interaction and visual detail
+    - comparing micro-interaction polish
+    - seeking non-generic UI reference
+  avoid_when:
+    - copying identity or branding
+    - needing prescriptive methodology
+  search_queries:
+    - "interfaces rauno visual detail"
+    - "high craft frontend reference"
+    - "interface polish micro-interactions"
+
+- name: Dribbble
+  url: https://dribbble.com/
+  type: inspiration
+  category: frontend
+  authority: curated
+  use_when:
+    - seeking visual inspiration for composition and style
+    - exploring alternative treatments for a screen
+    - breaking out of generic patterns
+  avoid_when:
+    - using as evidence for a technical finding
+    - copying layouts or branding
+    - any decision requiring authority or methodology
+  search_queries:
+    - "dribbble <screen type> design"
+    - "dribbble dashboard composition"
+    - "dribbble empty state inspiration"
+
+- name: dark.design
+  url: https://www.dark.design/
+  type: inspiration
+  category: frontend
+  authority: curated
+  use_when:
+    - exploring dark-mode and high-contrast visual treatments
+    - seeking non-generic aesthetic direction
+  avoid_when:
+    - using as technical evidence
+    - light-mode or accessibility-contrast requirements
+  search_queries:
+    - "dark design dark mode UI"
+    - "dark design high contrast inspiration"
+    - "dark theme visual reference"
+
+- name: Animate UI
+  url: https://animate-ui.com/
+  type: implementation
+  category: frontend
+  authority: community
+  use_when:
+    - implementing or reviewing concrete animation components
+    - referencing real transition and motion patterns
+    - auditing animation-review findings against working examples
+  avoid_when:
+    - needing animation principles over code
+    - when reduced-motion accessibility is the primary concern
+  search_queries:
+    - "animate ui component animation"
+    - "animate ui transition examples"
+    - "animate ui motion implementation"
+
+- name: LazyWeb
+  url: https://www.lazyweb.com/
+  type: discovery
+  category: frontend
+  authority: community
+  use_when:
+    - discovering more frontend sources and tools
+    - finding what the community is using for a given problem
+    - expanding the reference set before deep research
+  avoid_when:
+    - when authoritative sources are already identified
+    - as primary evidence for a finding
+  search_queries:
+    - "lazyweb frontend tools"
+    - "lazyweb UI libraries"
+    - "lazyweb design resources"
+
+- name: Shoogle
+  url: https://shoogle.dev/
+  type: discovery
+  category: frontend
+  authority: community
+  use_when:
+    - discovering frontend libraries and components
+    - surveying implementation options for a UI need
+    - broadening research before committing to an approach
+  avoid_when:
+    - as primary evidence
+    - when official docs for a chosen library exist
+  search_queries:
+    - "shoogle frontend components"
+    - "shoogle UI library discovery"
+    - "shoogle react components"
