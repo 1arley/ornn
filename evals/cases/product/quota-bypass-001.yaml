@@ -1,0 +1,23 @@
+id: product-quota-bypass-001
+title: quota enforced only in the interface
+task: Audit a free-plan export quota.
+context:
+  - UI disables export after ten operations
+  - API endpoint does not load plan or usage count
+  - callers can invoke endpoint directly
+risk: high
+category: product
+expected_skills:
+  required:
+    - business-logic-audit
+    - api-abuse-audit
+  useful:
+    - authorization-audit
+    - input-trust-audit
+  forbidden:
+    - animation-review
+expected_findings:
+  - direct API calls bypass the free-plan export quota
+forbidden_claims:
+  - disabled button enforces the quota
+negative: false

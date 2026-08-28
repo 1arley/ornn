@@ -1,0 +1,21 @@
+id: reliability-unique-constraint-no-bug-001
+title: unique event ledger prevents duplicate webhook effects
+task: Audit duplicate webhook handling.
+context:
+  - database has unique provider event id
+  - effect and event insert share one transaction
+  - duplicate constraint error returns prior result
+risk: high
+category: reliability
+expected_skills:
+  required:
+    - idempotency-audit
+    - data-integrity-audit
+  useful:
+    - error-flow-audit
+  forbidden:
+    - animation-review
+expected_findings: []
+forbidden_claims:
+  - duplicate delivery causes duplicate effect despite atomic unique ledger
+negative: true

@@ -1,0 +1,23 @@
+id: security-admin-mass-assignment-001
+title: profile update accepts client-supplied role
+task: Audit the profile update endpoint for privilege escalation.
+context:
+  - request body is spread directly into the user update
+  - role is accepted from the client
+  - UI hides the role field for normal users
+risk: critical
+category: security
+expected_skills:
+  required:
+    - input-trust-audit
+    - authorization-audit
+  useful:
+    - api-abuse-audit
+    - business-logic-audit
+  forbidden:
+    - ux-review
+expected_findings:
+  - normal user can set an administrative role through mass assignment
+forbidden_claims:
+  - authentication alone prevents role escalation
+negative: false

@@ -1,0 +1,21 @@
+id: audit-cache-no-bug-001
+title: eventual cache consistency matches documented contract
+task: Audit a cached activity feed that updates within thirty seconds.
+context:
+  - product contract explicitly allows thirty-second delay
+  - cache TTL is thirty seconds
+  - no financial or permission decision uses the cache
+  - tests observe freshness within the contract
+risk: medium
+category: audit
+expected_skills:
+  required:
+    - state-consistency-audit
+  useful:
+    - user-flow-audit
+  forbidden:
+    - authorization-audit
+expected_findings: []
+forbidden_claims:
+  - any temporary cache staleness is automatically a bug
+negative: true

@@ -1,0 +1,18 @@
+{
+  "expected_matches": {
+    "counter-lost-update": "finding-841a86f6cfb2",
+    "pure-speculation": "finding-71fd13f7915e"
+  },
+  "critical_findings": [],
+  "expected_confidence": {
+    "counter-lost-update": "POSSIBLE",
+    "pure-speculation": "SPECULATIVE"
+  },
+  "duplicate_groups": [
+    [
+      "unsupported-confirmation-a",
+      "unsupported-confirmation-b",
+      "unsupported-confirmation-c"
+    ]
+  ]
+}

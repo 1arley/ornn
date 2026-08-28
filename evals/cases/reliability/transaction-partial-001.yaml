@@ -1,0 +1,23 @@
+id: reliability-transaction-partial-001
+title: inventory decrements before payment failure
+task: Audit checkout failure between inventory reservation and payment.
+context:
+  - inventory decrement commits first
+  - payment provider call fails
+  - no rollback or compensation restores inventory
+risk: critical
+category: reliability
+expected_skills:
+  required:
+    - error-flow-audit
+    - data-integrity-audit
+  useful:
+    - idempotency-audit
+    - business-logic-audit
+  forbidden:
+    - ux-review
+expected_findings:
+  - failed payment permanently reduces inventory
+forbidden_claims:
+  - retry necessarily restores inventory
+negative: false

@@ -1,0 +1,25 @@
+id: mixed-reward-api-001
+title: reaction reward combines self-reward and replay abuse
+task: Audit a social reaction API that grants points.
+context:
+  - client supplies post author id
+  - endpoint grants points before inserting reaction
+  - insert has no unique user-post constraint
+risk: critical
+category: mixed
+expected_skills:
+  required:
+    - gamification-audit
+    - input-trust-audit
+    - idempotency-audit
+  useful:
+    - race-condition-hunter
+    - api-abuse-audit
+  forbidden:
+    - visual-quality-review
+expected_findings:
+  - caller can redirect reward by changing author id
+  - repeated or concurrent reaction can grant points multiple times
+forbidden_claims:
+  - frontend post model is trusted evidence of author ownership
+negative: false

@@ -1,0 +1,23 @@
+id: reliability-duplicate-webhook-001
+title: webhook retries duplicate fulfillment
+task: Audit order fulfillment when the provider retries a webhook.
+context:
+  - provider event id is available
+  - handler creates fulfillment before recording the event id
+  - lost response causes the same event to be sent again
+risk: high
+category: reliability
+expected_skills:
+  required:
+    - idempotency-audit
+    - error-flow-audit
+  useful:
+    - data-integrity-audit
+    - api-abuse-audit
+  forbidden:
+    - visual-quality-review
+expected_findings:
+  - same provider event can fulfill the order twice after a lost response
+forbidden_claims:
+  - rate limiting alone provides idempotency
+negative: false

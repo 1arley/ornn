@@ -1,0 +1,21 @@
+id: audit-reversible-filter-no-bug-001
+title: reversible filter reset behaves as designed
+task: Audit a filter panel whose reset button restores documented defaults.
+context:
+  - reset only changes local UI state
+  - URL and server are not expected to persist filters
+  - repeated reset is idempotent
+risk: trivial
+category: audit
+expected_skills:
+  required:
+    - user-flow-audit
+  useful:
+    - edge-case-hunter
+  forbidden:
+    - race-condition-hunter
+    - data-integrity-audit
+expected_findings: []
+forbidden_claims:
+  - filter reset loses persisted data
+negative: true

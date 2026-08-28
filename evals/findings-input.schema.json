@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/1arley/1arley-agent-skills/evals/findings-input.schema.json",
+  "title": "Raw skill findings",
+  "type": "object",
+  "required": ["findings"],
+  "properties": {
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "affected_component", "invariant", "mechanism", "state_transition", "impact"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "severity": { "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+          "claimed_confidence": { "enum": ["SPECULATIVE", "POSSIBLE", "HIGH CONFIDENCE", "CONFIRMED"] },
+          "identity_key": { "type": "string" },
+          "affected_component": { "type": "string" },
+          "invariant": { "type": "string" },
+          "mechanism": { "type": "string" },
+          "state_transition": { "type": "string" },
+          "impact": { "type": "string" },
+          "generated_by": { "type": "array", "items": { "type": "string" } },
+          "investigated_by": { "type": "array", "items": { "type": "string" } },
+          "verified_by": { "type": "array", "items": { "type": "string" } },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["type", "description"],
+              "properties": {
+                "type": { "type": "string" },
+                "description": { "type": "string" },
+                "source": { "type": "string" },
+                "result": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/1arley/1arley-agent-skills/evals/findings-output.schema.json",
+  "title": "Consolidated findings",
+  "type": "object",
+  "required": ["raw_findings_count", "consolidated_findings_count", "duplicates_removed", "findings"],
+  "properties": {
+    "raw_findings_count": { "type": "integer", "minimum": 0 },
+    "consolidated_findings_count": { "type": "integer", "minimum": 0 },
+    "duplicates_removed": { "type": "integer", "minimum": 0 },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id", "title", "severity", "confidence", "confidence_reasons",
+          "affected_component", "invariant", "mechanism", "state_transition", "impact",
+          "generated_by", "investigated_by", "verified_by", "evidence", "raw_finding_ids"
+        ],
+        "properties": {
+          "id": { "type": "string", "pattern": "^finding-[a-f0-9]{12}$" },
+          "title": { "type": "string" },
+          "severity": { "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+          "confidence": { "enum": ["SPECULATIVE", "POSSIBLE", "HIGH CONFIDENCE", "CONFIRMED"] },
+          "confidence_reasons": { "type": "array", "items": { "type": "string" } },
+          "affected_component": { "type": "string" },
+          "invariant": { "type": "string" },
+          "mechanism": { "type": "string" },
+          "state_transition": { "type": "string" },
+          "impact": { "type": "string" },
+          "generated_by": { "type": "array", "items": { "type": "string" } },
+          "investigated_by": { "type": "array", "items": { "type": "string" } },
+          "verified_by": { "type": "array", "items": { "type": "string" } },
+          "evidence": { "type": "array", "items": { "type": "object" } },
+          "raw_finding_ids": { "type": "array", "items": { "type": "string" } },
+          "claimed_confidences": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

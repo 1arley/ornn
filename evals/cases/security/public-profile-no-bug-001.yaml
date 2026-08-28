@@ -1,0 +1,20 @@
+id: security-public-profile-no-bug-001
+title: public profile access is intentional
+task: Check whether unauthenticated access to public profile pages is an authorization bug.
+context:
+  - product specification marks profiles public
+  - private fields are omitted by the server serializer
+  - editing still requires ownership
+risk: medium
+category: security
+expected_skills:
+  required:
+    - authorization-audit
+  useful:
+    - input-trust-audit
+  forbidden:
+    - race-condition-hunter
+expected_findings: []
+forbidden_claims:
+  - unauthenticated read is an IDOR when the resource is intentionally public
+negative: true

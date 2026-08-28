@@ -1,0 +1,94 @@
+{
+  "raw_findings_count": 4,
+  "consolidated_findings_count": 2,
+  "duplicates_removed": 2,
+  "findings": [
+    {
+      "id": "finding-0eb0943d19d7",
+      "title": "Webhook replay inserts duplicate charge rows",
+      "severity": "CRITICAL",
+      "affected_component": "POST /webhooks/payment",
+      "invariant": "a payment event must create no more than one charge",
+      "mechanism": "the same event is processed again on retry with no idempotency key",
+      "state_transition": "unprocessed event -> charge created twice",
+      "impact": "the user receives duplicate charges",
+      "generated_by": [
+        "adversarial-review"
+      ],
+      "investigated_by": [
+        "idempotency-audit"
+      ],
+      "verified_by": [
+        "error-flow-audit"
+      ],
+      "evidence": [
+        {
+          "type": "code",
+          "description": "handler inserts a charge before checking an event ledger",
+          "source": "src/webhook.js:42",
+          "result": ""
+        },
+        {
+          "type": "reasoning",
+          "description": "a lost response can cause the provider to retry",
+          "source": "",
+          "result": ""
+        },
+        {
+          "type": "test",
+          "description": "post the same provider event id twice",
+          "source": "test/webhook.test.js",
+          "result": "two charge rows are created"
+        }
+      ],
+      "raw_finding_ids": [
+        "hypothesis-webhook-duplicate",
+        "investigation-webhook-replay",
+        "verification-webhook-repeat"
+      ],
+      "claimed_confidences": [
+        "CONFIRMED",
+        "HIGH CONFIDENCE"
+      ],
+      "confidence": "CONFIRMED",
+      "confidence_reasons": [
+        "mechanism described",
+        "direct evidence present: test"
+      ]
+    },
+    {
+      "id": "finding-90e24058af99",
+      "title": "Webhook signature is never verified",
+      "severity": "CRITICAL",
+      "affected_component": "POST /webhooks/payment",
+      "invariant": "only provider-signed events are accepted",
+      "mechanism": "handler parses the payload without validating its signature",
+      "state_transition": "forged request -> payment marked complete",
+      "impact": "attacker can forge paid status",
+      "generated_by": [],
+      "investigated_by": [
+        "authorization-audit"
+      ],
+      "verified_by": [],
+      "evidence": [
+        {
+          "type": "code",
+          "description": "handler never calls provider signature verification",
+          "source": "src/webhook.js:10-60",
+          "result": ""
+        }
+      ],
+      "raw_finding_ids": [
+        "webhook-signature"
+      ],
+      "claimed_confidences": [
+        "CONFIRMED"
+      ],
+      "confidence": "HIGH CONFIDENCE",
+      "confidence_reasons": [
+        "mechanism described",
+        "strong structural evidence present, but no direct reproduction"
+      ]
+    }
+  ]
+}

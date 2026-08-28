@@ -1,0 +1,21 @@
+id: frontend-reduced-motion-no-bug-001
+title: reduced-motion alternative preserves meaning
+task: Audit an animated progress transition for reduced motion.
+context:
+  - media query disables nonessential motion
+  - state change remains visible without animation
+  - animation can be interrupted
+risk: medium
+category: frontend
+expected_skills:
+  required:
+    - animation-review
+    - accessibility-review
+  useful:
+    - interaction-design
+  forbidden:
+    - data-integrity-audit
+expected_findings: []
+forbidden_claims:
+  - all animation is inaccessible even with equivalent reduced-motion state
+negative: true

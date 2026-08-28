@@ -1,0 +1,22 @@
+id: frontend-visual-hierarchy-001
+title: destructive action visually dominates primary safe action
+task: Review settings page visual hierarchy and interaction design.
+context:
+  - delete account is the largest high-contrast button
+  - save changes is low contrast and distant
+  - no confirmation follows delete
+risk: medium
+category: frontend
+expected_skills:
+  required:
+    - visual-quality-review
+    - ux-review
+  useful:
+    - interaction-design
+  forbidden:
+    - idempotency-audit
+expected_findings:
+  - destructive action has inappropriate visual dominance
+forbidden_claims:
+  - deletion occurred without testing the action
+negative: false

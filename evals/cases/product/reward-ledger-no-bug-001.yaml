@@ -1,0 +1,23 @@
+id: product-reward-ledger-no-bug-001
+title: reward ledger prevents repeat and reversal farming
+task: Audit a reaction reward system for XP farming.
+context:
+  - reward ledger has a unique trigger id
+  - removing a reaction posts a compensating ledger entry
+  - re-adding the same reaction cannot create a second grant
+  - concurrent tests preserve one net reward
+risk: high
+category: product
+expected_skills:
+  required:
+    - gamification-audit
+    - idempotency-audit
+  useful:
+    - race-condition-hunter
+    - data-integrity-audit
+  forbidden:
+    - animation-review
+expected_findings: []
+forbidden_claims:
+  - reward loop is confirmed despite unique ledger and compensating reversal
+negative: true

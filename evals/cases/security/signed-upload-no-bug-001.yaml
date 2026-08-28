@@ -1,0 +1,22 @@
+id: security-signed-upload-no-bug-001
+title: scoped signed upload URL enforces expected boundary
+task: Audit a signed upload URL for unauthorized file access.
+context:
+  - URL is scoped to one object key and content type
+  - expiry is five minutes
+  - server derives account prefix from the session
+  - reuse after expiry is rejected
+risk: high
+category: security
+expected_skills:
+  required:
+    - authorization-audit
+    - input-trust-audit
+  useful:
+    - api-abuse-audit
+  forbidden:
+    - ux-review
+expected_findings: []
+forbidden_claims:
+  - signed URL is insecure solely because it is accessible without a cookie
+negative: true

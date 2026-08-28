@@ -1,0 +1,23 @@
+id: security-client-price-001
+title: checkout trusts price from the browser
+task: Audit checkout input trust and authorization.
+context:
+  - browser submits product id and price
+  - server charges the submitted price
+  - catalog price is not loaded server-side
+risk: critical
+category: security
+expected_skills:
+  required:
+    - input-trust-audit
+    - business-logic-audit
+  useful:
+    - api-abuse-audit
+    - authorization-audit
+  forbidden:
+    - animation-review
+expected_findings:
+  - user can lower the charged price by modifying the request payload
+forbidden_claims:
+  - disabled form input protects the price
+negative: false

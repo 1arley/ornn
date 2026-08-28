@@ -1,0 +1,20 @@
+id: reliability-atomic-counter-no-bug-001
+title: atomic counter update resists concurrent increments
+task: Audit concurrent counter increments for a lost update.
+context:
+  - database uses an atomic increment operation
+  - test with 100 parallel requests observes exactly 100 increments
+  - no separate read-decision-write sequence exists
+risk: high
+category: reliability
+expected_skills:
+  required:
+    - race-condition-hunter
+  useful:
+    - data-integrity-audit
+  forbidden:
+    - animation-review
+expected_findings: []
+forbidden_claims:
+  - concurrency bug is confirmed merely because requests run in parallel
+negative: true

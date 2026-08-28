@@ -1,0 +1,22 @@
+id: security-idor-download-001
+title: download endpoint checks authentication but not ownership
+task: Audit private invoice downloads for IDOR.
+context:
+  - route requires login
+  - invoice id comes from the URL
+  - query loads by id without account predicate
+risk: critical
+category: security
+expected_skills:
+  required:
+    - authorization-audit
+    - api-abuse-audit
+  useful:
+    - input-trust-audit
+  forbidden:
+    - visual-quality-review
+expected_findings:
+  - authenticated user can download another account invoice by changing the id
+forbidden_claims:
+  - login alone proves ownership
+negative: false

@@ -1,0 +1,80 @@
+{
+  "findings": [
+    {
+      "id": "hypothesis-webhook-duplicate",
+      "title": "Webhook retry may duplicate the charge",
+      "severity": "HIGH",
+      "claimed_confidence": "CONFIRMED",
+      "affected_component": "POST /webhooks/payment",
+      "invariant": "one payment event creates at most one charge",
+      "mechanism": "retry processes the same event without an idempotency key",
+      "state_transition": "unprocessed event -> charge created twice",
+      "impact": "customer is charged twice",
+      "generated_by": ["adversarial-review"],
+      "evidence": [
+        {
+          "type": "reasoning",
+          "description": "a lost response can cause the provider to retry"
+        }
+      ]
+    },
+    {
+      "id": "investigation-webhook-replay",
+      "title": "Webhook replay inserts duplicate charge rows",
+      "severity": "HIGH",
+      "claimed_confidence": "CONFIRMED",
+      "affected_component": "POST /webhooks/payment",
+      "invariant": "a payment event must create no more than one charge",
+      "mechanism": "the same event is processed again on retry with no idempotency key",
+      "state_transition": "event pending -> two charge records",
+      "impact": "the user receives duplicate charges",
+      "investigated_by": ["idempotency-audit"],
+      "evidence": [
+        {
+          "type": "code",
+          "description": "handler inserts a charge before checking an event ledger",
+          "source": "src/webhook.js:42"
+        }
+      ]
+    },
+    {
+      "id": "verification-webhook-repeat",
+      "title": "Duplicate delivery creates two charges",
+      "severity": "CRITICAL",
+      "claimed_confidence": "HIGH CONFIDENCE",
+      "affected_component": "POST /webhooks/payment",
+      "invariant": "one payment event creates at most one charge",
+      "mechanism": "retry processes the same event without an idempotency key",
+      "state_transition": "unprocessed event -> charge created twice",
+      "impact": "customer is charged twice",
+      "verified_by": ["error-flow-audit"],
+      "evidence": [
+        {
+          "type": "test",
+          "description": "post the same provider event id twice",
+          "source": "test/webhook.test.js",
+          "result": "two charge rows are created"
+        }
+      ]
+    },
+    {
+      "id": "webhook-signature",
+      "title": "Webhook signature is never verified",
+      "severity": "CRITICAL",
+      "claimed_confidence": "CONFIRMED",
+      "affected_component": "POST /webhooks/payment",
+      "invariant": "only provider-signed events are accepted",
+      "mechanism": "handler parses the payload without validating its signature",
+      "state_transition": "forged request -> payment marked complete",
+      "impact": "attacker can forge paid status",
+      "investigated_by": ["authorization-audit"],
+      "evidence": [
+        {
+          "type": "code",
+          "description": "handler never calls provider signature verification",
+          "source": "src/webhook.js:10-60"
+        }
+      ]
+    }
+  ]
+}

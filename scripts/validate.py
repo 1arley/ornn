@@ -17,6 +17,7 @@ No third-party dependencies — uses only the standard library.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import sys
@@ -729,6 +730,15 @@ VALID_EVAL_CATEGORIES = {
     "frontend", "research", "mixed",
 }
 VALID_EVAL_RISKS = {"trivial", "medium", "high", "critical"}
+MIN_BEHAVIORAL_CASES = {
+    "audit": 5,
+    "security": 5,
+    "reliability": 5,
+    "product": 4,
+    "frontend": 5,
+    "research": 3,
+    "mixed": 3,
+}
 
 
 def check_eval_cases() -> list[str]:
@@ -743,6 +753,8 @@ def check_eval_cases() -> list[str]:
 
     skill_names = collect_skill_names()
     seen_ids: dict[str, Path] = {}
+    category_counts = {category: 0 for category in VALID_EVAL_CATEGORIES}
+    negative_counts = {category: 0 for category in VALID_EVAL_CATEGORIES}
     paths = sorted(EVAL_CASES_DIR.rglob("*.yaml"))
     if not paths:
         return ["evals/cases: no eval cases found"]
@@ -777,6 +789,10 @@ def check_eval_cases() -> list[str]:
         category = case.get("category")
         if category not in VALID_EVAL_CATEGORIES:
             errors.append(f"{rel}: invalid category {category!r}")
+        else:
+            category_counts[category] += 1
+            if case.get("negative") is True:
+                negative_counts[category] += 1
         risk = case.get("risk")
         if risk is not None and risk not in VALID_EVAL_RISKS:
             errors.append(f"{rel}: invalid risk {risk!r}")
@@ -816,7 +832,57 @@ def check_eval_cases() -> list[str]:
             errors.append(
                 f"{rel}: negative case must not declare expected_findings"
             )
+        if category != "routing" and "negative" not in case:
+            errors.append(f"{rel}: behavioral case must declare 'negative'")
 
+    for category, minimum in MIN_BEHAVIORAL_CASES.items():
+        actual = category_counts.get(category, 0)
+        if actual < minimum:
+            errors.append(
+                f"evals/cases/{category}: {actual} case(s), minimum is {minimum}"
+            )
+        if negative_counts.get(category, 0) == 0:
+            errors.append(
+                f"evals/cases/{category}: requires at least one negative case"
+            )
+
+    return errors
+
+
+def check_finding_fixtures() -> list[str]:
+    """Verify versioned finding fixtures reproduce their expected outputs."""
+    errors: list[str] = []
+    fixtures = ROOT / "evals" / "fixtures"
+    expected_dir = ROOT / "evals" / "expected"
+    specs = [
+        ("findings-dedup-input.json", "findings-dedup-output.json"),
+        ("findings-confidence-input.json", "findings-confidence-output.json"),
+    ]
+    try:
+        from findings import consolidate
+    except ImportError as e:
+        return [f"scripts/findings.py import failed: {e}"]
+
+    for input_name, output_name in specs:
+        input_path = fixtures / input_name
+        output_path = expected_dir / output_name
+        for path in (input_path, output_path):
+            if not path.is_file():
+                errors.append(f"{path.relative_to(ROOT)} missing")
+        if not input_path.is_file() or not output_path.is_file():
+            continue
+        try:
+            raw = json.loads(input_path.read_text(encoding="utf-8"))
+            expected = json.loads(output_path.read_text(encoding="utf-8"))
+            actual = consolidate(raw["findings"])
+        except (json.JSONDecodeError, KeyError, ValueError) as e:
+            errors.append(f"{input_path.relative_to(ROOT)} invalid: {e}")
+            continue
+        if actual != expected:
+            errors.append(
+                f"{output_path.relative_to(ROOT)} drifted; regenerate with "
+                f"scripts/findings.py"
+            )
     return errors
 
 
@@ -840,6 +906,7 @@ def main() -> int:
     errors.extend(check_references())
     errors.extend(check_catalog())
     errors.extend(check_eval_cases())
+    errors.extend(check_finding_fixtures())
     e, w = check_router_integrity()
     errors.extend(e)
     warnings.extend(w)

@@ -1,0 +1,21 @@
+id: product-streak-no-bug-001
+title: timezone-aware streak matches documented rules
+task: Audit a daily streak around timezone boundaries.
+context:
+  - user timezone is stored explicitly
+  - one ledger row per local date has a unique constraint
+  - daylight saving transitions are covered by tests
+risk: medium
+category: product
+expected_skills:
+  required:
+    - gamification-audit
+    - data-integrity-audit
+  useful:
+    - edge-case-hunter
+  forbidden:
+    - authorization-audit
+expected_findings: []
+forbidden_claims:
+  - DST necessarily breaks the streak despite tested local-date ledger
+negative: true

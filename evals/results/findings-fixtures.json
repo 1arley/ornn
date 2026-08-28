@@ -1,0 +1,41 @@
+{
+  "fixtures": [
+    {
+      "fixture": "findings-dedup",
+      "stable_output": true,
+      "metrics_ok": true,
+      "metrics": {
+        "finding_precision": 1.0,
+        "finding_recall": 1.0,
+        "critical_finding_recall": 1.0,
+        "duplicate_finding_rate": 0.0,
+        "unsupported_confirmation_rate": 0.0,
+        "confidence_calibration": 1.0,
+        "expected_confidence_accuracy": 1.0,
+        "false_positive_findings": 0,
+        "unsupported_count": 0,
+        "duplicates_removed": 2,
+        "remaining_duplicate_groups": 0
+      }
+    },
+    {
+      "fixture": "findings-confidence",
+      "stable_output": true,
+      "metrics_ok": true,
+      "metrics": {
+        "finding_precision": 1.0,
+        "finding_recall": 1.0,
+        "critical_finding_recall": 1.0,
+        "duplicate_finding_rate": 0.0,
+        "unsupported_confirmation_rate": 0.0,
+        "confidence_calibration": 1.0,
+        "expected_confidence_accuracy": 1.0,
+        "false_positive_findings": 0,
+        "unsupported_count": 0,
+        "duplicates_removed": 2,
+        "remaining_duplicate_groups": 0
+      }
+    }
+  ],
+  "passed": true
+}

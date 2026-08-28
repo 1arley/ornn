@@ -1,0 +1,65 @@
+{
+  "raw_findings_count": 4,
+  "consolidated_findings_count": 2,
+  "duplicates_removed": 2,
+  "findings": [
+    {
+      "id": "finding-841a86f6cfb2",
+      "title": "Concurrent requests corrupt the counter",
+      "severity": "HIGH",
+      "affected_component": "POST /counter/increment",
+      "invariant": "each accepted request increments the counter once",
+      "mechanism": "a read-modify-write sequence may lose one update",
+      "state_transition": "counter n -> counter n+1 after two requests",
+      "impact": "counter undercounts accepted operations",
+      "generated_by": [
+        "adversarial-review"
+      ],
+      "investigated_by": [
+        "race-condition-hunter"
+      ],
+      "verified_by": [
+        "data-integrity-audit"
+      ],
+      "evidence": [],
+      "raw_finding_ids": [
+        "unsupported-confirmation-a",
+        "unsupported-confirmation-b",
+        "unsupported-confirmation-c"
+      ],
+      "claimed_confidences": [
+        "CONFIRMED"
+      ],
+      "confidence": "POSSIBLE",
+      "confidence_reasons": [
+        "mechanism described but evidence is not strong/direct"
+      ]
+    },
+    {
+      "id": "finding-71fd13f7915e",
+      "title": "There may be an unknown bug",
+      "severity": "LOW",
+      "affected_component": "unknown",
+      "invariant": "",
+      "mechanism": "",
+      "state_transition": "",
+      "impact": "",
+      "generated_by": [
+        "adversarial-review"
+      ],
+      "investigated_by": [],
+      "verified_by": [],
+      "evidence": [],
+      "raw_finding_ids": [
+        "pure-speculation"
+      ],
+      "claimed_confidences": [
+        "CONFIRMED"
+      ],
+      "confidence": "SPECULATIVE",
+      "confidence_reasons": [
+        "no exact mechanism and no sufficient evidence"
+      ]
+    }
+  ]
+}

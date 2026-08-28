@@ -1,0 +1,23 @@
+id: mixed-frontend-save-no-bug-001
+title: accessible idempotent save handles repeated submission
+task: Audit a slow settings save across frontend and API behavior.
+context:
+  - button disables while pending and announces status
+  - API uses request id to return the prior result on retry
+  - database update is one transaction
+  - focus remains stable after success
+risk: high
+category: mixed
+expected_skills:
+  required:
+    - interaction-design
+    - accessibility-review
+    - idempotency-audit
+  useful:
+    - error-flow-audit
+  forbidden:
+    - gamification-audit
+expected_findings: []
+forbidden_claims:
+  - duplicate save occurs despite verified idempotency key behavior
+negative: true

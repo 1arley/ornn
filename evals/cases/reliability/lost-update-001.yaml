@@ -1,0 +1,24 @@
+id: reliability-lost-update-001
+title: concurrent seat booking exceeds capacity
+task: Audit seat booking when only one seat remains.
+context:
+  - handler reads available seat count
+  - handler checks count greater than zero
+  - handler decrements in a separate write
+  - two requests run simultaneously
+risk: critical
+category: reliability
+expected_skills:
+  required:
+    - race-condition-hunter
+    - data-integrity-audit
+  useful:
+    - business-logic-audit
+    - idempotency-audit
+  forbidden:
+    - market-research
+expected_findings:
+  - two requests can both reserve the final seat
+forbidden_claims:
+  - application-level check is atomic
+negative: false

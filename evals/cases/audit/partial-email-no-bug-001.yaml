@@ -1,0 +1,21 @@
+id: audit-partial-email-no-bug-001
+title: email failure does not roll back a committed account by design
+task: Audit signup when the optional welcome email fails.
+context:
+  - account creation is the primary operation
+  - welcome email is explicitly best-effort
+  - retry queue deduplicates by account id
+  - product spec says signup succeeds even if email fails
+risk: medium
+category: audit
+expected_skills:
+  required:
+    - error-flow-audit
+  useful:
+    - idempotency-audit
+  forbidden:
+    - authorization-audit
+expected_findings: []
+forbidden_claims:
+  - partial success is a bug merely because email failed
+negative: true

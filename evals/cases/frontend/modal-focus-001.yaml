@@ -1,0 +1,23 @@
+id: frontend-modal-focus-001
+title: modal opens without moving or restoring focus
+task: Review modal keyboard and screen-reader behavior.
+context:
+  - focus remains behind the modal
+  - Tab reaches background controls
+  - close does not restore focus to trigger
+risk: medium
+category: frontend
+expected_skills:
+  required:
+    - accessibility-review
+    - interaction-design
+  useful:
+    - ux-review
+  forbidden:
+    - race-condition-hunter
+expected_findings:
+  - keyboard focus escapes the modal
+  - focus is not restored after close
+forbidden_claims:
+  - visual overlay alone provides modal semantics
+negative: false

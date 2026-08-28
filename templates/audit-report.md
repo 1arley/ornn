@@ -52,15 +52,32 @@ primeiro.>
 | **Severity** | Critical \| High \| Medium \| Low |
 | **Confidence** | CONFIRMED \| HIGH CONFIDENCE \| POSSIBLE \| SPECULATIVE |
 | **Affected component** | <file(s) / module(s) / endpoint(s)> |
+| **Invariant** | <what must always remain true> |
+| **State transition** | <before → action/failure → wrong after> |
 | **Affected flow** | <the user or system flow this breaks> |
 | **Reproduction** | <step-by-step, or request sequence; concrete enough to redo> |
 | **Expected behavior** | <what should happen> |
 | **Actual behavior** | <what does happen> |
-| **Root cause** | <the mechanism — why it happens, not just that it does> |
+| **Mechanism / root cause** | <why it happens, not just that it does> |
 | **Impact** | <what an attacker or user can achieve; blast radius> |
 | **Recommendation** | <concrete fix; where to enforce it (server, DB, both)> |
 
-**Evidence:** <logs, test output, request/response, or "no reproduction yet — reasoning only". Link or paste.>
+**Provenance:**
+
+- `generated_by`: <skills that formed the hypothesis>
+- `investigated_by`: <skills that traced the mechanism>
+- `verified_by`: <skills that reproduced/refuted it>
+
+**Evidence records:**
+
+| Type | Description | Source | Result |
+|---|---|---|---|
+| `test` / `log` / `code` / `schema` / `reasoning` | <what was inspected or run> | <file:line, test, log query> | <observed result; required for direct evidence> |
+
+> `CONFIRMED` requires an exact mechanism plus direct evidence with both action and
+> observed result. `HIGH CONFIDENCE` requires mechanism plus concrete structural
+> evidence and a source location. Skill votes never set final confidence; run
+> `python3 scripts/findings.py` to consolidate and recompute it.
 
 **False-positive check:** <why this is NOT an acceptable/intended behavior — or "considered: <X>; ruled out because <Y>". If you cannot rule it out, lower confidence.>
 
@@ -74,9 +91,16 @@ primeiro.>
 
 ## Deduplication note
 
-<Se múltiplas skills apontaram o mesmo defeito, registre aqui quais foram consolidadas
-em um único finding e por quê. Se nenhuma sobreposição, escreva "No overlapping findings
-across skills.">
+<Se múltiplas skills apontaram o mesmo defeito, registre aqui quais foram consolidadas.
+A identidade é `affected_component + invariant + mechanism + state_transition + impact`.
+Preserve `raw_finding_ids` e provenance. Se nenhuma sobreposição, escreva "No
+overlapping findings across skills.">
+
+Para JSON reproduzível:
+
+```bash
+python3 scripts/findings.py --input raw-findings.json --output consolidated-findings.json
+```
 
 ## Out of scope / not investigated
 

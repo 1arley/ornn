@@ -1,0 +1,21 @@
+{
+  "expected_matches": {
+    "duplicate-webhook-charge": "finding-0eb0943d19d7",
+    "missing-webhook-signature": "finding-90e24058af99"
+  },
+  "critical_findings": [
+    "duplicate-webhook-charge",
+    "missing-webhook-signature"
+  ],
+  "expected_confidence": {
+    "duplicate-webhook-charge": "CONFIRMED",
+    "missing-webhook-signature": "HIGH CONFIDENCE"
+  },
+  "duplicate_groups": [
+    [
+      "hypothesis-webhook-duplicate",
+      "investigation-webhook-replay",
+      "verification-webhook-repeat"
+    ]
+  ]
+}

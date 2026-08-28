@@ -65,6 +65,19 @@ Se você não consegue apontar o mecanismo exato, no máximo é `POSSIBLE`.
 Se é "acho que pode acontecer", é `SPECULATIVE` — e findings `SPECULATIVE` não devem
 bloquear implementação, apenas ser listados como riscos a verificar.
 
+Após composição, confidence é **recalculada a partir da evidência consolidada**; nunca
+é o maior nível declarado por uma skill. Três skills dizendo `CONFIRMED` sem reprodução
+continuam sem confirmação. O consolidator (`scripts/findings.py`) exige:
+
+* `CONFIRMED`: mecanismo exato + evidência direta com ação e resultado observado;
+* `HIGH CONFIDENCE`: mecanismo exato + evidência estrutural com localização concreta;
+* `POSSIBLE`: mecanismo ou evidência incompleta;
+* `SPECULATIVE`: sem mecanismo e sem evidência suficiente.
+
+Todo finding consolidado preserva `generated_by`, `investigated_by`, `verified_by` e
+registros de `evidence`. A identidade para dedup usa componente, invariant, mecanismo,
+transição de estado e impacto.
+
 ---
 
 ## 3. Pesquisar antes de reinventar

@@ -1,0 +1,24 @@
+id: audit-import-boundary-001
+title: CSV import accepts negative and duplicate amounts
+task: Audit a CSV transaction import for boundary and duplicate records.
+context:
+  - amount parser accepts negative values
+  - same external transaction id can appear twice
+  - import is retried after timeout
+risk: high
+category: audit
+expected_skills:
+  required:
+    - edge-case-hunter
+    - idempotency-audit
+  useful:
+    - data-integrity-audit
+    - error-flow-audit
+  forbidden:
+    - animation-review
+expected_findings:
+  - negative transaction amount bypasses the positive-amount invariant
+  - retry or duplicate row can insert the same external transaction twice
+forbidden_claims:
+  - a race condition is confirmed without parallel execution evidence
+negative: false

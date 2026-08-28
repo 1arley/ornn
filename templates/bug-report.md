@@ -68,7 +68,12 @@ ser referenciado, anexado a uma issue, ou consolidado em um `audit-report.md` ma
 
 <O que de fato acontece — o comportamento incorreto.>
 
-## Root cause
+## Invariant and state transition
+
+* **Invariant:** <o que deve permanecer sempre verdadeiro>
+* **State transition:** <before → action/failure → wrong after>
+
+## Root cause / mechanism
 
 <O mecanismo — por que acontece, não só que acontece. Ex: "o handler não checa
 ownership porque o middleware de authz não cobre esta rota", "o incremento é lido do
@@ -87,10 +92,22 @@ cache e reescrito sem atomicidade".>
 DELETE /order/{id} antes de executar a deleção.">
 ```
 
+## Provenance
+
+* `generated_by`: <skills que geraram a hipótese>
+* `investigated_by`: <skills que mapearam o mecanismo>
+* `verified_by`: <skills que reproduziram ou refutaram>
+
 ## Evidence
 
-<logs, screenshots, video, request/response adicional, ou "não reproduzido — apenas
-análise de código".>
+| Type | Description | Source | Result |
+|---|---|---|---|
+| `test` / `log` / `code` / `schema` / `reasoning` | <ação/inspeção> | <localização> | <resultado observado> |
+
+Se não foi reproduzido, escreva isso explicitamente. O confidence final é recalculado
+a partir de mecanismo + evidência consolidada; não use o maior confidence declarado por
+uma skill. Sem mecanismo, no máximo `POSSIBLE`. Sem evidência forte/direta, nunca
+`CONFIRMED`.
 
 ## False-positive check
 

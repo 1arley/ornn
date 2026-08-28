@@ -1,0 +1,27 @@
+id: mixed-payment-permission-001
+title: refund endpoint lacks ownership and idempotency
+task: Audit refunds across authorization, retry and accounting.
+context:
+  - endpoint loads payment by id only
+  - any authenticated user can submit a refund
+  - retry can create a second refund
+  - accounting ledger is updated separately
+risk: critical
+category: mixed
+expected_skills:
+  required:
+    - authorization-audit
+    - idempotency-audit
+    - data-integrity-audit
+  useful:
+    - error-flow-audit
+    - business-logic-audit
+  forbidden:
+    - animation-review
+expected_findings:
+  - authenticated user can refund another account payment
+  - retry can issue duplicate refund
+  - partial failure can diverge refund and accounting ledger
+forbidden_claims:
+  - authentication proves refund ownership
+negative: false

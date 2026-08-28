@@ -1,0 +1,21 @@
+id: research-official-docs-001
+title: implementation guidance must start with official documentation
+task: Research the correct configuration for a framework security header.
+context:
+  - framework has current official documentation
+  - recommendation uses the official page matching the installed version
+  - conflicting older blog posts are explicitly excluded
+risk: medium
+category: research
+expected_skills:
+  required:
+    - implementation-research
+    - reference-research
+  useful:
+    - github-reference-research
+  forbidden:
+    - market-research
+expected_findings: []
+forbidden_claims:
+  - version-matched official guidance is unsupported because older blogs disagree
+negative: true

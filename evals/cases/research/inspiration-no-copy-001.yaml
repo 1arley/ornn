@@ -1,0 +1,22 @@
+id: research-inspiration-no-copy-001
+title: visual inspiration is not a product specification
+task: Research onboarding inspiration for a new product.
+context:
+  - gallery screenshots omit behavior and accessibility details
+  - no product requirements are established
+  - adaptation must preserve original brand
+risk: medium
+category: research
+expected_skills:
+  required:
+    - market-research
+    - reference-research
+  useful:
+    - ux-review
+  forbidden:
+    - github-reference-research
+expected_findings:
+  - inspiration must be synthesized as patterns rather than copied as specification
+forbidden_claims:
+  - screenshot proves the underlying flow works
+negative: false

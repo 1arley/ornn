@@ -1,0 +1,26 @@
+id: product-referral-self-reward-001
+title: referral reward can be claimed by the same account
+task: Audit a referral program that grants credits to inviter and invitee.
+context:
+  - client supplies inviter user id
+  - server does not compare inviter and invitee ownership
+  - reward is granted immediately
+  - no unique referral ledger exists
+risk: critical
+category: product
+expected_skills:
+  required:
+    - gamification-audit
+    - input-trust-audit
+    - idempotency-audit
+  useful:
+    - business-logic-audit
+    - api-abuse-audit
+  forbidden:
+    - ux-review
+expected_findings:
+  - user can self-refer by supplying their own inviter id
+  - replay can grant referral credits more than once
+forbidden_claims:
+  - UI hiding inviter id prevents abuse
+negative: false

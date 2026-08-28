@@ -268,11 +268,11 @@ confidence_calibration
 
 ### Gates iniciais
 
-* [ ] Nenhum finding sem mecanismo é classificado como `CONFIRMED`.
-* [ ] Nenhum finding sem evidência forte é promovido silenciosamente.
-* [ ] Findings críticos conhecidos são encontrados.
-* [ ] O mesmo bug descoberto por várias skills aparece uma vez no relatório final.
-* [ ] O relatório preserva quais skills contribuíram para o finding.
+* [x] Nenhum finding sem mecanismo é classificado como `CONFIRMED` (contrato determinístico).
+* [x] Nenhum finding sem evidência forte é promovido silenciosamente (contrato determinístico).
+* [ ] Findings críticos conhecidos são encontrados end-to-end (depende de execução de modelo externo).
+* [x] O mesmo bug descoberto por várias skills aparece uma vez no relatório final.
+* [x] O relatório preserva quais skills contribuíram para o finding.
 
 ## 5.5 Baseline
 
@@ -323,14 +323,14 @@ Toda alteração comportamental em uma skill deve:
 
 ### Definition of Done da fase
 
-* [ ] `evals/` existe.
-* [ ] Há 30 ou mais casos.
-* [ ] Há casos positivos e negativos.
-* [ ] Há métricas de routing.
-* [ ] Há métricas de findings.
-* [ ] Há baseline.
-* [ ] Existe comando reproduzível para rodar os evals.
-* [ ] Resultados podem ser salvos em JSON.
+* [x] `evals/` existe.
+* [x] Há 30 ou mais casos.
+* [x] Há casos positivos e negativos.
+* [x] Há métricas de routing.
+* [x] Há métricas de findings.
+* [ ] Há baseline end-to-end sem skills (depende de execução de modelo externo; baseline determinístico de routing já existe).
+* [x] Existe comando reproduzível para rodar os evals.
+* [x] Resultados podem ser salvos em JSON.
 
 ---
 
@@ -679,10 +679,10 @@ evidence
 
 ### Definition of Done da fase
 
-* [ ] Relatórios não repetem o mesmo bug.
-* [ ] Confidence depende de evidência.
-* [ ] Provenance de skill é preservado.
-* [ ] Existem evals de duplicação.
+* [x] Relatórios não repetem o mesmo bug (consolidator determinístico + fixtures).
+* [x] Confidence depende de evidência.
+* [x] Provenance de skill é preservado.
+* [x] Existem evals de duplicação.
 
 ---
 
@@ -1718,10 +1718,10 @@ Toda release deve responder:
 
 ## PR 5: findings evals
 
-* [ ] Completar 30 casos.
-* [ ] Adicionar confidence evals.
-* [ ] Adicionar dedup.
-* [ ] Criar baseline sem skills.
+* [x] Completar 30 casos (30 comportamentais + 19 de routing = 49 no total).
+* [x] Adicionar confidence evals (contrato determinístico + fixtures).
+* [x] Adicionar dedup (consolidator + fixtures + testes).
+* [ ] Criar baseline sem skills (depende de execução de modelo externo; infraestrutura pronta).
 
 ## PR 6: CI e CLI hardening
 

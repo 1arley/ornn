@@ -1,0 +1,23 @@
+id: audit-state-machine-001
+title: order can jump from pending to shipped without payment
+task: Audit order state transitions and invariants.
+context:
+  - API accepts a client-supplied next status
+  - pending can transition directly to shipped
+  - payment confirmation is skipped
+risk: high
+category: audit
+expected_skills:
+  required:
+    - business-logic-audit
+    - user-flow-audit
+  useful:
+    - input-trust-audit
+    - data-integrity-audit
+  forbidden:
+    - animation-review
+expected_findings:
+  - order can reach shipped state without confirmed payment
+forbidden_claims:
+  - transition is valid merely because the client requested it
+negative: false

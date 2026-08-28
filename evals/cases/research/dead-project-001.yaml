@@ -1,0 +1,22 @@
+id: research-dead-project-001
+title: implementation research must flag an archived dependency
+task: Research a library for production job scheduling.
+context:
+  - top search result was archived two years ago
+  - repository has unresolved security advisories
+  - official runtime docs list maintained alternatives
+risk: high
+category: research
+expected_skills:
+  required:
+    - github-reference-research
+    - implementation-research
+  useful:
+    - reference-research
+  forbidden:
+    - market-research
+expected_findings:
+  - archived project must not be recommended without lifecycle warning
+forbidden_claims:
+  - high stars prove current maintenance
+negative: false

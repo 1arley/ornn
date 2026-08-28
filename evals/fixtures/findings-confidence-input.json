@@ -1,0 +1,59 @@
+{
+  "findings": [
+    {
+      "id": "unsupported-confirmation-a",
+      "title": "Concurrent requests corrupt the counter",
+      "severity": "HIGH",
+      "claimed_confidence": "CONFIRMED",
+      "identity_key": "counter/lost-update",
+      "affected_component": "POST /counter/increment",
+      "invariant": "each accepted request increments the counter once",
+      "mechanism": "a read-modify-write sequence may lose one update",
+      "state_transition": "counter n -> counter n+1 after two requests",
+      "impact": "counter undercounts accepted operations",
+      "generated_by": ["adversarial-review"],
+      "evidence": []
+    },
+    {
+      "id": "unsupported-confirmation-b",
+      "title": "Lost update under concurrency",
+      "severity": "HIGH",
+      "claimed_confidence": "CONFIRMED",
+      "identity_key": "counter/lost-update",
+      "affected_component": "POST /counter/increment",
+      "invariant": "each accepted request increments the counter once",
+      "mechanism": "read modify write can lose an update",
+      "state_transition": "counter n -> n+1 after two requests",
+      "impact": "counter undercounts accepted operations",
+      "investigated_by": ["race-condition-hunter"],
+      "evidence": []
+    },
+    {
+      "id": "unsupported-confirmation-c",
+      "title": "Counter race is confirmed",
+      "severity": "HIGH",
+      "claimed_confidence": "CONFIRMED",
+      "identity_key": "counter/lost-update",
+      "affected_component": "POST /counter/increment",
+      "invariant": "each accepted request increments the counter once",
+      "mechanism": "the endpoint reads then writes a counter without atomicity",
+      "state_transition": "two requests -> one stored increment",
+      "impact": "counter undercounts accepted operations",
+      "verified_by": ["data-integrity-audit"],
+      "evidence": []
+    },
+    {
+      "id": "pure-speculation",
+      "title": "There may be an unknown bug",
+      "severity": "LOW",
+      "claimed_confidence": "CONFIRMED",
+      "affected_component": "unknown",
+      "invariant": "",
+      "mechanism": "",
+      "state_transition": "",
+      "impact": "",
+      "generated_by": ["adversarial-review"],
+      "evidence": []
+    }
+  ]
+}

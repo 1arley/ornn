@@ -1,0 +1,26 @@
+id: frontend-loading-state-001
+title: submit form lacks disabled and progress feedback
+task: Review interaction feedback during a slow profile save.
+context:
+  - save takes three seconds
+  - submit remains enabled
+  - there is no progress indicator or status announcement
+  - repeated click sends a second request
+risk: medium
+category: frontend
+expected_skills:
+  required:
+    - interaction-design
+    - accessibility-review
+  useful:
+    - ux-review
+    - idempotency-audit
+  forbidden:
+    - gamification-audit
+expected_findings:
+  - user receives no loading feedback while save is in progress
+  - repeated submit can start duplicate requests
+  - screen reader users receive no status announcement
+forbidden_claims:
+  - backend duplicate side effect is confirmed without inspecting the endpoint
+negative: false

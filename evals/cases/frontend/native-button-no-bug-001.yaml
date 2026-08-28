@@ -1,0 +1,21 @@
+id: frontend-native-button-no-bug-001
+title: native button already satisfies keyboard activation
+task: Review keyboard access for a standard HTML button.
+context:
+  - element is a native button
+  - visible focus indicator meets contrast requirements
+  - Enter and Space are covered by browser semantics
+  - accessible name is present
+risk: trivial
+category: frontend
+expected_skills:
+  required:
+    - accessibility-review
+  useful:
+    - interaction-design
+  forbidden:
+    - authorization-audit
+expected_findings: []
+forbidden_claims:
+  - native button needs a custom keydown handler for Enter and Space
+negative: true
