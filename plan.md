@@ -1382,9 +1382,9 @@ O arquivo gerado não deve ser editado manualmente.
 
 ### Definition of Done da fase
 
-* [ ] A arquitetura pode ser entendida sem ler todas as skills.
-* [ ] O grafo é gerado automaticamente.
-* [ ] Routing e evals possuem documentação própria.
+* [x] A arquitetura pode ser entendida sem ler todas as skills.
+* [x] O grafo é gerado automaticamente.
+* [x] Routing e evals possuem documentação própria.
 
 ---
 
@@ -1453,19 +1453,19 @@ O status pode ficar no catálogo.
 
 Uma skill só vira stable quando:
 
-* possui evals;
-* possui fronteira de responsabilidade;
-* não possui regressão crítica conhecida;
-* passa validator;
-* possui output contract;
-* possui false-positive guidance.
+* [x] possui evals (todas têm cobertura via routing ou behavioral cases);
+* [x] possui fronteira de responsabilidade (documentada no catálogo);
+* [ ] não possui regressão crítica conhecida (exige baseline externo end-to-end);
+* [x] passa validator;
+* [x] possui output contract;
+* [x] possui false-positive guidance.
 
 ### Definition of Done da fase
 
-* [ ] Contribuição externa é guiada.
-* [ ] Vulnerabilidades têm canal claro.
-* [ ] Mudanças são rastreáveis.
-* [ ] Skills possuem lifecycle.
+* [x] Contribuição externa é guiada.
+* [x] Vulnerabilidades têm canal claro.
+* [x] Mudanças são rastreáveis.
+* [x] Skills possuem lifecycle (lifecycle no catálogo).
 
 ---
 
@@ -1755,12 +1755,12 @@ Toda release deve responder:
 
 ## PR 10: open source maturity
 
-* [ ] CONTRIBUTING.
-* [ ] SECURITY.
-* [ ] CHANGELOG.
-* [ ] CODEOWNERS.
-* [ ] release process.
-* [ ] GitHub topics e description.
+* [x] CONTRIBUTING.
+* [x] SECURITY.
+* [x] CHANGELOG.
+* [x] CODEOWNERS.
+* [x] release process (docs/release-process.md + release workflow).
+* [ ] GitHub topics e description (requer acesso remoto ao repo).
 
 ## PR 11: benchmark
 
