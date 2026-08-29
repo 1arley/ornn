@@ -39,7 +39,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from validate import parse_yaml_list  # noqa: E402
+from yaml import parse_yaml_list  # noqa: E402
 
 CATALOG_PATH = ROOT / "catalog" / "skills.yaml"
 

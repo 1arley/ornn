@@ -49,7 +49,7 @@ def main() -> int:
     parser.add_argument("--out", help="write JSON report to a file")
     args = parser.parse_args()
 
-    from yaml_mini import parse_yaml, YAMLError
+    from yaml import parse_yaml, YAMLError
 
     entries = []
     errors = []

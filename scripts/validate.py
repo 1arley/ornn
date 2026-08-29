@@ -24,6 +24,8 @@ import sys
 from datetime import date
 from pathlib import Path
 
+from yaml import YAMLError, parse_frontmatter, parse_yaml_list  # noqa: E402
+
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
@@ -103,220 +105,13 @@ REQUIRED_REF_FIELDS = [
 # ---------------------------------------------------------------------------
 # Minimal YAML subset parser
 # ---------------------------------------------------------------------------
-# We avoid a PyYAML dependency. We only need: a top-level list of mappings where
-# values are scalars or lists of scalars. Field order in a mapping is preserved by
-# reading sequentially. This is intentionally narrow and strict — it rejects anything
-# it cannot fully understand so it never silently passes malformed input.
+# ---------------------------------------------------------------------------
+# YAML parsing — delegated to yaml.py (single source of truth)
+# ---------------------------------------------------------------------------
 
-
-class YAMLError(ValueError):
-    pass
-
-
-def _parse_scalar(token: str):
-    token = token.strip()
-    if len(token) >= 2 and token[0] == token[-1] and token[0] in ("'", '"'):
-        return token[1:-1]
-    return token
-
-
-def parse_yaml_list(text: str) -> list[dict]:
-    """Parse a YAML file that is a list of mappings (scalar / list-of-scalar values).
-
-    Handles two indentation shapes:
-      A) mapping item with nested list field:
-            - name: x
-              use_when:
-                - a
-                - b
-      B) list field at the same indent as its items (frontmatter uses this):
-            triggers:
-              - a
-              - b
-    """
-    # Drop comments and blank lines, but keep indentation.
-    lines = []
-    for raw in text.splitlines():
-        stripped = raw.rstrip()
-        if not stripped.strip():
-            continue
-        if stripped.lstrip().startswith("#"):
-            continue
-        lines.append(stripped)
-
-    entries: list[dict] = []
-    current: dict | None = None
-    # The field currently collecting list items, and the indent at which those items
-    # are expected. None when not inside a list field.
-    list_field: str | None = None
-    list_indent: int | None = None
-
-    for line in lines:
-        indent = len(line) - len(line.lstrip())
-        body = line.strip()
-
-        is_list_marker = body == "-" or body.startswith("- ")
-        marker_payload = body[2:].strip() if body.startswith("- ") else ""
-
-        # Decide whether this line is a nested list item (belongs to list_field) or a
-        # new mapping field/item. A nested list item must be indented strictly deeper
-        # than the field's own line (shape A) OR at a deeper indent than the current
-        # mapping item while list_field is open (shape B for frontmatter).
-        nested_item = (
-            is_list_marker
-            and list_field is not None
-            and (list_indent is None or indent > list_indent)
-        )
-
-        if nested_item:
-            # "list_field" stays open; append the item. If the marker carries a
-            # "key: value", that's a mapping inside the list — not supported here.
-            if marker_payload and ":" in marker_payload:
-                raise YAMLError(
-                    f"Mapping list items not supported: {body!r}"
-                )
-            if marker_payload:
-                current[list_field].append(_parse_scalar(marker_payload))
-            # bare "-" with payload on next line is unsupported; ignore empties.
-            continue
-
-        # Not a nested list item → this line either opens a list field, sets a scalar,
-        # or starts a new top-level mapping item. Close any open list field.
-        list_field = None
-        list_indent = None
-
-        if body.startswith("- "):
-            current = {}
-            entries.append(current)
-            rest = marker_payload
-            if ":" in rest:
-                key, _, val = rest.partition(":")
-                key = key.strip()
-                val = val.strip()
-                if val == "":
-                    current[key] = []
-                    list_field = key
-                    list_indent = indent
-                else:
-                    current[key] = _parse_scalar(val)
-            else:
-                raise YAMLError(f"Unexpected bare item at top level: {body!r}")
-        elif body == "-":
-            current = {}
-            entries.append(current)
-        elif ":" in body:
-            key, _, val = body.partition(":")
-            key = key.strip()
-            val = val.strip()
-            if current is None:
-                raise YAMLError(f"Key outside any item: {body!r}")
-            if val == "":
-                current[key] = []
-                list_field = key
-                list_indent = indent
-            else:
-                current[key] = _parse_scalar(val)
-        else:
-            raise YAMLError(f"Unexpected line: {body!r}")
-
-    return entries
-
-
-def parse_frontmatter(text: str) -> tuple[dict, str]:
-    """Parse leading '---' YAML frontmatter. Returns (metadata, body)."""
-    if not text.startswith("---"):
-        raise YAMLError("Missing opening '---' frontmatter delimiter")
-    end = text.find("\n---", 3)
-    if end == -1:
-        raise YAMLError("Missing closing '---' frontmatter delimiter")
-    fm_text = text[3:end].strip()
-    body = text[end + 4:].lstrip("\n")
-
-    if not fm_text:
-        return {}, body
-
-    return _parse_frontmatter_dict(fm_text), body
-
-
-def _parse_frontmatter_dict(text: str) -> dict:
-    """Parse a YAML frontmatter mapping (single dict, not a list).
-
-    Handles scalars, lists, and one level of nested mapping under 'metadata:'.
-    This is a dedicated parser for the SKILL.md frontmatter format.
-    """
-    result: dict = {}
-    list_key: str | None = None
-    list_indent: int | None = None
-    nested_key: str | None = None
-    nested_indent: int | None = None
-    nested: dict | None = None
-
-    lines = []
-    for raw in text.splitlines():
-        stripped = raw.rstrip()
-        if not stripped.strip():
-            continue
-        if stripped.lstrip().startswith("#"):
-            continue
-        lines.append(stripped)
-
-    for line in lines:
-        indent = len(line) - len(line.lstrip())
-        body = line.strip()
-
-        # Nested list item under a list field?
-        is_list_marker = body.startswith("- ")
-        if is_list_marker and list_key is not None and indent > list_indent:
-            payload = body[2:].strip()
-            if payload:
-                target = nested if nested_key is not None else result
-                target.setdefault(list_key, []).append(_parse_scalar(payload))
-            continue
-
-        # Nested mapping field under metadata:?
-        is_scalar = ":" in body and not is_list_marker
-        if nested_key is not None and indent > nested_indent and is_scalar:
-            k, _, v = body.partition(":")
-            k = k.strip()
-            v = v.strip()
-            if v == "":
-                nested[k] = []
-                list_key = k
-                list_indent = indent
-            else:
-                nested[k] = _parse_scalar(v)
-            continue
-
-        # End of nested section — flush
-        if nested_key is not None:
-            result[nested_key] = nested
-            nested_key = None
-            nested_indent = None
-            nested = None
-
-        list_key = None
-        list_indent = None
-
-        # Top-level key:value
-        if is_scalar:
-            k, _, v = body.partition(":")
-            k = k.strip()
-            v = v.strip()
-            if v == "" and k == "metadata":
-                nested_key = k
-                nested_indent = indent
-                nested = {}
-            elif v == "":
-                result[k] = []
-                list_key = k
-                list_indent = indent
-            else:
-                result[k] = _parse_scalar(v)
-
-    if nested_key is not None:
-        result[nested_key] = nested
-
-    return result
+# parse_yaml_list and parse_frontmatter are imported from yaml.py at the
+# top of this file.  The minimal YAML subset parser that was here has been
+# consolidated into scripts/yaml.py.
 
 
 # ---------------------------------------------------------------------------
@@ -452,10 +247,12 @@ def check_agent_skills_compatibility(path: Path, portable: bool) -> list[str]:
     return warnings
 
 
-def check_references() -> list[str]:
+def check_references() -> tuple[list[str], list[str]]:
+    """Return (errors, warnings) for reference catalog checks."""
     errors: list[str] = []
+    warnings: list[str] = []
     if not REFERENCES_DIR.is_dir():
-        return [f"{REFERENCES_DIR.relative_to(ROOT)}: references/ directory missing"]
+        return ([f"{REFERENCES_DIR.relative_to(ROOT)}: references/ directory missing"], [])
 
     for yml in sorted(REFERENCES_DIR.glob("*.yaml")):
         rel = yml.relative_to(ROOT)
@@ -503,7 +300,7 @@ def check_references() -> list[str]:
                     )
                 else:
                     if (date.today() - verified).days > REF_FRESHNESS_DAYS:
-                        warnings_.append(
+                        warnings.append(
                             f"{rel}: entry #{n} {entry.get('name')} last verified "
                             f"> {REF_FRESHNESS_DAYS} days ago"
                         )
@@ -524,7 +321,7 @@ def check_references() -> list[str]:
                             f"{rel}: entry #{n} '{list_field}' must be a non-empty list"
                         )
 
-    return errors
+    return errors, warnings
 
 
 def collect_skill_names() -> set[str]:
@@ -773,7 +570,7 @@ def check_eval_cases() -> list[str]:
 
     # Import the shared recursive subset parser only here to keep validate.py
     # runnable directly without package setup.
-    from yaml_mini import parse_yaml, YAMLError as MiniYAMLError
+    from yaml import parse_yaml
 
     skill_names = collect_skill_names()
     seen_ids: dict[str, Path] = {}
@@ -787,7 +584,7 @@ def check_eval_cases() -> list[str]:
         rel = path.relative_to(ROOT)
         try:
             case = parse_yaml(path.read_text(encoding="utf-8"))
-        except MiniYAMLError as e:
+        except YAMLError as e:
             errors.append(f"{rel}: YAML parse error: {e}")
             continue
         if not isinstance(case, dict):
@@ -927,7 +724,9 @@ def main() -> int:
         errors.extend(errs)
         warnings.extend(check_agent_skills_compatibility(path, portable))
 
-    errors.extend(check_references())
+    ref_errors, ref_warnings = check_references()
+    errors.extend(ref_errors)
+    warnings.extend(ref_warnings)
     errors.extend(check_catalog())
     errors.extend(check_eval_cases())
     errors.extend(check_finding_fixtures())

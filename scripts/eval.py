@@ -43,7 +43,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from yaml_mini import parse_yaml, YAMLError  # noqa: E402
+from yaml import parse_yaml, YAMLError  # noqa: E402
 
 EVALS_DIR = ROOT / "evals"
 CASES_DIR = EVALS_DIR / "cases"
