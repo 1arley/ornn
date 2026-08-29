@@ -38,3 +38,19 @@ jobs:
             echo "package.json version $PKG != tag $TAG" >&2
             exit 1
           fi
+
+  publish:
+    name: publish to npm
+    needs: gate
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+      - name: Publish
+        run: npm publish --provenance
