@@ -1,4 +1,9 @@
 <p align="center">
+  <img width="350" alt="Ornn Forge" src="https://github.com/user-attachments/assets/74d45b30-994d-4717-a7ff-5be2d57c2335" />
+</p>
+
+
+<p align="center">
   <img src="https://img.shields.io/npm/v/ornn-forge?style=flat-square" alt="npm version" />
   <img src="https://img.shields.io/npm/dm/ornn-forge?style=flat-square" alt="npm downloads" />
   <img src="https://img.shields.io/badge/dependencies-0-brightgreen?style=flat-square" alt="zero dependencies" />
