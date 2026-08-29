@@ -54,6 +54,7 @@ import {
 
 import { readManifest, manifestPath } from "../src/installer/manifest.js";
 import { resolveProjectRoot, resolveManifestRoot } from "../src/installer/paths.js";
+import { findSkillDirs, installTo, planInstall } from "../src/installer/install.js";
 
 import { promptMultiSelect, promptConfirm, promptLine } from "../src/installer/prompts.js";
 
@@ -339,9 +340,6 @@ function nonInteractiveInstall(opts, projectRoot, packageRoot) {
 
 function requireForLegacy() {
   // Preserve the original runInstall for backward compat with --target.
-  // Inline the minimal code needed.
-  const { findSkillDirs, installTo, planInstall } = require("../src/installer/install.js");
-  const { resolve } = require("path");
   const runInstall = (target, { link, force, dryRun }) => {
     const skills = findSkillDirs(join(ROOT, "skills"));
     if (!skills.length) { err("No skills found"); process.exitCode = 1; return; }
