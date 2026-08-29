@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * agent-engineering-skills — CLI
+ * ornn-forge — CLI
  *
  * Commands:
  *   install [options]   Interactive installer (default) or non-interactive
@@ -70,22 +70,22 @@ const UNIVERSAL = { id: "universal", name: "Universal .agents/skills", adapter: 
 // HELP
 // ---------------------------------------------------------------------------
 
-const HELP = `agent-engineering-skills v${PKG.version}
+const HELP = `ornn-forge v${PKG.version}
 
 Modular Agent Skills that teach coding agents to audit systems, find bugs,
 review UX/frontend, and research before reinventing.
 
 Usage:
-  agent-engineering-skills install [options]   Interactive installer
-  agent-engineering-skills update              Update managed skills
-  agent-engineering-skills uninstall           Remove managed skills
-  agent-engineering-skills validate            Run the repo validator
-  agent-engineering-skills doctor              Diagnose providers and installs
-  agent-engineering-skills list                List cataloged skills
-  agent-engineering-skills graph [--out <f>]   Print a Mermaid graph
-  agent-engineering-skills eval [--json]       Run deterministic routing evals
-  agent-engineering-skills --help              Show this help
-  agent-engineering-skills --version           Show version
+  ornn-forge install [options]   Interactive installer
+  ornn-forge update              Update managed skills
+  ornn-forge uninstall           Remove managed skills
+  ornn-forge validate            Run the repo validator
+  ornn-forge doctor              Diagnose providers and installs
+  ornn-forge list                List cataloged skills
+  ornn-forge graph [--out <f>]   Print a Mermaid graph
+  ornn-forge eval [--json]       Run deterministic routing evals
+  ornn-forge --help              Show this help
+  ornn-forge --version           Show version
 
 Options (install/update/uninstall):
   --scope <scope>       project | global (default: project)

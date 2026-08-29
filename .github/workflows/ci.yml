@@ -44,7 +44,7 @@ jobs:
           cd "$T"
           node "$GITHUB_WORKSPACE/bin/cli.js" install --universal --yes
           test -f "$T/.agents/skills/adversarial-review/SKILL.md"
-          test -f "$T/.agent-engineering-skills.json"
+          test -f "$T/.ornn-forge.json"
       - name: CLI provider install smoke (temporary directory)
         run: |
           T="$(mktemp -d)"

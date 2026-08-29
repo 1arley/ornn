@@ -43,12 +43,12 @@ python3 scripts/validate.py
 ## The project's own CLI
 
 ```bash
-npx agent-engineering-skills install [--target <dir>] [--link] [--force] [--dry-run]
-npx agent-engineering-skills validate
-npx agent-engineering-skills doctor
-npx agent-engineering-skills list
-npx agent-engineering-skills graph [--out <file>]
-npx agent-engineering-skills eval [--json]
+npx ornn-forge install [--target <dir>] [--link] [--force] [--dry-run]
+npx ornn-forge validate
+npx ornn-forge doctor
+npx ornn-forge list
+npx ornn-forge graph [--out <file>]
+npx ornn-forge eval [--json]
 ```
 
 The CLI is the recommended way to install into Claude Code. It adapts the frontmatter

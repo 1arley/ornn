@@ -44,7 +44,7 @@ test("universal install writes to .agents/skills and creates a manifest", () => 
     assert.equal(r.status, 0);
     const skillDirs = readdirSync(join(dir, ".agents", "skills"));
     assert.ok(skillDirs.includes("adversarial-review"));
-    assert.ok(readFileSync(join(dir, ".agent-engineering-skills.json"), "utf8").includes("universal"));
+    assert.ok(readFileSync(join(dir, ".ornn-forge.json"), "utf8").includes("universal"));
   } finally {
     cleanup();
   }
@@ -164,7 +164,7 @@ test("dry-run makes no filesystem changes", () => {
     const r = runIn(dir, ["install", "--scope", "project", "--universal", "--yes", "--dry-run"]);
     assert.equal(r.status, 0);
     assert.ok(!existsSync(join(dir, ".agents")));
-    assert.ok(!existsSync(join(dir, ".agent-engineering-skills.json")));
+    assert.ok(!existsSync(join(dir, ".ornn-forge.json")));
   } finally {
     cleanup();
   }
@@ -279,7 +279,7 @@ test("manifest only records managed skills and providers", () => {
   const { dir, cleanup } = tmpProject();
   try {
     runIn(dir, ["install", "--scope", "project", "--providers", "claude", "--yes"]);
-    const manifest = JSON.parse(readFileSync(join(dir, ".agent-engineering-skills.json"), "utf8"));
+    const manifest = JSON.parse(readFileSync(join(dir, ".ornn-forge.json"), "utf8"));
     assert.deepEqual(manifest.providers, ["claude"]);
     assert.ok(Array.isArray(manifest.skills));
     assert.ok(manifest.skills.includes("adversarial-review"));

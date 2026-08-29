@@ -5,13 +5,13 @@
  * target) that records what the installer manages. Used by `update` and
  * `uninstall` to avoid touching files the installer did not create.
  *
- * Default filename: .agent-engineering-skills.json
+ * Default filename: .ornn-forge.json
  */
 
 import fs from "node:fs";
 import { join } from "node:path";
 
-const MANIFEST_NAME = ".agent-engineering-skills.json";
+const MANIFEST_NAME = ".ornn-forge.json";
 
 export function manifestPath(root) {
   return join(root, MANIFEST_NAME);

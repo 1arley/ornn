@@ -57,8 +57,8 @@ export function resolveProjectRoot(cwd) {
 /**
  * Resolve installation root for the manifest.
  * For project scope: the project root directory.
- * For global scope: the home directory (so .agent-engineering-skills.json
- * lives at ~/.agent-engineering-skills.json).
+ * For global scope: the home directory (so .ornn-forge.json
+ * lives at ~/.ornn-forge.json).
  */
 export function resolveManifestRoot(scope, projectRoot) {
   if (scope === "global") {

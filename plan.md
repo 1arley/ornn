@@ -789,7 +789,7 @@ Antes de `rmSync(... recursive: true)`:
 Exemplo:
 
 ```bash
-npx agent-engineering-skills install --dry-run
+npx ornn-forge install --dry-run
 ```
 
 Saída:
@@ -806,7 +806,7 @@ Nenhum filesystem write.
 ## 10.4 Adicionar `doctor`
 
 ```bash
-npx agent-engineering-skills doctor
+npx ornn-forge doctor
 ```
 
 Verificar:
@@ -825,7 +825,7 @@ target permissions
 ## 10.5 Adicionar `list`
 
 ```bash
-npx agent-engineering-skills list
+npx ornn-forge list
 ```
 
 Mostrar:
@@ -841,7 +841,7 @@ installed
 ## 10.6 Adicionar `graph`
 
 ```bash
-npx agent-engineering-skills graph
+npx ornn-forge graph
 ```
 
 Pode gerar Mermaid para stdout ou arquivo.
@@ -849,7 +849,7 @@ Pode gerar Mermaid para stdout ou arquivo.
 ## 10.7 Adicionar `eval`
 
 ```bash
-npx agent-engineering-skills eval
+npx ornn-forge eval
 ```
 
 Pode delegar para `scripts/eval.py`.
@@ -1782,7 +1782,7 @@ Toda release deve responder:
 # 24. Arquitetura alvo
 
 ```text
-agent-engineering-skills/
+ornn-forge/
 │
 ├── AGENTS.md
 ├── README.md

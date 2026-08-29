@@ -10,12 +10,12 @@ Deprecated, Removed, Security.
 ### Added
 
 - Universal interactive installer with agent detection and provider selection
-  (`npx agent-engineering-skills install`).
+  (`npx ornn-forge install`).
 - Provider registry with Claude Code, Codex, OpenCode, Cursor, and Gemini CLI
   adapters; universal `.agents/skills` mode.
 - `--scope project|global`, `--providers`, `--universal`, `--yes`, `--dry-run`,
   and short aliases `-g`, `-y`, `-a`.
-- Installation manifest (`.agent-engineering-skills.json`) recording managed
+- Installation manifest (`.ornn-forge.json`) recording managed
   providers and skills.
 - `update` and `uninstall` commands driven by the manifest; only managed files
   are touched.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the agent-engineering-skills repository against its own contracts.
+"""Validate the ornn-forge repository against its own contracts.
 
 Checks:
   1. Every skills/**/SKILL.md has valid frontmatter (name, description, category,

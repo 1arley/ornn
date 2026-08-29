@@ -1,6 +1,6 @@
 <p align="center">
-  <img src="https://img.shields.io/npm/v/agent-engineering-skills?style=flat-square" alt="npm version" />
-  <img src="https://img.shields.io/npm/dm/agent-engineering-skills?style=flat-square" alt="npm downloads" />
+  <img src="https://img.shields.io/npm/v/ornn-forge?style=flat-square" alt="npm version" />
+  <img src="https://img.shields.io/npm/dm/ornn-forge?style=flat-square" alt="npm downloads" />
   <img src="https://img.shields.io/badge/dependencies-0-brightgreen?style=flat-square" alt="zero dependencies" />
   <img src="https://img.shields.io/github/license/1arley/1arley-agent-skills?style=flat-square" alt="MIT license" />
 </p>
@@ -41,7 +41,7 @@ O objetivo não é criar um agente que sabe mais. É criar um agente que **sabe 
 ### Instalação interativa (recomendada)
 
 ```bash
-npx agent-engineering-skills install
+npx ornn-forge install
 ```
 
 O instalador detecta automaticamente os agentes instalados no sistema e abre uma
@@ -92,36 +92,36 @@ Done. 3 providers configured. 72 skill installations.
 
 ```bash
 # Universal: instala em .agents/skills (formato Agent Skills puro)
-npx agent-engineering-skills install --universal --yes
+npx ornn-forge install --universal --yes
 
 # Provider específico
-npx agent-engineering-skills install --providers claude --yes
+npx ornn-forge install --providers claude --yes
 
 # Vários providers
-npx agent-engineering-skills install --providers claude,codex,opencode --yes
+npx ornn-forge install --providers claude,codex,opencode --yes
 
 # Escopo global
-npx agent-engineering-skills install --scope global --providers claude --yes
+npx ornn-forge install --scope global --providers claude --yes
 
 # Dry-run (preview sem alterar nada)
-npx agent-engineering-skills install --scope project --providers detected --dry-run
+npx ornn-forge install --scope project --providers detected --dry-run
 
 # Todos os providers
-npx agent-engineering-skills install --providers all --scope project --dry-run
+npx ornn-forge install --providers all --scope project --dry-run
 ```
 
 ### Outros comandos
 
 ```bash
-npx agent-engineering-skills update              # atualiza skills instaladas via manifesto
-npx agent-engineering-skills uninstall           # remove skills gerenciadas
-npx agent-engineering-skills validate            # validador (contratos + catálogo + evals)
-npx agent-engineering-skills doctor              # diagnóstico de providers e instalações
-npx agent-engineering-skills list                # lista skills do catálogo e instalações
-npx agent-engineering-skills graph               # grafo Mermaid da composição
-npx agent-engineering-skills eval --json         # evals determinísticos de routing
-npx agent-engineering-skills --help              # ajuda completa
-npx agent-engineering-skills --version           # versão instalada
+npx ornn-forge update              # atualiza skills instaladas via manifesto
+npx ornn-forge uninstall           # remove skills gerenciadas
+npx ornn-forge validate            # validador (contratos + catálogo + evals)
+npx ornn-forge doctor              # diagnóstico de providers e instalações
+npx ornn-forge list                # lista skills do catálogo e instalações
+npx ornn-forge graph               # grafo Mermaid da composição
+npx ornn-forge eval --json         # evals determinísticos de routing
+npx ornn-forge --help              # ajuda completa
+npx ornn-forge --version           # versão instalada
 ```
 
 ### Aliases
@@ -135,18 +135,18 @@ npx agent-engineering-skills --version           # versão instalada
 ### Instalação segura
 
 ```bash
-npx agent-engineering-skills install --dry-run   # mostra o que aconteceria, sem escrever nada
-npx agent-engineering-skills install --force     # sobrescreve skills, com guardrails de path
+npx ornn-forge install --dry-run   # mostra o que aconteceria, sem escrever nada
+npx ornn-forge install --force     # sobrescreve skills, com guardrails de path
 ```
 
 ### Instalação legada (compatibilidade)
 
 ```bash
 # Instala no diretório informado, adaptando frontmatter para Claude Code
-npx agent-engineering-skills install --target ~/meus-skills
+npx ornn-forge install --target ~/meus-skills
 
 # Symlinks para desenvolvimento
-npx agent-engineering-skills install --link
+npx ornn-forge install --link
 ```
 
 ### Opção 2 — clonando o repositório
@@ -258,7 +258,7 @@ referências.
 ├── AGENTS.md              # regras globais do agente
 ├── plan.md                # especificação completa (fases, formato, definição de pronto)
 ├── LICENSE                # MIT
-├── package.json           # npm (npx agent-engineering-skills install)
+├── package.json           # npm (npx ornn-forge install)
 │
 ├── skills/
 │   ├── audit/             # auditoria de sistemas e descoberta de bugs
@@ -370,7 +370,7 @@ que as referências seguem o schema, e que o router referencia skills que existe
 
 ```bash
 # Pelo npx
-npx agent-engineering-skills validate
+npx ornn-forge validate
 
 # Ou direto no repositório
 python3 scripts/validate.py
