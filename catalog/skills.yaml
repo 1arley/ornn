@@ -253,6 +253,31 @@
   research_cost: low
   lifecycle: stable
 
+- name: security-audit
+  category: security
+  role: generator
+  priority: high
+  risk_floor: high
+  triggers:
+    - "security audit of the codebase"
+    - "find security vulnerabilities"
+    - "tenant isolation and idor sweep"
+    - "hardcoded secrets and exposed keys"
+    - "xss unhandled input review"
+  requires_signals:
+    - codebase
+    - vulnerabilities
+    - secrets
+  composes_with:
+    - authorization-audit
+    - input-trust-audit
+    - api-abuse-audit
+  overlaps_with:
+    - api-abuse-audit
+  reasoning_cost: medium
+  research_cost: low
+  lifecycle: experimental
+
 - name: race-condition-hunter
   category: reliability
   role: verifier

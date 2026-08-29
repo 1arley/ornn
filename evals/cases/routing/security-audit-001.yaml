@@ -1,0 +1,18 @@
+id: routing-security-audit-001
+title: full codebase security audit with report
+task: Run a security audit of this codebase — check tenant isolation, IDOR on every route handler, hardcoded secrets in configs and CI, and XSS in the frontend; report findings with file and line evidence.
+context:
+  - multi-tenant SaaS with API and web frontend
+  - docker-compose and GitHub Actions deploy files present
+risk: critical
+category: routing
+expected_skills:
+  required:
+    - security-audit
+  useful:
+    - authorization-audit
+    - api-abuse-audit
+    - input-trust-audit
+  forbidden:
+    - animation-review
+    - ux-review
