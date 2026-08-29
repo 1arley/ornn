@@ -26,6 +26,22 @@ const UNIVERSAL = {
 };
 
 // ---------------------------------------------------------------------------
+// Symlink containment
+// ---------------------------------------------------------------------------
+
+/**
+ * For project scope the project root is the trust boundary: a malicious repo
+ * can commit `.claude` (or `.agents`) as a symlink and every purely lexical
+ * path check would still pass while writes land outside the project. Global
+ * scope has no repo-planted-symlink vector (the attacker does not control the
+ * user's home) and a symlinked ~/.claude is a legitimate dotfiles pattern, so
+ * no anchor is applied there.
+ */
+function installAnchor(scope, projectRoot) {
+  return scope === "global" ? null : projectRoot;
+}
+
+// ---------------------------------------------------------------------------
 // Skill source
 // ---------------------------------------------------------------------------
 
@@ -58,10 +74,11 @@ export function resolveInstallTarget(provider, scope, projectRoot) {
  */
 export function buildPlan({ providers, scope, projectRoot, packageRoot, force }) {
   const skills = listSourceSkills(packageRoot);
+  const anchor = installAnchor(scope, projectRoot);
   const plans = [];
   for (const provider of providers) {
     const target = resolveInstallTarget(provider, scope, projectRoot);
-    const plan = planInstall(skills, target, { force });
+    const plan = planInstall(skills, target, { force, anchor });
     plans.push({ provider, target, ...plan });
   }
   return { skills, plans };
@@ -73,21 +90,24 @@ export function buildPlan({ providers, scope, projectRoot, packageRoot, force })
 export function installProviders({ providers, scope, projectRoot, packageRoot, force, dryRun, link }) {
   const { skills, plans } = buildPlan({ providers, scope, projectRoot, packageRoot, force });
   const manifestRoot = resolveManifestRoot(scope, projectRoot);
+  const anchor = installAnchor(scope, projectRoot);
   const providerIds = providers.map((p) => p.id);
   const skillNames = skills.map((s) => s.name);
   const summary = [];
 
   for (const plan of plans) {
     const adapter = plan.provider.adapter;
-    const results = installTo(skills, plan.target, adapter, { force, dryRun, link });
+    const results = installTo(skills, plan.target, adapter, { force, dryRun, link, anchor });
     const installed = results.filter((r) => r.status === "installed" || r.status === "linked").length;
     const skipped = results.filter((r) => r.status === "skipped").length;
+    const errored = results.filter((r) => r.status === "error").length;
     const overwritten = results.filter((r) => r.status === "installed" && plan.existing.some((e) => e.dest === r.dest && e.exists)).length;
     summary.push({
       provider: plan.provider,
       target: plan.target,
       installed,
       skipped,
+      errored,
       overwritten,
       results,
     });
@@ -146,9 +166,10 @@ export function uninstallProviders({ providerIds, scope, projectRoot, dryRun }) 
     return { id, provider, target: resolveInstallTarget(provider, scope, projectRoot) };
   });
   const removed = [];
+  const anchor = installAnchor(scope, projectRoot);
   for (const { id, target } of targets) {
     for (const skillName of manifest.skills || []) {
-      const dest = safeDestFor(target, skillName, { warn: () => {} });
+      const dest = safeDestFor(target, skillName, { warn: () => {}, anchor });
       if (!dest) continue;
       if (fs.existsSync(dest) && !dryRun) {
         fs.rmSync(dest, { recursive: true, force: true });
@@ -196,7 +217,7 @@ export function doctorProviders(projectRoot) {
     const installed = target && fs.existsSync(target)
       ? fs.readdirSync(target).filter((e) => fs.statSync(join(target, e)).isDirectory())
       : [];
-    const missing = installed.length < 24 ? 24 - installed.length : 0;
+    const missing = installed.length < 25 ? 25 - installed.length : 0;
     rows.push({
       provider: provider.name,
       detected: found,

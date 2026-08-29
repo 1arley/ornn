@@ -269,8 +269,15 @@ async function interactiveInstall(projectRoot, packageRoot) {
   });
 
   log("\nInstalling Agent Engineering Skills");
+  let errored = 0;
   for (const s of result.summary) {
+    errored += s.errored || 0;
     log(`✓ ${s.provider.name.padEnd(20)} ${s.target}  ${s.installed} skills`);
+  }
+  if (errored > 0) {
+    err(`\n${errored} skill installation(s) refused (path safety / symlink escape).`);
+    process.exitCode = 1;
+    return;
   }
   log(`\nDone. ${result.summary.length} provider(s) configured.`);
 }
@@ -297,6 +304,10 @@ function nonInteractiveInstall(opts, projectRoot, packageRoot) {
       return;
     }
     log(`Installed ${result.summary[0]?.installed} skills to ${result.summary[0]?.target}`);
+    if ((result.summary[0]?.errored || 0) > 0) {
+      err(`\n${result.summary[0].errored} skill installation(s) refused (path safety / symlink escape).`);
+      process.exitCode = 1;
+    }
     return;
   }
 
@@ -333,8 +344,14 @@ function nonInteractiveInstall(opts, projectRoot, packageRoot) {
     dryRun: false,
     link: opts.link,
   });
+  let errored = 0;
   for (const s of result.summary) {
+    errored += s.errored || 0;
     log(`✓ ${s.provider.name}: ${s.installed} skills → ${s.target}`);
+  }
+  if (errored > 0) {
+    err(`\n${errored} skill installation(s) refused (path safety / symlink escape).`);
+    process.exitCode = 1;
   }
 }
 

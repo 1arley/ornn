@@ -63,11 +63,11 @@ function copyDir(src, dest, adapter, dryRun) {
  * Build a plan for what would happen during install, without writing.
  * Returns { skills, existing, wouldOverwrite, wouldSkip, wouldInstall, byProvider }.
  */
-export function planInstall(skills, target, { force } = {}) {
+export function planInstall(skills, target, { force, anchor } = {}) {
   const existing = [];
   const byProvider = [];
   for (const skill of skills) {
-    const dest = safeDestFor(target, skill.name, { warn: () => {} });
+    const dest = safeDestFor(target, skill.name, { warn: () => {}, anchor });
     if (!dest) continue;
     const exists = fs.existsSync(dest);
     existing.push({ name: skill.name, exists, dest });
@@ -88,10 +88,10 @@ export function planInstall(skills, target, { force } = {}) {
  * Install (or dry-run) skill directories into a target, through the adapter.
  * Returns installation results per skill.
  */
-export function installTo(skills, target, adapter, { force, dryRun, link } = {}) {
+export function installTo(skills, target, adapter, { force, dryRun, link, anchor } = {}) {
   const results = [];
   for (const skill of skills) {
-    const dest = safeDestFor(target, skill.name, { opts: { force } });
+    const dest = safeDestFor(target, skill.name, { opts: { force }, anchor });
     if (!dest) {
       results.push({ name: skill.name, status: "error", dest: null });
       continue;
@@ -105,7 +105,10 @@ export function installTo(skills, target, adapter, { force, dryRun, link } = {})
       fs.rmSync(dest, { recursive: true, force: true });
     }
     if (link) {
-      if (!dryRun) fs.symlinkSync(skill.src, dest, "dir");
+      if (!dryRun) {
+        fs.mkdirSync(target, { recursive: true });
+        fs.symlinkSync(skill.src, dest, "dir");
+      }
       results.push({ name: skill.name, status: "linked", dest });
       continue;
     }

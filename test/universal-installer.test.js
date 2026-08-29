@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, mkdirSync, writeFileSync, readdirSync, readFileSync, existsSync } from "node:fs";
+import { mkdtempSync, rmSync, mkdirSync, writeFileSync, readdirSync, readFileSync, existsSync, symlinkSync, lstatSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -269,7 +269,7 @@ test("legacy --target install still works (backward compat)", () => {
     const target = join(dir, "legacy-skills");
     const r = runIn(dir, ["install", "--target", target, "--dry-run"]);
     assert.equal(r.status, 0);
-    assert.match(r.stdout, /would install: 24/);
+    assert.match(r.stdout, /would install: 25/);
   } finally {
     cleanup();
   }
@@ -297,6 +297,73 @@ test("path safety: refusing to remove outside target", async (t) => {
     const target = join(dir, "target");
     const refused = safeDestFor(target, escapeName, { warn: () => {} });
     assert.equal(refused, null);
+  } finally {
+    cleanup();
+  }
+});
+
+test("symlink escape: universal install refuses to write through a symlinked .agents", () => {
+  const { dir, cleanup } = tmpProject();
+  const outside = mkdtempSync(join(tmpdir(), "aes-outside-"));
+  try {
+    // A malicious repo commits `.agents` as a symlink to an attacker-chosen dir.
+    symlinkSync(outside, join(dir, ".agents"), "dir");
+    const r = runIn(dir, ["install", "--scope", "project", "--universal", "--yes"]);
+    assert.notEqual(r.status, 0, "install must fail when writes are refused");
+    assert.match(r.stderr, /Refusing|refused/);
+    assert.ok(!existsSync(join(outside, "skills")), "must not write through the symlink");
+  } finally {
+    cleanup();
+    rmSync(outside, { recursive: true, force: true });
+  }
+});
+
+test("symlink escape: provider install refuses to write through a symlinked .claude", () => {
+  const { dir, cleanup } = tmpProject();
+  const outside = mkdtempSync(join(tmpdir(), "aes-outside-"));
+  try {
+    mkdirSync(join(outside, "skills"), { recursive: true });
+    symlinkSync(outside, join(dir, ".claude"), "dir");
+    const r = runIn(dir, ["install", "--scope", "project", "--providers", "claude", "--yes"]);
+    assert.notEqual(r.status, 0);
+    assert.equal(readdirSync(join(outside, "skills")).length, 0, "no skills leaked outside project");
+  } finally {
+    cleanup();
+    rmSync(outside, { recursive: true, force: true });
+  }
+});
+
+test("symlink escape: uninstall refuses to remove through a symlinked provider dir", () => {
+  const { dir, cleanup } = tmpProject();
+  const outside = mkdtempSync(join(tmpdir(), "aes-outside-"));
+  try {
+    // Install normally first (real dirs).
+    runIn(dir, ["install", "--scope", "project", "--universal", "--yes"]);
+    // Move the installed skills out and replace with a symlink pointing elsewhere.
+    const victim = join(outside, "victim");
+    mkdirSync(victim, { recursive: true });
+    writeFileSync(join(victim, "keep.txt"), "do not delete me");
+    const linkPath = join(dir, ".agents", "skills", "adversarial-review");
+    rmSync(linkPath, { recursive: true, force: true });
+    symlinkSync(victim, linkPath, "dir");
+    const r = runIn(dir, ["uninstall", "--scope", "project", "--providers", "universal", "--yes"]);
+    assert.equal(r.status, 0);
+    assert.ok(existsSync(join(victim, "keep.txt")), "must not delete through the symlink");
+    assert.ok(lstatSync(linkPath).isSymbolicLink(), "symlink itself left intact, not followed");
+  } finally {
+    cleanup();
+    rmSync(outside, { recursive: true, force: true });
+  }
+});
+
+test("safeDestFor with anchor allows a real path inside the project", async () => {
+  const { safeDestFor } = await import("../src/installer/paths.js");
+  const { dir, cleanup } = tmpProject();
+  try {
+    const target = join(dir, ".agents", "skills");
+    mkdirSync(target, { recursive: true });
+    const ok = safeDestFor(target, "my-skill", { warn: () => {}, anchor: dir });
+    assert.equal(ok, join(target, "my-skill"));
   } finally {
     cleanup();
   }
