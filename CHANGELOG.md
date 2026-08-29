@@ -9,6 +9,13 @@ Deprecated, Removed, Security.
 
 ### Added
 
+- `security-audit` skill: stack-adaptive codebase security audit covering five
+  verified failure classes (tenant/owner isolation, browser-side privilege gates,
+  IDOR, hardcoded secrets, unhandled input/XSS) with file:line evidence, a
+  strengths/coverage section, prioritized recommendations, and a final report
+  with ready-to-file tracker issues. Cataloged as `security / generator /
+  experimental` with a routing eval case.
+
 - Universal interactive installer with agent detection and provider selection
   (`npx ornn-forge install`).
 - Provider registry with Claude Code, Codex, OpenCode, Cursor, and Gemini CLI
@@ -77,6 +84,11 @@ Deprecated, Removed, Security.
 
 ### Fixed
 
+- `install --link` no longer crashes with ENOENT on a fresh target: the parent
+  directory is created before each symlink is written.
+- Refused skill installations (path-safety rejections) now surface as a
+  non-zero exit code and an explicit error, instead of a silent "0 skills"
+  success.
 - `install --force` now correctly overwrites existing skill directories.
 - `--force` destinations are guarded against filesystem root, home, outside
   target, and target-equivalent paths.
@@ -86,6 +98,16 @@ Deprecated, Removed, Security.
 
 ### Security
 
+- Fixed symlink-escape (CWE-59) in project-scope installs: a malicious repo
+  could commit `.claude`/`.agents`/etc. as a symlink to an attacker-chosen
+  directory (e.g. the user's real `~/.claude`), and the purely lexical
+  `startsWith` check in `safeDestFor` passed while every write landed *outside*
+  the project. `safeDestFor` now takes an `anchor` (the project root) and
+  resolves the real path of every existing ancestor via `realpath`; any
+  destination whose real location escapes the anchor is refused. Applies to
+  install, plan, and uninstall. Global scope is intentionally unanchored (the
+  repo cannot plant symlinks in the user's home, and a symlinked `~/.claude`
+  is a legitimate dotfiles pattern).
 - Filesystem guardrails for `install --force`: absolute path resolution,
   root/home/target/outside-target rejection.
 - Installer uses `safeDestFor` validation before every removal.

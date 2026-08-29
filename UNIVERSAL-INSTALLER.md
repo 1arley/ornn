@@ -100,7 +100,7 @@ Providers:
   ☐ Cursor
   ☐ Gemini CLI
 
-24 skills will be installed.
+25 skills will be installed.
 
 Continue? Y/n
 ```
@@ -501,14 +501,14 @@ Instalar.
 ```text
 Installing Agent Engineering Skills
 
-✓ Claude Code     .claude/skills        24 skills
-✓ Codex           .codex/skills         24 skills
-✓ OpenCode        .opencode/skills      24 skills
+✓ Claude Code     .claude/skills        25 skills
+✓ Codex           .codex/skills         25 skills
+✓ OpenCode        .opencode/skills      25 skills
 
 Done.
 
 3 providers configured
-72 skill installations
+75 skill installations
 ```
 
 ---
@@ -1266,7 +1266,7 @@ Providers:
   ☐ Cursor
   ☐ Gemini CLI
 
-24 skills will be installed.
+25 skills will be installed.
 
 Continue? Y/n
 ```

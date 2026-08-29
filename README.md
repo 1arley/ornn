@@ -18,7 +18,7 @@ Um repositório de skills modulares que ensinam agentes de IA a **entender → p
 
 O objetivo não é criar um agente que sabe mais. É criar um agente que **sabe como descobrir mais, onde procurar, quais perguntas fazer e como verificar se está certo**.
 
-- 🛠️ **24 skills** prontas para instalar no Claude Code (auditoria, segurança, reliability, produto, frontend, pesquisa)
+- 🛠️ **25 skills** prontas para instalar no Claude Code (auditoria, segurança, reliability, produto, frontend, pesquisa)
 - 🧠 Skills ensinam **como pensar** — modelo mental, perguntas, padrões de ataque, evidência — não listas de comandos
 - 📚 Referências centralizadas em `references/*.yaml` ensinam **onde olhar**, com nível de autoridade
 - 🧭 Dois routers (`skill-router`, `research-router`) que despacham a tarefa para as skills e fontes certas
@@ -33,7 +33,7 @@ O objetivo não é criar um agente que sabe mais. É criar um agente que **sabe 
 - [Como usar](#como-usar)
 - [O que isto é](#o-que-isto-é)
 - [Estrutura](#estrutura)
-- [As 24 skills](#as-24-skills)
+- [As 25 skills](#as-25-skills)
 - [Workflow completo](#workflow-completo)
 - [Validação](#validação)
 - [Documentação](#documentação)
@@ -76,7 +76,7 @@ Providers:
   ☐ Cursor
   ☐ Gemini CLI
 
-24 skills will be installed.
+25 skills will be installed.
 
 Continue? Y/n
 ```
@@ -86,11 +86,11 @@ Após a confirmação, cada provider recebe as skills com o adapter correto:
 ```text
 Installing Agent Engineering Skills
 
-✓ Claude Code     .claude/skills        24 skills
-✓ Codex           .codex/skills         24 skills
-✓ OpenCode        .opencode/skills      24 skills
+✓ Claude Code     .claude/skills        25 skills
+✓ Codex           .codex/skills         25 skills
+✓ OpenCode        .opencode/skills      25 skills
 
-Done. 3 providers configured. 72 skill installations.
+Done. 3 providers configured. 75 skill installations.
 ```
 
 ### Instalação não interativa (CI/scripts)
@@ -290,7 +290,7 @@ referências.
 
 ---
 
-## As 24 skills
+## As 25 skills
 
 ### Core audit
 
@@ -310,6 +310,7 @@ referências.
 | `authorization-audit` | Separa authenticated de authorized; verifica ownership, moderator, admin, participant — no servidor, sempre |
 | `api-abuse-audit` | Trata a API como diretamente acessível: repetição, replay, manipulação de IDs, campos extras, endpoints alternativos, rate limiting, bypass de UI |
 | `input-trust-audit` | Identifica valores que nunca devem ser confiados ao cliente: userId, role, price, XP, permissions, ownership, status, reward, timestamps |
+| `security-audit` | Auditoria adaptativa à stack: detecta a stack, varre as 5 classes (isolamento de tenant, gate só no navegador, IDOR, segredos hardcoded, XSS) com evidência arquivo:linha e gera relatório + issues |
 
 ### Reliability
 
@@ -384,7 +385,7 @@ python3 scripts/validate.py
 **Saída esperada (íntegra):**
 
 ```
-Skills found:      24
+Skills found:      25
 Reference catalogs: 6
 Errors:             0
 Warnings:           0
