@@ -3,9 +3,10 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync, mkdirSync, writeFileSync, readdirSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const CLI = resolve(import.meta.dirname, "..", "bin", "cli.js");
+const CLI = resolve(dirname(fileURLToPath(import.meta.url)), "..", "bin", "cli.js");
 
 function run(args, opts = {}) {
   return spawnSync("node", [CLI, ...args], { encoding: "utf8", ...opts });
