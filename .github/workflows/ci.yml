@@ -29,7 +29,7 @@ jobs:
       - name: Deterministic routing evals (gates)
         run: python3 scripts/eval.py route --router v2 --check
       - name: Routing baseline comparison
-        run: python3 scripts/eval.py diff --base evals/baselines/router-v1.json --cur evals/results/router-v2.json
+        run: python3 scripts/eval.py diff --base evals/baselines/router-v2.json --cur evals/results/router-v2.json
       - name: Findings fixtures
         run: python3 scripts/eval.py findings-fixtures
       - name: CLI tests (node:test)

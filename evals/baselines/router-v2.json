@@ -1,0 +1,585 @@
+{
+  "metrics": {
+    "cases_total": 19,
+    "routing_precision": 0.9148936170212766,
+    "routing_recall": 1.0,
+    "critical_skill_recall": 1.0,
+    "critical_recall_case_rate": 1.0,
+    "over_routing_rate": 0.21052631578947367,
+    "over_routing_cases": 4,
+    "average_skills_selected": 2.473684210526316,
+    "unnecessary_skill_count": 4,
+    "missing_required_skill_count": 0,
+    "forbidden_selected_count": 0,
+    "trivial_overbudget_cases": 0,
+    "risk_classification_accuracy": 0.42105263157894735,
+    "gates": {
+      "critical_skill_recall": 1.0,
+      "routing_precision": 0.9,
+      "routing_recall": 0.9,
+      "trivial_max_selected": 1
+    }
+  },
+  "per_case": [
+    {
+      "id": "routing-a11y-001",
+      "risk": "medium",
+      "inferred_risk": "high",
+      "risk_match": false,
+      "selected": [
+        "accessibility-review",
+        "ux-review"
+      ],
+      "required": [
+        "accessibility-review"
+      ],
+      "useful": [
+        "interaction-design",
+        "ux-review"
+      ],
+      "forbidden": [
+        "business-logic-audit",
+        "idempotency-audit"
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "relevant_selected": 2,
+      "forbidden_selected": [],
+      "over_budget": false,
+      "budget_max": 2
+    },
+    {
+      "id": "routing-ambiguous-state-001",
+      "risk": "trivial",
+      "inferred_risk": "medium",
+      "risk_match": false,
+      "selected": [
+        "interaction-design"
+      ],
+      "required": [
+        "interaction-design"
+      ],
+      "useful": [
+        "visual-quality-review"
+      ],
+      "forbidden": [
+        "data-integrity-audit",
+        "race-condition-hunter",
+        "state-consistency-audit"
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "relevant_selected": 1,
+      "forbidden_selected": [],
+      "over_budget": false,
+      "budget_max": 1
+    },
+    {
+      "id": "routing-animation-001",
+      "risk": "medium",
+      "inferred_risk": "medium",
+      "risk_match": true,
+      "selected": [
+        "accessibility-review",
+        "animation-review"
+      ],
+      "required": [
+        "animation-review"
+      ],
+      "useful": [
+        "accessibility-review",
+        "interaction-design"
+      ],
+      "forbidden": [
+        "idempotency-audit",
+        "race-condition-hunter"
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "relevant_selected": 2,
+      "forbidden_selected": [],
+      "over_budget": false,
+      "budget_max": 2
+    },
+    {
+      "id": "routing-api-001",
+      "risk": "high",
+      "inferred_risk": "critical",
+      "risk_match": false,
+      "selected": [
+        "api-abuse-audit",
+        "edge-case-hunter",
+        "idempotency-audit",
+        "input-trust-audit"
+      ],
+      "required": [
+        "api-abuse-audit",
+        "input-trust-audit"
+      ],
+      "useful": [
+        "authorization-audit",
+        "edge-case-hunter",
+        "idempotency-audit"
+      ],
+      "forbidden": [
+        "animation-review",
+        "ux-review"
+      ],
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "relevant_selected": 4,
+      "forbidden_selected": [],
+      "over_budget": false,
+      "budget_max": 4
+    },
+    {
+      "id": "routing-authorization-001",
+      "risk": "high",
+      "inferred_risk": "critical",
+      "risk_match": false,
+      "selected": [
+        "api-abuse-audit",
+        "authorization-audit",
+        "business-logic-audit",
+        "user-flow-audit"
+      ],
+      "required": [
+        "api-abuse-audit",
+        "authorization-audit"
+      ],
+      "useful": [
+        "business-logic-audit",
+        "input-trust-audit"
+      ],
+      "forbidden": [
+        "animation-review",
+        "ux-review"
+      ],
+      "tp": 2,
+      "fp": 1,
+      "fn": 0,
+      "relevant_selected": 3,
+      "forbidden_selected": [],
+      "over_budget": false,
+      "budget_max": 4
+    },
+    {
+      "id": "routing-cache-001",
+      "risk": "medium",
+      "inferred_risk": "high",
+      "risk_match": false,
+      "selected": [
+        "data-integrity-audit",
+        "state-consistency-audit"
+      ],
+      "required": [
+        "state-consistency-audit"
+      ],
+      "useful": [
+        "data-integrity-audit",
+        "error-flow-audit",
+        "user-flow-audit"
+      ],
+      "forbidden": [
+        "animation-review",
+        "gamification-audit"
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "relevant_selected": 2,
+      "forbidden_selected": [],
+      "over_budget": false,
+      "budget_max": 2
+    },
+    {
+      "id": "routing-critical-no-literal-001",
+      "risk": "critical",
+      "inferred_risk": "critical",
+      "risk_match": true,
+      "selected": [
+        "adversarial-review",
+        "business-logic-audit",
+        "data-integrity-audit",
+        "race-condition-hunter"
+      ],
+      "required": [
+        "business-logic-audit",
+        "data-integrity-audit",
+        "race-condition-hunter"
+      ],
+      "useful": [
+        "adversarial-review",
+        "authorization-audit",
+        "idempotency-audit"
+      ],
+      "forbidden": [
+        "animation-review",
+        "market-research"
+      ],
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "relevant_selected": 4,
+      "forbidden_selected": [],
+      "over_budget": false,
+      "budget_max": 6
+    },
+    {
+      "id": "routing-data-integrity-001",
+      "risk": "medium",
+      "inferred_risk": "trivial",
+      "risk_match": false,
+      "selected": [
+        "data-integrity-audit",
+        "edge-case-hunter"
+      ],
+      "required": [
+        "data-integrity-audit"
+      ],
+      "useful": [
+        "business-logic-audit",
+        "edge-case-hunter",
+        "state-consistency-audit"
+      ],
+      "forbidden": [
+        "animation-review",
+        "market-research"
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "relevant_selected": 2,
+      "forbidden_selected": [],
+      "over_budget": false,
+      "budget_max": 2
+    },
+    {
+      "id": "routing-edge-001",
+      "risk": "medium",
+      "inferred_risk": "medium",
+      "risk_match": true,
+      "selected": [
+        "business-logic-audit",
+        "edge-case-hunter"
+      ],
+      "required": [
+        "edge-case-hunter"
+      ],
+      "useful": [
+        "api-abuse-audit",
+        "business-logic-audit",
+        "input-trust-audit"
+      ],
+      "forbidden": [
+        "animation-review",
+        "gamification-audit"
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "relevant_selected": 2,
+      "forbidden_selected": [],
+      "over_budget": false,
+      "budget_max": 2
+    },
+    {
+      "id": "routing-error-flow-001",
+      "risk": "high",
+      "inferred_risk": "medium",
+      "risk_match": false,
+      "selected": [
+        "adversarial-review",
+        "error-flow-audit",
+        "idempotency-audit"
+      ],
+      "required": [
+        "error-flow-audit"
+      ],
+      "useful": [
+        "adversarial-review",
+        "data-integrity-audit",
+        "idempotency-audit",
+        "state-consistency-audit"
+      ],
+      "forbidden": [
+        "market-research",
+        "visual-quality-review"
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "relevant_selected": 3,
+      "forbidden_selected": [],
+      "over_budget": false,
+      "budget_max": 4
+    },
+    {
+      "id": "routing-frontend-001",
+      "risk": "medium",
+      "inferred_risk": "medium",
+      "risk_match": true,
+      "selected": [
+        "interaction-design",
+        "ux-review"
+      ],
+      "required": [
+        "interaction-design",
+        "ux-review"
+      ],
+      "useful": [
+        "accessibility-review"
+      ],
+      "forbidden": [
+        "business-logic-audit",
+        "gamification-audit",
+        "race-condition-hunter"
+      ],
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "relevant_selected": 2,
+      "forbidden_selected": [],
+      "over_budget": false,
+      "budget_max": 2
+    },
+    {
+      "id": "routing-gamification-001",
+      "risk": "high",
+      "inferred_risk": "critical",
+      "risk_match": false,
+      "selected": [
+        "authorization-audit",
+        "business-logic-audit",
+        "gamification-audit",
+        "user-flow-audit"
+      ],
+      "required": [
+        "business-logic-audit",
+        "gamification-audit"
+      ],
+      "useful": [
+        "api-abuse-audit",
+        "idempotency-audit",
+        "race-condition-hunter",
+        "user-flow-audit"
+      ],
+      "forbidden": [
+        "animation-review",
+        "visual-quality-review"
+      ],
+      "tp": 2,
+      "fp": 1,
+      "fn": 0,
+      "relevant_selected": 3,
+      "forbidden_selected": [],
+      "over_budget": false,
+      "budget_max": 4
+    },
+    {
+      "id": "routing-implementation-001",
+      "risk": "medium",
+      "inferred_risk": "critical",
+      "risk_match": false,
+      "selected": [
+        "github-reference-research",
+        "implementation-research"
+      ],
+      "required": [
+        "github-reference-research",
+        "implementation-research"
+      ],
+      "useful": [
+        "idempotency-audit",
+        "reference-research"
+      ],
+      "forbidden": [
+        "animation-review",
+        "visual-quality-review"
+      ],
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "relevant_selected": 2,
+      "forbidden_selected": [],
+      "over_budget": false,
+      "budget_max": 2
+    },
+    {
+      "id": "routing-payment-001",
+      "risk": "critical",
+      "inferred_risk": "critical",
+      "risk_match": true,
+      "selected": [
+        "adversarial-review",
+        "business-logic-audit",
+        "error-flow-audit",
+        "idempotency-audit",
+        "race-condition-hunter",
+        "user-flow-audit"
+      ],
+      "required": [
+        "business-logic-audit",
+        "error-flow-audit",
+        "idempotency-audit",
+        "race-condition-hunter"
+      ],
+      "useful": [
+        "adversarial-review",
+        "api-abuse-audit",
+        "authorization-audit",
+        "data-integrity-audit",
+        "user-flow-audit"
+      ],
+      "forbidden": [
+        "accessibility-review",
+        "animation-review"
+      ],
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "relevant_selected": 6,
+      "forbidden_selected": [],
+      "over_budget": false,
+      "budget_max": 6
+    },
+    {
+      "id": "routing-research-001",
+      "risk": "medium",
+      "inferred_risk": "medium",
+      "risk_match": true,
+      "selected": [
+        "implementation-research",
+        "market-research"
+      ],
+      "required": [
+        "market-research"
+      ],
+      "useful": [
+        "reference-research",
+        "ux-review"
+      ],
+      "forbidden": [
+        "idempotency-audit",
+        "race-condition-hunter"
+      ],
+      "tp": 1,
+      "fp": 1,
+      "fn": 0,
+      "relevant_selected": 1,
+      "forbidden_selected": [],
+      "over_budget": false,
+      "budget_max": 2
+    },
+    {
+      "id": "routing-trivial-button-001",
+      "risk": "trivial",
+      "inferred_risk": "high",
+      "risk_match": false,
+      "selected": [],
+      "required": [],
+      "useful": [
+        "visual-quality-review"
+      ],
+      "forbidden": [
+        "adversarial-review",
+        "gamification-audit",
+        "idempotency-audit",
+        "race-condition-hunter"
+      ],
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "relevant_selected": 0,
+      "forbidden_selected": [],
+      "over_budget": false,
+      "budget_max": 1
+    },
+    {
+      "id": "routing-user-flow-001",
+      "risk": "medium",
+      "inferred_risk": "medium",
+      "risk_match": true,
+      "selected": [
+        "state-consistency-audit",
+        "user-flow-audit"
+      ],
+      "required": [
+        "state-consistency-audit",
+        "user-flow-audit"
+      ],
+      "useful": [
+        "edge-case-hunter",
+        "error-flow-audit"
+      ],
+      "forbidden": [
+        "gamification-audit",
+        "market-research"
+      ],
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "relevant_selected": 2,
+      "forbidden_selected": [],
+      "over_budget": false,
+      "budget_max": 2
+    },
+    {
+      "id": "routing-vague-001",
+      "risk": "medium",
+      "inferred_risk": "trivial",
+      "risk_match": false,
+      "selected": [],
+      "required": [],
+      "useful": [
+        "adversarial-review",
+        "ux-review"
+      ],
+      "forbidden": [
+        "idempotency-audit",
+        "race-condition-hunter"
+      ],
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "relevant_selected": 0,
+      "forbidden_selected": [],
+      "over_budget": false,
+      "budget_max": 2
+    },
+    {
+      "id": "routing-webhook-001",
+      "risk": "high",
+      "inferred_risk": "high",
+      "risk_match": true,
+      "selected": [
+        "api-abuse-audit",
+        "edge-case-hunter",
+        "idempotency-audit"
+      ],
+      "required": [
+        "idempotency-audit"
+      ],
+      "useful": [
+        "api-abuse-audit",
+        "business-logic-audit",
+        "error-flow-audit"
+      ],
+      "forbidden": [
+        "animation-review",
+        "ux-review"
+      ],
+      "tp": 1,
+      "fp": 1,
+      "fn": 0,
+      "relevant_selected": 2,
+      "forbidden_selected": [],
+      "over_budget": false,
+      "budget_max": 4
+    }
+  ]
+}

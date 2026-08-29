@@ -96,8 +96,8 @@ After changing the router or catalog, run:
 python3 scripts/eval.py route --router v2 --check
 ```
 
-To measure against the frozen baseline:
+To measure against the frozen v2 baseline:
 
 ```bash
-python3 scripts/eval.py diff --base evals/baselines/router-v1.json
+python3 scripts/eval.py diff --base evals/baselines/router-v2.json
 ```

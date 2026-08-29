@@ -107,12 +107,19 @@ The deterministic fixtures (`findings-dedup`, `findings-confidence`) assert:
 
 ## Baselines and comparison
 
-The deterministic routing baseline is frozen at `evals/baselines/router-v1.json`; the
-current v2 result is `evals/results/router-v2.json`. Recreate them only from the same
-case revision:
+Two routing baselines live under `evals/baselines/`:
+
+- `router-v1.json` — frozen historical baseline (the original v1 router). Kept to
+  document the v1 → v2 improvement, not used for regression checks.
+- `router-v2.json` — current baseline for the v2 router. CI compares fresh
+  results against this file; a metric regressing below it fails the build.
+
+The live v2 result is `evals/results/router-v2.json`. Recreate the baselines only
+from the same case revision:
 
 ```bash
 python3 scripts/eval.py route --router v1 --out evals/baselines/router-v1.json
+python3 scripts/eval.py route --router v2 --out evals/baselines/router-v2.json
 python3 scripts/eval.py route --router v2 --out evals/results/router-v2.json
 ```
 
