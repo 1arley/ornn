@@ -45,10 +45,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/1arley/1arley-agent-skills.git"
+    "url": "git+https://github.com/1arley/ornn.git"
   },
   "bugs": {
-    "url": "https://github.com/1arley/1arley-agent-skills/issues"
+    "url": "https://github.com/1arley/ornn/issues"
   },
-  "homepage": "https://github.com/1arley/1arley-agent-skills#readme"
+  "homepage": "https://github.com/1arley/ornn#readme"
 }
