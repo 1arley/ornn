@@ -12,9 +12,15 @@ client reads the standard fields; the project's router reads the `aes-*` keys.
 | Client | Install | Discovery | Invoke | Tested version | Status |
 |---|---|---|---|---|---|
 | Claude Code | yes | yes | yes | latest | supported |
-| Cursor | not tested | not tested | not tested | — | untested |
-| OpenCode | not tested | not tested | not tested | — | untested |
-| OpenAI Codex | not tested | not tested | not tested | — | untested |
+| OpenCode | yes | yes | untested | latest | supported* |
+| Cursor | untested | untested | untested | — | untested |
+| OpenAI Codex | untested | untested | untested | — | untested |
+| Gemini CLI | untested | untested | untested | — | untested |
+
+\* OpenCode's project and global skill locations (`~/.config/opencode/skills`)
+and its Agent Skills frontmatter compatibility are verified against the
+official OpenCode documentation; skill invocation was not run end-to-end by the
+maintainers.
 
 ### Status definitions
 
@@ -43,7 +49,7 @@ python3 scripts/validate.py
 ## The project's own CLI
 
 ```bash
-npx ornn-forge install [--target <dir>] [--link] [--force] [--dry-run]
+npx ornn-forge install [--universal] [--destination <dir>] [--providers <list>] [--scope project|global] [--link] [--force] [--dry-run]
 npx ornn-forge validate
 npx ornn-forge doctor
 npx ornn-forge list
@@ -51,9 +57,10 @@ npx ornn-forge graph [--out <file>]
 npx ornn-forge eval [--json]
 ```
 
-The CLI is the recommended way to install into Claude Code. It adapts the frontmatter
-to the native Claude Code format (`user_invocable: true`) and preserves the
-portable source format in the repository.
+The CLI is the recommended way to install. It adapts the frontmatter to each
+destination's format (e.g. `user_invocable: true` for Claude Code) and preserves
+the portable source format in the repository. Destination profiles are loaded
+from `catalog/providers.json`.
 
 ## Adding a new client
 

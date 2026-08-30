@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync, mkdirSync, writeFileSync, readdirSync, readFileSync, existsSync, symlinkSync, lstatSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -275,15 +275,22 @@ test("legacy --target install still works (backward compat)", () => {
   }
 });
 
-test("manifest only records managed skills and providers", () => {
+test("manifest v2 records explicit destinations with target, adapter, and skills", () => {
   const { dir, cleanup } = tmpProject();
   try {
     runIn(dir, ["install", "--scope", "project", "--providers", "claude", "--yes"]);
     const manifest = JSON.parse(readFileSync(join(dir, ".ornn-forge.json"), "utf8"));
-    assert.deepEqual(manifest.providers, ["claude"]);
-    assert.ok(Array.isArray(manifest.skills));
-    assert.ok(manifest.skills.includes("adversarial-review"));
-    assert.ok(manifest.skills.length >= 20);
+    assert.equal(manifest.manifestVersion, "2");
+    assert.equal(manifest.scope, "project");
+    assert.ok(Array.isArray(manifest.destinations));
+    const dest = manifest.destinations.find((d) => d.id === "claude");
+    assert.ok(dest, "claude destination should be recorded");
+    assert.equal(dest.type, "profile");
+    assert.equal(dest.adapter, "claude");
+    assert.equal(dest.target, join(dir, ".claude", "skills"));
+    assert.ok(Array.isArray(dest.skills));
+    assert.ok(dest.skills.includes("adversarial-review"));
+    assert.ok(dest.skills.length >= 20);
   } finally {
     cleanup();
   }
@@ -375,6 +382,150 @@ test("no agents detected still allows universal install", () => {
     // Even with no providers detected, --universal must work without prompts.
     const r = runIn(dir, ["install", "--universal", "--yes", "--dry-run"]);
     assert.equal(r.status, 0);
+  } finally {
+    cleanup();
+  }
+});
+
+test("OpenCode global destination resolves to ~/.config/opencode/skills", async () => {
+  const { resolveTarget, getProvider } = await import("../src/installer/providers.js");
+  const provider = getProvider("opencode");
+  assert.ok(provider, "opencode profile should exist");
+  assert.equal(provider.globalPath, join(homedir(), ".config", "opencode", "skills"));
+  const project = resolveTarget(provider, "project", "/tmp/someproj");
+  assert.equal(project, join("/tmp/someproj", ".opencode", "skills"));
+});
+
+test("custom --destination installs to an arbitrary directory", () => {
+  const { dir, cleanup } = tmpProject();
+  try {
+    const dest = join(dir, "my-custom-skills");
+    const r = runIn(dir, ["install", "--destination", dest, "--yes"]);
+    assert.equal(r.status, 0);
+    assert.ok(existsSync(join(dest, "adversarial-review", "SKILL.md")));
+    const manifest = JSON.parse(readFileSync(join(dir, ".ornn-forge.json"), "utf8"));
+    const entry = manifest.destinations.find((d) => d.id === "custom");
+    assert.ok(entry, "custom destination should be recorded");
+    assert.equal(entry.type, "custom");
+    assert.equal(entry.target, dest);
+  } finally {
+    cleanup();
+  }
+});
+
+test("custom --destination uninstall removes only that destination's skills", () => {
+  const { dir, cleanup } = tmpProject();
+  try {
+    const dest = join(dir, "my-custom-skills");
+    runIn(dir, ["install", "--destination", dest, "--yes"]);
+    mkdirSync(join(dest, "keep-me"), { recursive: true });
+    const r = runIn(dir, ["uninstall", "--providers", "custom", "--scope", "project", "--yes"]);
+    assert.equal(r.status, 0);
+    assert.ok(!existsSync(join(dest, "adversarial-review")), "managed skill removed");
+    assert.ok(existsSync(join(dest, "keep-me")), "unrelated dir preserved");
+  } finally {
+    cleanup();
+  }
+});
+
+test("custom --destination outside the project root works in project scope", () => {
+  const { dir, cleanup } = tmpProject();
+  const outside = mkdtempSync(join(tmpdir(), "aes-custom-outside-"));
+  try {
+    const dest = join(outside, "skills");
+    const r = runIn(dir, ["install", "--destination", dest, "--yes"]);
+    assert.equal(r.status, 0);
+    assert.ok(existsSync(join(dest, "adversarial-review", "SKILL.md")), "installs outside project");
+    const manifest = JSON.parse(readFileSync(join(dir, ".ornn-forge.json"), "utf8"));
+    const entry = manifest.destinations.find((d) => d.id === "custom");
+    assert.ok(entry, "custom destination recorded");
+    assert.equal(entry.target, dest);
+    // Uninstall outside the project must also work.
+    const u = runIn(dir, ["uninstall", "--providers", "custom", "--scope", "project", "--yes"]);
+    assert.equal(u.status, 0);
+    assert.ok(!existsSync(join(dest, "adversarial-review")), "uninstall removes outside-project skills");
+  } finally {
+    cleanup();
+    rmSync(outside, { recursive: true, force: true });
+  }
+});
+
+test("invalid provider catalog is rejected with an actionable error", async () => {
+  const { loadProviderCatalog } = await import("../src/installer/providers.js");
+  const { dir, cleanup } = tmpProject();
+  try {
+    const bad = join(dir, "providers.json");
+    writeFileSync(bad, "{ not json");
+    assert.throws(() => loadProviderCatalog(bad), /not valid JSON/);
+    writeFileSync(bad, JSON.stringify({ version: 1 }));
+    assert.throws(() => loadProviderCatalog(bad), /"profiles" array/);
+  } finally {
+    cleanup();
+  }
+});
+
+test("unknown adapter name in catalog is rejected", async () => {
+  const { buildProviders } = await import("../src/installer/providers.js");
+  assert.throws(
+    () => buildProviders({ profiles: [{ id: "x", label: "X", adapter: "does-not-exist" }] }),
+    /Unknown adapter: does-not-exist/
+  );
+});
+
+test("doctor missing count derives from source skills, not a hardcoded number", async () => {
+  const { doctorProviders } = await import("../src/installer/orchestrator.js");
+  const { dir, cleanup } = tmpProject();
+  try {
+    // Install into the project scope (controlled), then delete one skill.
+    runIn(dir, ["install", "--scope", "project", "--providers", "claude", "--yes"]);
+    rmSync(join(dir, ".claude", "skills", "adversarial-review"), { recursive: true, force: true });
+
+    const rows = doctorProviders(dir, ROOT);
+    const claude = rows.find((r) => r.provider === "Claude Code");
+    assert.ok(claude.target.startsWith(dir), "doctor should use the project-scope target");
+    assert.equal(claude.installedCount, 24);
+    // Missing derives from the real source count (25), not a hardcoded value.
+    assert.equal(claude.missingCount, 1);
+    assert.ok(claude.target && !claude.healthy, "missing skills must mark unhealthy");
+  } finally {
+    cleanup();
+  }
+});
+
+test("v1 manifest (providers array) is still understood by update", () => {
+  const { dir, cleanup } = tmpProject();
+  try {
+    runIn(dir, ["install", "--scope", "project", "--providers", "opencode", "--yes"]);
+    // Rewrite the manifest to v1 shape (older installs).
+    const manifestPath = join(dir, ".ornn-forge.json");
+    const v1 = {
+      packageVersion: "1.0.0",
+      manifestVersion: "1",
+      scope: "project",
+      providers: ["opencode"],
+      skills: ["adversarial-review"],
+    };
+    writeFileSync(manifestPath, JSON.stringify(v1, null, 2));
+    const r = runIn(dir, ["update", "--scope", "project", "--yes"]);
+    assert.equal(r.status, 0);
+    const upgraded = JSON.parse(readFileSync(manifestPath, "utf8"));
+    assert.equal(upgraded.manifestVersion, "2");
+    const dest = upgraded.destinations.find((d) => d.id === "opencode");
+    assert.ok(dest, "v1 provider should be upgraded to a destination");
+    assert.ok(existsSync(join(dir, ".opencode", "skills", "adversarial-review", "SKILL.md")));
+  } finally {
+    cleanup();
+  }
+});
+
+test("update reinstalls into the recorded target even after catalog change", () => {
+  const { dir, cleanup } = tmpProject();
+  try {
+    runIn(dir, ["install", "--scope", "project", "--universal", "--yes"]);
+    rmSync(join(dir, ".agents", "skills", "adversarial-review"), { recursive: true, force: true });
+    const r = runIn(dir, ["update", "--scope", "project", "--yes"]);
+    assert.equal(r.status, 0);
+    assert.ok(existsSync(join(dir, ".agents", "skills", "adversarial-review", "SKILL.md")));
   } finally {
     cleanup();
   }

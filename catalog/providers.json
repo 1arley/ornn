@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "comment": "Agent destination profiles. Each entry is a documented, versioned profile for a known agent. Detection is advisory (evidence), never an implicit claim of support. Adding a profile means adding one entry here — no code changes. Targets are resolved relative to the project root (project scope) or the user home (global scope).",
+  "profiles": [
+    {
+      "id": "claude",
+      "label": "Claude Code",
+      "adapter": "claude",
+      "destinations": {
+        "project": ".claude/skills",
+        "global": "~/.claude/skills"
+      },
+      "detection": {
+        "commands": ["claude"],
+        "projectMarkers": [".claude"],
+        "globalMarkers": ["~/.claude"]
+      }
+    },
+    {
+      "id": "codex",
+      "label": "OpenAI Codex",
+      "adapter": "identity",
+      "destinations": {
+        "project": ".codex/skills",
+        "global": "~/.codex/skills"
+      },
+      "detection": {
+        "commands": ["codex"],
+        "projectMarkers": [".codex"],
+        "globalMarkers": ["~/.codex"]
+      }
+    },
+    {
+      "id": "opencode",
+      "label": "OpenCode",
+      "adapter": "identity",
+      "destinations": {
+        "project": ".opencode/skills",
+        "global": "~/.config/opencode/skills"
+      },
+      "detection": {
+        "commands": ["opencode"],
+        "projectMarkers": [".opencode", ".config/opencode"],
+        "globalMarkers": ["~/.config/opencode", "~/.opencode"]
+      }
+    },
+    {
+      "id": "cursor",
+      "label": "Cursor",
+      "adapter": "identity",
+      "destinations": {
+        "project": ".cursor/skills",
+        "global": "~/.cursor/skills"
+      },
+      "detection": {
+        "commands": ["cursor"],
+        "projectMarkers": [".cursor"],
+        "globalMarkers": ["~/.cursor"]
+      }
+    },
+    {
+      "id": "gemini",
+      "label": "Gemini CLI",
+      "adapter": "identity",
+      "destinations": {
+        "project": ".gemini/skills",
+        "global": "~/.gemini/skills"
+      },
+      "detection": {
+        "commands": ["gemini"],
+        "projectMarkers": [".gemini"],
+        "globalMarkers": ["~/.gemini"]
+      }
+    }
+  ]
+}

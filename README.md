@@ -49,48 +49,43 @@ O objetivo não é criar um agente que sabe mais. É criar um agente que **sabe 
 npx ornn-forge install
 ```
 
-O instalador detecta automaticamente os agentes instalados no sistema e abre uma
-interface interativa:
+O instalador detecta automaticamente os destinos com evidência (diretório de
+skills já existente ou binário no PATH) e abre uma interface interativa:
 
 ```text
-Agent Engineering Skills
-
-Detected agents:
-
-  ✓ Claude Code
-  ✓ Codex
-  ✓ OpenCode
-  ○ Cursor
-  ○ Gemini CLI
+Agent Engineering Skills v1.0.1
 
 Where do you want to install?
 
   ● Current project
   ○ Globally
 
-Providers:
+Select destinations:
 
-  ☑ Claude Code
-  ☑ Codex
-  ☑ OpenCode
-  ☐ Cursor
-  ☐ Gemini CLI
+  ☑ Claude Code — .claude/skills (✓ configured)
+  ☑ OpenCode — .opencode/skills (✓ configured)
+  ☐ Cursor — .cursor/skills (○ not detected)
+  ☑ Universal Agent Skills — .agents/skills (always available)
+  ☐ Custom directory (enter a path)
 
 25 skills will be installed.
 
 Continue? Y/n
 ```
 
-Após a confirmação, cada provider recebe as skills com o adapter correto:
+Destinos com evidência começam selecionados; Universal e Custom directory estão
+sempre disponíveis, então a instalação nunca depende de uma lista fixa.
+
+Após a confirmação, cada destino recebe as skills com o adapter correto:
 
 ```text
 Installing Agent Engineering Skills
 
-✓ Claude Code     .claude/skills        25 skills
-✓ Codex           .codex/skills         25 skills
-✓ OpenCode        .opencode/skills      25 skills
+✓ Claude Code          .claude/skills        25 skills
+✓ OpenCode             .opencode/skills      25 skills
+✓ Universal Agent Skills  .agents/skills     25 skills
 
-Done. 3 providers configured. 75 skill installations.
+Done. 3 destination(s) configured.
 ```
 
 ### Instalação não interativa (CI/scripts)

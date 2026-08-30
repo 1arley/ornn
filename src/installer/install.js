@@ -13,9 +13,6 @@
 import fs from "node:fs";
 import { join } from "node:path";
 import { safeDestFor } from "./paths.js";
-import { readManifest, writeManifest, manifestPath } from "./manifest.js";
-
-const MANIFEST_VERSION = "1";
 
 /**
  * Find every <category>/<skill>/SKILL.md under the skills directory.
@@ -118,48 +115,3 @@ export function installTo(skills, target, adapter, { force, dryRun, link, anchor
   return results;
 }
 
-/**
- * Build and write the installation manifest.
- */
-export function writeInstallManifest(manifestRoot, providerIds, skillNames, version) {
-  const existing = readManifest(manifestRoot) || {};
-  const manifest = {
-    packageVersion: version,
-    manifestVersion: MANIFEST_VERSION,
-    scope: existing.scope || null,
-    providers: providerIds,
-    skills: skillNames,
-  };
-  writeManifest(manifestRoot, manifest);
-  return manifest;
-}
-
-/**
- * Uninstall only manifest-managed skills for given providers.
- * Returns the count of removed skill directories.
- */
-export function uninstallManagedProviders(manifestRoot, providerIds, { dryRun } = {}) {
-  const manifest = readManifest(manifestRoot);
-  if (!manifest) return 0;
-
-  let removed = 0;
-  for (const skill of manifest.skills || []) {
-    for (const id of providerIds) {
-      const provider = null; // caller passes in or we import
-    }
-  }
-  // Simplified: caller determines what to remove; this function just reads
-  // the manifest to know what was installed.
-  return manifest;
-}
-
-export function listInstalledSkills(manifestRoot, provider, target) {
-  const instaled = [];
-  if (fs.existsSync(target)) {
-    for (const entry of fs.readdirSync(target)) {
-      const p = join(target, entry);
-      if (fs.statSync(p).isDirectory()) instaled.push(entry);
-    }
-  }
-  return instaled;
-}

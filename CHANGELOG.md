@@ -16,22 +16,29 @@ Deprecated, Removed, Security.
   with ready-to-file tracker issues. Cataloged as `security / generator /
   experimental` with a routing eval case.
 
-- Universal interactive installer with agent detection and provider selection
-  (`npx ornn-forge install`).
-- Provider registry with Claude Code, Codex, OpenCode, Cursor, and Gemini CLI
-  adapters; universal `.agents/skills` mode.
-- `--scope project|global`, `--providers`, `--universal`, `--yes`, `--dry-run`,
-  and short aliases `-g`, `-y`, `-a`.
-- Installation manifest (`.ornn-forge.json`) recording managed
-  providers and skills.
-- `update` and `uninstall` commands driven by the manifest; only managed files
-  are touched.
-- `list` and `doctor` now report installations per provider.
+- Universal interactive installer with agent detection and destination
+  selection (`npx ornn-forge install`).
+- Data-driven destination profiles in `catalog/providers.json` (Claude Code,
+  Codex, OpenCode, Cursor, Gemini CLI); adding an agent is a catalog entry, not
+  a code change.
+- Isolated adapters in `src/installer/adapters/` (`identity`, `claude`),
+  referenced by name from the catalog with validation against unknown adapters.
+- Interactive flow shows evidence per destination (`configured` / `command
+  found` / `not detected`); Universal `.agents/skills` and a Custom directory
+  option are always available.
+- `--scope project|global`, `--providers`, `--universal`, `--destination`,
+  `--yes`, `--dry-run`, and short aliases `-g`, `-y`, `-a`.
+- Installation manifest v2 (`.ornn-forge.json`) recording explicit
+  destinations (`id`, `type`, `target`, `adapter`, `skills`); `update` and
+  `uninstall` operate on recorded targets without recomputing paths.
+- Backward-compatible upgrade of v1 manifests (providers array) on update.
+- `list` and `doctor` now report installations per provider; doctor derives the
+  expected skill count from the source instead of a hardcoded number.
 - Non-interactive (CI) mode: no TTY means no prompts; insufficient flags yield
   an actionable error.
-- 24 installer tests (provider detection, scope, adapters, manifest, update,
-  uninstall, dry-run, force, path safety).
-- `src/installer/` modular architecture (providers, detect, install, prompts,
+- Installer tests covering data-driven catalog, custom destinations (inside and
+  outside the project), v1→v2 manifest upgrade, evidence, and path safety.
+- `src/installer/` modular architecture (providers, adapters, install, prompts,
   paths, manifest, orchestrator).
 
 - Structured skill catalog (`catalog/skills.yaml`) as single source of truth

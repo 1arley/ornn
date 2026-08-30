@@ -72,42 +72,32 @@ npx ornn-forge install
 em um terminal interativo deve abrir:
 
 ```text
-Agent Engineering Skills
-
-Detected agents:
-
-  ✓ Claude Code
-  ✓ Codex
-  ✓ OpenCode
-  ○ Cursor
-  ○ Gemini CLI
+Agent Engineering Skills v1.0.1
 
 Where do you want to install?
 
   ● Current project
   ○ Globally
 
-Installation mode:
+Select destinations:
 
-  ● Agent providers
-  ○ Universal .agents/skills
+  ☑ Claude Code — .claude/skills (✓ configured)
+  ☑ OpenCode — .opencode/skills (✓ configured)
+  ☐ Cursor — .cursor/skills (○ not detected)
+  ☑ Universal Agent Skills — .agents/skills (always available)
+  ☐ Custom directory (enter a path)
 
-Providers:
-
-  ☑ Claude Code
-  ☑ Codex
-  ☑ OpenCode
-  ☐ Cursor
-  ☐ Gemini CLI
+↑/↓ move · space toggle · a all · enter confirm
 
 25 skills will be installed.
 
 Continue? Y/n
 ```
 
-Providers detectados começam selecionados.
-
-Providers não detectados continuam disponíveis para seleção manual.
+Destinos com evidência (configured ou command found) começam selecionados.
+Universal está sempre disponível; se nenhum destino tiver evidência, ele
+vem pré-selecionado. Custom directory permite instalar em qualquer diretório
+arbitrário.
 
 ---
 
@@ -183,39 +173,36 @@ skills/security/authorization-audit/SKILL.md
 
 # 6. Provider Registry
 
-Criar uma única fonte de verdade para providers.
-
-Estrutura sugerida:
+A única fonte de verdade para perfis de agentes é `catalog/providers.json`.
+Adicionar um agente = adicionar uma entrada no catálogo, sem alterar código.
 
 ```text
-src/
-  installer/
-    providers.js
+catalog/
+  providers.json
 ```
 
-Modelo conceitual:
+Modelo conceitual de cada entrada:
 
 ```js
 {
   id: "claude",
-  name: "Claude Code",
+  label: "Claude Code",
+  adapter: "claude",               // "identity" | "claude"
+
+  destinations: {
+    project: ".claude/skills",
+    global: "~/.claude/skills"     // "~" é expandido para $HOME
+  },
 
   detection: {
-    commands: ["claude"],
-    projectMarkers: [".claude"],
-    globalMarkers: []
-  },
-
-  paths: {
-    project: ".claude/skills",
-    global: "<resolved-by-provider>"
-  },
-
-  adapter: "claude"
+    commands: ["claude"],          // binários no PATH
+    projectMarkers: [".claude"],   // marcadores no projeto
+    globalMarkers: ["~/.claude"]   // marcadores em $HOME
+  }
 }
 ```
 
-Providers iniciais:
+Perfis iniciais:
 
 ```text
 claude
@@ -225,7 +212,10 @@ cursor
 gemini
 ```
 
-O registry deve permitir adicionar um novo provider sem alterar a lógica central de instalação.
+Perfis são **documentados e versionados**, não alegações implícitas de suporte.
+A matriz de compatibilidade (`docs/compatibility.md`) é a fonte da verdade sobre
+o que foi testado. A detecção é sempre consultiva (evidência), nunca
+obrigatória.
 
 ---
 
@@ -263,39 +253,25 @@ Criar:
 src/
   installer/
     adapters/
-      universal.js
+      index.js
+      identity.js
       claude.js
-      codex.js
-      opencode.js
-      cursor.js
-      gemini.js
 ```
 
 ## Regra
 
 Adapter só transforma quando necessário.
 
-Exemplo:
-
 ```text
-Universal
-  copy source
-
-OpenCode
-  copy source quando compatível
-
-Codex
-  copy source quando compatível
+Identity (Universal, OpenCode, Codex, Cursor, Gemini CLI)
+  copy source verbatim
 
 Claude
-  adaptar somente campos realmente exigidos
-
-Cursor
-  adaptar somente se necessário
-
-Gemini CLI
-  adaptar somente se necessário
+  adaptar somente os campos realmente exigidos (user_invocable: true)
 ```
+
+O catálogo (`catalog/providers.json`) referencia adapters pelo nome; um advisor
+desconhecido é um erro de validação, nunca um fallback silencioso.
 
 Nunca colocar lógica específica de provider dentro de uma função genérica como:
 

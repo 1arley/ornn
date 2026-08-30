@@ -39,17 +39,18 @@ import {
   getAllProviders,
   getProvider,
   detectProviders,
+  evidenceFor,
 } from "../src/installer/providers.js";
 
 import {
-  listSourceSkills,
   buildPlan,
   installProviders,
   updateProviders,
   uninstallProviders,
   listInstallations,
   doctorProviders,
-  findInstalledProviders,
+  resolveInstallTarget,
+  UNIVERSAL,
 } from "../src/installer/orchestrator.js";
 
 import { readManifest, manifestPath } from "../src/installer/manifest.js";
@@ -64,8 +65,6 @@ import { promptMultiSelect, promptConfirm, promptLine } from "../src/installer/p
 
 function log(msg = "") { try { process.stdout.write(msg + "\n"); } catch {} }
 function err(msg) { try { process.stderr.write(msg + "\n"); } catch {} }
-
-const UNIVERSAL = { id: "universal", name: "Universal .agents/skills", adapter: (c) => c };
 
 // ---------------------------------------------------------------------------
 // HELP
@@ -90,13 +89,14 @@ Usage:
 
 Options (install/update/uninstall):
   --scope <scope>       project | global (default: project)
-  --providers <list>    comma-separated provider ids, "detected", "all"
+  --providers <list>    comma-separated profile ids, "detected", "all"
   --universal           Install to .agents/skills (no provider adapter)
+  --destination <dir>   Install to a custom directory
   --yes / -y            Skip confirmation
   --dry-run             Preview without writing
   --force               Overwrite existing skills
   --link                Create symlinks instead of copying
-  --target <dir>        Legacy: single-target install (use --providers instead)
+  --target <dir>        Legacy: single-target install (use --destination instead)
 
 Short aliases:
   -g  --scope global
@@ -159,6 +159,23 @@ function parseCatalogForList() {
 }
 
 // ---------------------------------------------------------------------------
+// Custom provider helper
+// ---------------------------------------------------------------------------
+
+function customProvider(path) {
+  const abs = resolve(path);
+  return {
+    id: "custom",
+    name: `Custom directory (${abs})`,
+    type: "custom",
+    projectPath: abs,
+    globalPath: abs,
+    adapterName: "identity",
+    adapter: (c) => c,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // resolveProviders: resolve a list of provider ids from CLI flags
 // ---------------------------------------------------------------------------
 
@@ -187,42 +204,69 @@ function resolveProviders(ids, projectRoot) {
 
 async function interactiveInstall(projectRoot, packageRoot) {
   const allProviders = getAllProviders();
-  const detected = detectProviders();
-  const detectedSet = new Set(detected);
 
   log(`\nAgent Engineering Skills v${PKG.version}\n`);
-  log("Detected agents:");
-  for (const p of allProviders) {
-    log(`  ${detectedSet.has(p.id) ? "✓" : "○"} ${p.name}`);
-  }
 
   // Scope
-  log("\nWhere do you want to install?");
+  log("Where do you want to install?");
   log("  ● Current project");
   log("  ○ Globally");
   const scopeChoice = await promptLine({ prompt: "Scope:", default: "project" });
   const scope = scopeChoice === "global" ? "global" : "project";
 
-  // Universal or provider-based
-  log("\nInstallation target:");
-  log("  ● Detected agents");
-  log("  ○ Universal .agents/skills");
-  const targetChoice = await promptLine({ prompt: "Target:", default: "detected" });
+  // Build multi-select items with evidence
+  const items = [];
+  let hasEvidence = false;
 
-  let selectedProviders = [];
-  if (targetChoice === "universal" || targetChoice.startsWith("u")) {
-    selectedProviders = [UNIVERSAL];
-  } else {
-    const items = allProviders.map((p) => ({
+  for (const p of allProviders) {
+    const target = resolveInstallTarget(p, scope, projectRoot);
+    const ev = evidenceFor(p, scope, projectRoot);
+    const evIcon = ev === "configured" ? "✓" : ev === "command found" ? "!" : "○";
+    items.push({
       id: p.id,
-      label: p.name,
-      checked: detectedSet.has(p.id), // pre-check detected ones
-    }));
-    selectedProviders = await promptMultiSelect({
-      title: "Select providers:",
-      items,
+      label: `${p.name} — ${target} (${evIcon} ${ev})`,
+      checked: ev === "configured" || ev === "command found",
     });
-    selectedProviders = selectedProviders.map((id) => getProvider(id)).filter(Boolean);
+    if (ev === "configured") hasEvidence = true;
+  }
+
+  // Universal always available
+  const universalTarget = resolveInstallTarget(UNIVERSAL, scope, projectRoot);
+  items.push({
+    id: "universal",
+    label: `Universal Agent Skills — ${universalTarget} (always available)`,
+    checked: !hasEvidence,
+  });
+
+  // Custom directory option
+  items.push({
+    id: "custom",
+    label: "Custom directory (enter a path)",
+    checked: false,
+  });
+
+  const selectedIds = await promptMultiSelect({
+    title: "Select destinations:",
+    items,
+  });
+
+  if (selectedIds.length === 0) {
+    log("No destinations selected. Nothing to install.");
+    return;
+  }
+
+  // Build provider list
+  const selectedProviders = [];
+  for (const id of selectedIds) {
+    if (id === "universal") {
+      selectedProviders.push(UNIVERSAL);
+    } else if (id === "custom") {
+      const customPath = await promptLine({ prompt: "Custom install path:", default: join(projectRoot, ".custom-skills") });
+      selectedProviders.push(customProvider(customPath));
+    } else {
+      const p = getProvider(id);
+      if (p) selectedProviders.push(p);
+    }
   }
 
   if (selectedProviders.length === 0) {
@@ -242,9 +286,7 @@ async function interactiveInstall(projectRoot, packageRoot) {
   log("\nInstallation plan");
   log(`\nScope: ${scope === "global" ? "Global" : "Current project"}`);
   if (scope === "project") log(`Project: ${projectRoot}`);
-  log(`\nProviders:`);
-  for (const p of selectedProviders) log(`  ${p.name}`);
-  log(`\nSkills: ${plan.skills.length}`);
+  log(`\nDestinations: ${plan.skills.length} skills`);
   for (const p of plan.plans) {
     log(`  ${p.provider.name}: ${p.target}`);
     log(`    Will install: ${p.wouldInstall}`);
@@ -279,7 +321,7 @@ async function interactiveInstall(projectRoot, packageRoot) {
     process.exitCode = 1;
     return;
   }
-  log(`\nDone. ${result.summary.length} provider(s) configured.`);
+  log(`\nDone. ${result.summary.length} destination(s) configured.`);
 }
 
 // ---------------------------------------------------------------------------
@@ -318,9 +360,17 @@ function nonInteractiveInstall(opts, projectRoot, packageRoot) {
     return;
   }
 
-  const providers = resolveProviders(opts.providers, projectRoot);
+  // With --destination but no explicit --providers, install only to that
+  // destination. An explicit --providers combines with the destination.
+  let providers = [];
+  if (opts.destination && !opts.providersExplicit) {
+    providers = [customProvider(opts.destination)];
+  } else {
+    providers = resolveProviders(opts.providers, projectRoot);
+    if (opts.destination) providers.push(customProvider(opts.destination));
+  }
   if (providers.length === 0) {
-    err("No valid providers. Use --providers or --universal.");
+    err("No valid providers. Use --providers, --universal, or --destination.");
     process.exitCode = 1;
     return;
   }
@@ -431,7 +481,7 @@ function runListInstallations(projectRoot, opts) {
   }
 }
 
-function runDoctor(projectRoot) {
+function runDoctor(projectRoot, packageRoot) {
   const detected = detectProviders();
   const detectedSet = new Set(detected);
   log(`\nAgent Engineering Skills doctor v${PKG.version}\n`);
@@ -442,7 +492,7 @@ function runDoctor(projectRoot) {
     log(`  ${detectedSet.has(p.id) ? "✓" : "○"} ${p.name} ${detectedSet.has(p.id) ? "detected" : "not detected"}`);
   }
   log("");
-  const rows = doctorProviders(projectRoot);
+  const rows = doctorProviders(projectRoot, packageRoot);
   log("Installations:");
   for (const r of rows) {
     const status = r.healthy ? "✓" : r.installedCount > 0 ? "!" : "○";
@@ -466,12 +516,14 @@ function parseArgs(argv) {
     command: null,
     scope: "project",
     providers: "detected",
+    providersExplicit: false,
     universal: false,
     yes: false,
     dryRun: false,
     force: false,
     link: false,
     legacyTarget: null,
+    destination: null,
     out: null,
     json: false,
   };
@@ -483,8 +535,9 @@ function parseArgs(argv) {
       if (a === "-g") opts.scope = "global";
       else opts.scope = argv[++i] || "project";
     }
-    else if (a === "--providers" || a === "-a") { opts.providers = argv[++i] || "detected"; }
+    else if (a === "--providers" || a === "-a") { opts.providers = argv[++i] || "detected"; opts.providersExplicit = true; }
     else if (a === "--universal") { opts.universal = true; }
+    else if (a === "--destination") { opts.destination = argv[++i] || null; }
     else if (a === "--yes" || a === "-y") { opts.yes = true; }
     else if (a === "--dry-run") { opts.dryRun = true; }
     else if (a === "--force") { opts.force = true; }
@@ -507,7 +560,7 @@ async function main() {
 
   switch (command) {
     case "install": {
-      if (opts.yes || opts.legacyTarget || opts.providers !== "detected" || !isInteractive()) {
+      if (opts.yes || opts.legacyTarget || opts.destination || opts.providers !== "detected" || !isInteractive()) {
         if (opts.legacyTarget) {
           const { runInstall } = requireForLegacy();
           runInstall(opts.legacyTarget, { link: opts.link, force: opts.force, dryRun: opts.dryRun });
@@ -520,10 +573,10 @@ async function main() {
       break;
     }
     case "update": {
-      const { found, summary } = updateProviders({ scope: opts.scope, projectRoot, packageRoot: ROOT, force: opts.force, dryRun: opts.dryRun });
+      const { found, updated } = updateProviders({ scope: opts.scope, projectRoot, packageRoot: ROOT, force: opts.force, dryRun: opts.dryRun });
       if (!found) { log("No installation manifest found. Run install first."); process.exitCode = 1; break; }
-      if (opts.dryRun) { log("Would update managed skills."); break; }
-      log("Updated.");
+      if (opts.dryRun) { log(`Would update managed skills (${updated} refreshed).`); break; }
+      log(`Updated. ${updated} skills refreshed.`);
       break;
     }
     case "uninstall": {
@@ -541,7 +594,7 @@ async function main() {
       break;
     }
     case "validate": runValidate(); break;
-    case "doctor": runDoctor(projectRoot); break;
+    case "doctor": runDoctor(projectRoot, ROOT); break;
     case "list": runListInstallations(projectRoot, opts); break;
     case "graph": runGraph(opts.out); break;
     case "eval": runEval(opts.json); break;
