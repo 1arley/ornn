@@ -33,7 +33,7 @@ jobs:
       - name: Findings fixtures
         run: python3 scripts/eval.py findings-fixtures
       - name: CLI tests (node:test)
-        run: node --test test/cli.test.js test/universal-installer.test.js
+        run: node --test test/prompts.test.js test/cli.test.js test/universal-installer.test.js
       - name: Findings unit tests
         run: python3 -m unittest discover -s test -p 'test_*.py'
       - name: CLI --dry-run smoke

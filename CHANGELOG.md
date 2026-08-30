@@ -5,6 +5,23 @@ All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/) — Added, Changed, Fixed,
 Deprecated, Removed, Security.
 
+## [1.0.2] - 2026-08-30
+
+### Fixed
+
+- Interactive installer (`npx ornn-forge install`) is now actually interactive.
+  The previous TUI mixed `readline.createInterface` with a manual raw-mode
+  `data` listener, which made readline echo stray characters into the UI,
+  ignored arrow keys in tmux/screen/application-cursor terminals
+  (`\x1bOA`/`\x1bOB`), left the process hung in raw mode after Ctrl+C, and
+  full-cleared the terminal (`\x1b[2J`) on every keystroke. Prompts now use
+  `readline.emitKeypressEvents` with a single keypress listener, redraw only
+  the prompt region, handle Ctrl+C / Esc / `q` as cancel (restoring the
+  terminal), and the scope step is a real arrow-key radio selection matching
+  the README instead of a plain text prompt. Ctrl+D (EOF) no longer leaves
+  `promptLine`/`promptConfirm` pending. 26 unit tests added
+  (`test/prompts.test.js`).
+
 ## [Unreleased]
 
 ### Added
