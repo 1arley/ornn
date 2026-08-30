@@ -57,7 +57,7 @@ import { readManifest, manifestPath } from "../src/installer/manifest.js";
 import { resolveProjectRoot, resolveManifestRoot } from "../src/installer/paths.js";
 import { findSkillDirs, installTo, planInstall } from "../src/installer/install.js";
 
-import { promptMultiSelect, promptConfirm, promptLine } from "../src/installer/prompts.js";
+import { promptMultiSelect, promptSelect, promptConfirm, promptLine } from "../src/installer/prompts.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -208,11 +208,16 @@ async function interactiveInstall(projectRoot, packageRoot) {
   log(`\nAgent Engineering Skills v${PKG.version}\n`);
 
   // Scope
-  log("Where do you want to install?");
-  log("  ● Current project");
-  log("  ○ Globally");
-  const scopeChoice = await promptLine({ prompt: "Scope:", default: "project" });
-  const scope = scopeChoice === "global" ? "global" : "project";
+  const scopeChoice = await promptSelect({
+    title: "Where do you want to install?",
+    items: [
+      { id: "project", label: "Current project" },
+      { id: "global", label: "Globally" },
+    ],
+    defaultIndex: 0,
+  });
+  if (scopeChoice === null) { log("Cancelled."); return; }
+  const scope = scopeChoice;
 
   // Build multi-select items with evidence
   const items = [];
@@ -250,6 +255,8 @@ async function interactiveInstall(projectRoot, packageRoot) {
     items,
   });
 
+  if (selectedIds === null) { log("Cancelled."); return; }
+
   if (selectedIds.length === 0) {
     log("No destinations selected. Nothing to install.");
     return;
@@ -262,6 +269,7 @@ async function interactiveInstall(projectRoot, packageRoot) {
       selectedProviders.push(UNIVERSAL);
     } else if (id === "custom") {
       const customPath = await promptLine({ prompt: "Custom install path:", default: join(projectRoot, ".custom-skills") });
+      if (customPath === null) { log("Cancelled."); return; }
       selectedProviders.push(customProvider(customPath));
     } else {
       const p = getProvider(id);
@@ -605,7 +613,9 @@ async function main() {
   }
 }
 
-main().catch((e) => {
+main().then(() => {
+  process.exit(process.exitCode || 0);
+}).catch((e) => {
   err(`Error: ${e.message}`);
-  process.exitCode = 1;
+  process.exit(1);
 });
