@@ -349,3 +349,24 @@
     - "inspira ui vue"
     - "inspira ui components"
     - "inspira ui shadcn"
+
+- name: React Doctor
+  url: https://react.doctor
+  type: implementation
+  category: frontend
+  authority: vendor
+  last_verified: 2026-09-01
+  status: active
+  use_when:
+    - scanning a React/Next.js/React Native codebase for anti-patterns
+    - detecting state-and-effects, performance, architecture, a11y, and security issues
+    - finding overly complex React functions and repeated JSX trees to extract
+    - running the react-doctor CLI in a React project before or during an audit
+  avoid_when:
+    - non-React (Vue/Svelte) targets
+    - when the concern is visual design rather than code quality
+    - treating tool output as the verdict instead of evidence to verify
+  search_queries:
+    - "react doctor anti-patterns"
+    - "react-doctor no-array-index-as-key rule"
+    - "react doctor state and effects performance"

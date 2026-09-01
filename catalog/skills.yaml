@@ -508,6 +508,33 @@
   research_cost: low
   lifecycle: stable
 
+- name: react-doctor-audit
+  category: frontend
+  role: reviewer
+  priority: medium
+  risk_floor: trivial
+  triggers:
+    - "scan react codebase"
+    - "find react anti-patterns"
+    - "react performance issues"
+    - "react-compiler rules"
+    - "state and effects bugs"
+    - "repeated jsx and complex components"
+  requires_signals:
+    - interface
+    - react-codebase
+  composes_with:
+    - accessibility-review
+    - visual-quality-review
+    - interaction-design
+    - reference-research
+  overlaps_with:
+    - accessibility-review
+    - visual-quality-review
+  reasoning_cost: medium
+  research_cost: low
+  lifecycle: stable
+
 - name: reference-research
   category: research
   role: researcher
