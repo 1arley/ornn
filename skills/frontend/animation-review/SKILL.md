@@ -25,6 +25,10 @@ motion. Toda animação deve ter uma razão de existir; se não serve à funçã
   `accessibility-review` (reduced motion, vestibular), e `ux-review` (animação que
   informa vs distrai). Consulta `references/frontend.yaml` (Animate UI, Impeccable,
   Interfaces).
+* **Component sourcing (implement):** ao construir ou refazer componentes animados,
+  buscar componente real nas component libraries do `references/frontend.yaml`
+  (Animate UI, Hover, Motion, Magic UI, React Bits, Aceternity) e **adaptar** ao
+  design system (timing, easing, tokens) — nunca copiar cego.
 
 ## Mental Model
 

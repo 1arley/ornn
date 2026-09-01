@@ -25,6 +25,11 @@ composição, consistência, ruído visual, e padrões genéricos de AI slop.
   `interaction-design` (visual + interação = experiência completa). Consulta
   `references/frontend.yaml` (Impeccable, Impeccable Slop, Dribbble, Interfaces).
 
+* **Component sourcing (implement):** ao construir ou refazer componentes durante o
+  trabalho, buscar componente real nas component libraries do `references/frontend.yaml`
+  (Magic UI, React Bits, Hover, Aceternity, Pace UI, Headless UI, Animate UI) e
+  **adaptar** ao design system (estilo, tokens, spacing, foco) — nunca copiar cego.
+
 ## Mental Model
 
 Qualidade visual não é subjetiva — é uma execução de princípios de design. Os eixos

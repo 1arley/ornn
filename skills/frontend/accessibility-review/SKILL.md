@@ -72,6 +72,9 @@ errors           — comunicados por texto + aria-live, não só cor
    Focus sequence entre campos é lógica?
 9. **Sintetizar** — referenciar `references/frontend.yaml` (Impeccable, WCAG docs)
    quando apropriado.
+10. **Component sourcing (implement)** — ao construir/refazer componentes interativos,
+    preferir primitivas acessíveis (Headless UI no `references/frontend.yaml`) e
+    **adaptar** ao design system — nunca copiar cego.
 
 ## Questions to Ask
 

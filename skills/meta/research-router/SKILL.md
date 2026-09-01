@@ -39,7 +39,8 @@ uma combinação de fontes que o resolve melhor:
 | **Security** | OWASP, PortSwigger, CWE, GitHub (middleware real) |
 | **Engineering/reliability** | OWASP Cheat Sheet, PortSwigger, GitHub (production), Google Testing Blog |
 | **Product/gamification** | Reforge, Product Hunt, GitHub (reward systems real) |
-| **Implementation técnica** | official documentation → GitHub/issues → production code → articles |
+| **Implementation técnica (backend)** | official documentation → GitHub/issues → production code → articles |
+| **Implementation técnica (frontend)** | `references/frontend.yaml` component libraries (Magic UI, React Bits, Hover, Motion, Aceternity, Pace, Eldora, Headless, Vue Bits, Inspira, Animate UI) → official docs → GitHub → real products |
 | **Discovery de fontes** | LazyWeb, Shoogle, Hacker News |
 
 E a **classes de conhecimento** determina como usar a fonte (do `plan.md` §12):
@@ -121,6 +122,14 @@ official documentation
 GitHub issues/PRs
 production code
 technical articles
+
+Frontend component problem (criação/construção de UI)
+        ↓
+`references/frontend.yaml` component libraries
+(Magic UI, React Bits, Hover, Motion, Aceternity, Pace UI,
+ Eldora UI, Headless UI, Vue Bits, Inspira UI, Animate UI)
+→ buscar componente real nestas fontes e ADAPTAR ao design
+  system (estilo, tokens, spacing, foco) — nunca copiar cego
 
 Discovery problem (fontes insuficientes)
         ↓

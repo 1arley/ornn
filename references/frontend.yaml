@@ -153,3 +153,199 @@
     - "shoogle frontend components"
     - "shoogle UI library discovery"
     - "shoogle react components"
+
+# ---------------------------------------------------------------------------
+# Component sourcing libraries. `type: implementation` — source components from
+# these, then ADAPT to the design system. Never blind-copy (ver references/
+# reference-authoring.md: "referência, não cópia" e AGENTS.md §1).
+# ---------------------------------------------------------------------------
+
+- name: Magic UI
+  url: https://magicui.design/
+  type: implementation
+  category: frontend
+  authority: community
+  last_verified: 2026-09-01
+  status: active
+  use_when:
+    - sourcing animated, shadcn-style React/Tailwind components
+    - implementing copy-paste UI blocks to adapt to a design system
+    - building marketing/section components with motion
+  avoid_when:
+    - needing framework-agnostic (Vue/Svelte) primitives
+    - when only review of existing UI, not creation
+  search_queries:
+    - "magic ui components"
+    - "magic ui shadcn component"
+    - "magic ui animated component"
+
+- name: React Bits
+  url: https://reactbits.dev/
+  type: implementation
+  category: frontend
+  authority: community
+  last_verified: 2026-09-01
+  status: active
+  use_when:
+    - sourcing reusable React building blocks and snippets
+    - implementing interactive/animated components to adapt
+    - finding ready React patterns for a UI need
+  avoid_when:
+    - Vue/Svelte targets
+    - needing framework-agnostic primitives
+  search_queries:
+    - "react bits component"
+    - "react bits animation"
+    - "react bits snippet"
+
+- name: Hover
+  url: https://www.hover.dev/
+  type: implementation
+  category: frontend
+  authority: community
+  last_verified: 2026-09-01
+  status: active
+  use_when:
+    - sourcing animated, motion-triggered components
+    - implementing interactive components to adapt to a design
+    - referencing real hover/scroll-triggered motion patterns
+  avoid_when:
+    - static-only review
+    - requiring framework-agnostic primitives
+  search_queries:
+    - "hover dev components"
+    - "hover dev motion animation"
+    - "hover dev ui"
+
+- name: Motion
+  url: https://motion.dev/
+  type: implementation
+  category: frontend
+  authority: established
+  last_verified: 2026-09-01
+  status: active
+  use_when:
+    - implementing motion/animation primitives in React (Framer Motion successor)
+    - referencing production animation APIs, variants, and transitions
+    - calibrating animation-review against a real animation library
+  avoid_when:
+    - no-animation task
+    - when reduced-motion accessibility is the sole concern
+  search_queries:
+    - "motion dev react animation"
+    - "motion react variants"
+    - "framer motion 2"
+
+- name: Aceternity UI
+  url: https://ui.aceternity.com/
+  type: implementation
+  category: frontend
+  authority: community
+  last_verified: 2026-09-01
+  status: active
+  use_when:
+    - sourcing React/Tailwind components and background effects
+    - implementing copy-paste UI blocks to adapt to a design system
+    - building decorative/animated section components
+  avoid_when:
+    - review-only tasks
+    - needing accessibility-first primitives (prefer Headless UI)
+  search_queries:
+    - "aceternity ui components"
+    - "aceternity ui react"
+    - "aceternity ui background"
+
+- name: Pace UI
+  url: https://paceui.com/
+  type: implementation
+  category: frontend
+  authority: community
+  last_verified: 2026-09-01
+  status: active
+  use_when:
+    - sourcing a clean, minimal component library
+    - implementing simple components to adapt to a design system
+    - referencing low-motion UI components
+  avoid_when:
+    - needing extensive animation libraries
+    - needing framework-agnostic (beyond supported) primitives
+  search_queries:
+    - "pace ui components"
+    - "pace ui library"
+    - "pace ui component"
+
+- name: Eldora UI
+  url: https://www.eldoraui.site/
+  type: implementation
+  category: frontend
+  authority: community
+  last_verified: 2026-09-01
+  status: active
+  use_when:
+    - sourcing Svelte (shadcn-style) components
+    - implementing Svelte UI to adapt to a design system
+    - finding Svelte component builders
+  avoid_when:
+    - React/Vue targets
+    - review-only tasks
+  search_queries:
+    - "eldora ui svelte"
+    - "eldora ui components"
+    - "eldora ui shadcn"
+
+- name: Headless UI
+  url: https://headlessui.com/
+  type: implementation
+  category: frontend
+  authority: vendor
+  last_verified: 2026-09-01
+  status: active
+  use_when:
+    - implementing accessible, unstyled React/Vue primitives
+    - building a11y-correct interactive components (menu, dialog, listbox, toggle)
+    - adding behaviour without committed visuals to style via a design system
+  avoid_when:
+    - needing styled/visual components
+    - wanting ready copy-paste visuals (use Magic UI/Aceternity)
+  search_queries:
+    - "headless ui react"
+    - "headless ui dialog"
+    - "headless ui menu accessible"
+
+- name: Vue Bits
+  url: https://vuebits.com/
+  type: implementation
+  category: frontend
+  authority: community
+  last_verified: 2026-09-01
+  status: active
+  use_when:
+    - sourcing reusable Vue components and snippets
+    - implementing Vue UI to adapt to a design system
+    - finding Vue component patterns
+  avoid_when:
+    - React/Svelte targets
+    - needing framework-agnostic primitives
+  search_queries:
+    - "vue bits components"
+    - "vue bits component"
+    - "vue bits snippet"
+
+- name: Inspira UI
+  url: https://inspira-ui.com/
+  type: implementation
+  category: frontend
+  authority: community
+  last_verified: 2026-09-01
+  status: active
+  use_when:
+    - sourcing Vue (shadcn-style) components
+    - implementing Vue UI to adapt to a design system
+    - building consistent component sets for a Vue app
+  avoid_when:
+    - React/Svelte targets
+    - review-only tasks
+  search_queries:
+    - "inspira ui vue"
+    - "inspira ui components"
+    - "inspira ui shadcn"
