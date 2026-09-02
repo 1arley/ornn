@@ -82,6 +82,12 @@ pulled in, and only up to the budget limit.
 The router does not automatically select research skills. It indicates whether
 `research-router` is needed based on uncertainty and external-knowledge signals.
 
+For frontend creation, redesign, UI composition, animation or interaction work, it
+routes to `design-library-research`. That skill consumes `references/frontend.yaml`,
+compares relevant official component candidates across libraries and maps each
+selection to a product flow before implementation. Review-only work continues to
+route directly to the applicable frontend reviewers.
+
 ## Deterministic and testable
 
 The router is deterministic for the same input. Routing evals measure precision,

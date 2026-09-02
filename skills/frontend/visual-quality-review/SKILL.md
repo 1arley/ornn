@@ -25,10 +25,9 @@ composição, consistência, ruído visual, e padrões genéricos de AI slop.
   `interaction-design` (visual + interação = experiência completa). Consulta
   `references/frontend.yaml` (Impeccable, Impeccable Slop, Dribbble, Interfaces).
 
-* **Component sourcing (implement):** ao construir ou refazer componentes durante o
-  trabalho, buscar componente real nas component libraries do `references/frontend.yaml`
-  (Magic UI, React Bits, Hover, Aceternity, Pace UI, Headless UI, Animate UI) e
-  **adaptar** ao design system (estilo, tokens, spacing, foco) — nunca copiar cego.
+* **Separação de responsabilidade:** use `design-library-research` antes da
+  implementação para descobrir e comparar referências e padrões. Esta skill continua
+  sendo a avaliação posterior de craft visual; não seleciona componentes.
 
 ## Mental Model
 

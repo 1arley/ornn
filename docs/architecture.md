@@ -13,6 +13,8 @@ ROUTING          scripts/router.py over catalog/skills.yaml
    ↓
 RESEARCH DECISION  research-router / research skills when uncertainty is high
    ↓
+DESIGN RESEARCH    design-library-research for frontend creation/redesign only
+   ↓
 SKILL EXECUTION   selected skills produce raw findings
    ↓
 EVIDENCE         mechanism + evidence records (type, description, source, result)
@@ -34,6 +36,11 @@ catalog/     = how to route      (single source of truth for relationships)
 evals/       = how to prove      (cases, fixtures, baselines, results)
 scripts/     = how to run        (validator, router, eval, findings, health)
 ```
+
+For frontend creation, `design-library-research` sits between routing and
+implementation. It converts product flows and state transitions into a documented
+cross-library decision using `references/frontend.yaml`; post-implementation review
+skills remain independent verifiers.
 
 ## Trust boundaries
 

@@ -383,6 +383,36 @@
   research_cost: low
   lifecycle: stable
 
+- name: design-library-research
+  category: frontend
+  role: researcher
+  priority: high
+  risk_floor: trivial
+  triggers:
+    - "frontend redesign with cross library comparison"
+    - "research UI component libraries before implementation"
+    - "product driven component candidate research"
+    - "map frontend flows before redesign implementation"
+    - "research motion patterns across component libraries"
+    - "build React UI after component research"
+  requires_signals:
+    - interface
+    - implementation
+  composes_with:
+    - ux-review
+    - interaction-design
+    - animation-review
+    - visual-quality-review
+    - accessibility-review
+    - react-doctor-audit
+    - research-router
+  overlaps_with:
+    - reference-research
+    - implementation-research
+  reasoning_cost: high
+  research_cost: high
+  lifecycle: stable
+
 - name: ux-review
   category: frontend
   role: reviewer
@@ -669,6 +699,7 @@
     - skill-router
     - reference-research
     - implementation-research
+    - design-library-research
   overlaps_with:
     - reference-research
   reasoning_cost: low

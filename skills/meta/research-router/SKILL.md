@@ -41,6 +41,7 @@ uma combinação de fontes que o resolve melhor:
 | **Product/gamification** | Reforge, Product Hunt, GitHub (reward systems real) |
 | **Implementation técnica (backend)** | official documentation → GitHub/issues → production code → articles |
 | **Implementation técnica (frontend)** | `references/frontend.yaml` component libraries (Magic UI, React Bits, Hover, Motion, Aceternity, Pace, Eldora, Headless, Vue Bits, Inspira, Animate UI) → official docs → GitHub → real products |
+| **Frontend redesign / UI composition / animation / interaction** | `design-library-research` → `references/frontend.yaml` → official component docs → cross-library comparison |
 | **Discovery de fontes** | LazyWeb, Shoogle, Hacker News |
 
 E a **classes de conhecimento** determina como usar a fonte (do `plan.md` §12):
@@ -65,8 +66,9 @@ Não tratar todas como igualmente confiáveis (ver `docs/reference-authoring.md`
 3. **Selecionar as fontes** — pela tabela acima + `authority` (established primeiro).
 4. **Determinar a classe de uso** — o que cada fonte oferece (metodologia/princípio/
    inspiração/código/descoberta) e como usá-la.
-5. **Despachar** — para as research skills apropriadas (`reference-research` para o
-   catálogo, `market-research` para produtos, etc.).
+5. **Despachar** — criação/reconstrução de interface vai para
+   `design-library-research`; demais pesquisas vão para as skills apropriadas
+   (`reference-research`, `market-research`, `implementation-research`, etc.).
 6. **Priorizar** — começar por established/vendor, depois community/curated.
 7. **Justificar** a seleção — quais fontes, por quê, e quais foram descartadas.
 
@@ -123,13 +125,15 @@ GitHub issues/PRs
 production code
 technical articles
 
-Frontend component problem (criação/construção de UI)
+Frontend component/design problem (criação, reconstrução ou composição de UI)
         ↓
-`references/frontend.yaml` component libraries
-(Magic UI, React Bits, Hover, Motion, Aceternity, Pace UI,
- Eldora UI, Headless UI, Vue Bits, Inspira UI, Animate UI)
-→ buscar componente real nestas fontes e ADAPTAR ao design
-  system (estilo, tokens, spacing, foco) — nunca copiar cego
+design-library-research
+        ↓
+references/frontend.yaml
+        ↓
+component libraries → official docs → cross-library comparison
+        ↓
+component-to-flow map → UI composition plan
 
 Discovery problem (fontes insuficientes)
         ↓
@@ -181,8 +185,8 @@ rastreável:
 - <fonte> — <razão>
 
 ### Research skill to execute
-<reference-research | github-reference-research | market-research |
-  implementation-research>
+<design-library-research | reference-research | github-reference-research |
+  market-research | implementation-research>
 ```
 
 Após o despacho, a research skill executa a coleta e sintetiza no formato obrigatório

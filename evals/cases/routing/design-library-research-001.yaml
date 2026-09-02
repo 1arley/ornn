@@ -1,0 +1,15 @@
+id: routing-design-library-research-001
+title: React product redesign routes through cross-library research
+task: Redesign this React product interface, improving tabs, feed cards, mobile navigation, loading states and purposeful animations after researching component libraries.
+context:
+  - existing React product with multiple screens and user flows
+  - implementation is requested, not only a review
+risk: trivial
+category: routing
+expected_skills:
+  required:
+    - design-library-research
+  useful:
+  forbidden:
+    - business-logic-audit
+    - authorization-audit

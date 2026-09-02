@@ -26,6 +26,9 @@ estados acidentais (sem feedback, sem affordance, sem contraste)?*
 * **Composição:** roda com `ux-review` (a interação serve à UX), `visual-quality-review`
   (estados são visuais), `animation-review` (transições/motion são interação), e
   `accessibility-review` (focus/keyboard são acessibilidade E interação).
+* **Separação de responsabilidade:** `design-library-research` pesquisa padrões de
+  estados e interações antes da implementação; `interaction-design` valida depois
+  se os estados descobertos e implementados funcionam. Pesquisa não é review.
 
 ## Mental Model
 

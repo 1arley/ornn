@@ -18,7 +18,7 @@ Um repositório de skills modulares que ensinam agentes de IA a **entender → p
 
 O objetivo não é criar um agente que sabe mais. É criar um agente que **sabe como descobrir mais, onde procurar, quais perguntas fazer e como verificar se está certo**.
 
-- 🛠️ **25 skills** prontas para instalar no Claude Code (auditoria, segurança, reliability, produto, frontend, pesquisa)
+- 🛠️ **27 skills** prontas para instalar no Claude Code (auditoria, segurança, reliability, produto, frontend, pesquisa)
 - 🧠 Skills ensinam **como pensar** — modelo mental, perguntas, padrões de ataque, evidência — não listas de comandos
 - 📚 Referências centralizadas em `references/*.yaml` ensinam **onde olhar**, com nível de autoridade
 - 🧭 Dois routers (`skill-router`, `research-router`) que despacham a tarefa para as skills e fontes certas
@@ -325,6 +325,7 @@ referências.
 
 | Skill | Descrição |
 |---|---|
+| `design-library-research` | Mapeia produto, fluxos, estados e transições; pesquisa bibliotecas oficiais, compara candidatos e compõe a UI antes da implementação |
 | `ux-review` | Avalia clareza, hierarquia, carga cognitiva, feedback, affordances, consistência, navegação, estados vazios, erros, loading |
 | `visual-quality-review` | Avalia tipografia, spacing, hierarchy, density, contrast, composition, consistency, visual noise — e detecta **AI slop** |
 | `interaction-design` | Avalia hover, focus, pressed, disabled, loading, transitions, feedback, micro-interactions |
@@ -355,12 +356,15 @@ referências.
 ## Workflow completo
 
 ```text
-REQUEST → UNDERSTAND → CLASSIFY → SKILL ROUTER → RESEARCH ROUTER →
-RESEARCH → ANALYZE → IMPLEMENT → ADVERSARIAL TEST → VERIFY → REPORT
+DISCOVER → AUDIT → PLAN → RESEARCH ROUTER →
+DESIGN LIBRARY RESEARCH (quando frontend/UI) → IMPLEMENT → VERIFY → REVIEW → FINALIZE
 ```
 
 Pesquisa é proporcional à complexidade: um botão simples não precisa de pesquisa;
 uma arquitetura nova provavelmente precisa; concorrência em pagamentos certamente.
+Em criação ou redesign frontend, `design-library-research` produz Product Interaction
+Map, Library Survey, Candidate Matrix, Component-to-Flow Map, UI Composition Plan e
+Implementation Plan antes de implementar; as skills de review avaliam o resultado.
 
 ---
 

@@ -31,6 +31,9 @@ skills, os workflows, e os anti-padrões. Este documento é a ponte entre as pe�
                   SYNTHESIS         ← formato de síntese (AGENTS.md § 5)
                       │
                       ↓
+       DESIGN LIBRARY RESEARCH      ← obrigatório para criação/redesign frontend
+                      │
+                      ↓
                  IMPLEMENT
                       │
                       ↓
@@ -54,8 +57,8 @@ implementação, verifica, e reporta.
 ### 2.1 Workflow completo (auditoria / feature não-trivial)
 
 ```text
-REQUEST → UNDERSTAND → CLASSIFY → SKILL ROUTER → RESEARCH ROUTER → RESEARCH →
-ANALYZE → IMPLEMENT → ADVERSARIAL TEST → VERIFY → REPORT
+DISCOVER → AUDIT → PLAN → RESEARCH ROUTER → DESIGN LIBRARY RESEARCH (se UI) →
+IMPLEMENT → VERIFY → REVIEW → FINALIZE
 ```
 
 | Etapa | O que o agente faz | Onde |
@@ -66,6 +69,7 @@ ANALYZE → IMPLEMENT → ADVERSARIAL TEST → VERIFY → REPORT
 | SKILL ROUTER | Seleciona o conjunto ordenado de skills | `skills/meta/skill-router/` |
 | RESEARCH ROUTER | Decide onde pesquisar | `skills/meta/research-router/` + `references/` |
 | RESEARCH | Coleta + sintetiza (nunca só links) | skills de research + `AGENTS.md` § 5 |
+| DESIGN LIBRARY RESEARCH | Mapeia produto/fluxos/estados, pesquisa documentação oficial, compara candidatos e compõe o sistema visual | `skills/frontend/design-library-research/` + `references/frontend.yaml` + templates frontend |
 | ANALYZE | Aplica as skills selecionadas ao alvo | skills selecionadas |
 | IMPLEMENT | Faz a mudança (se aplicável) | — |
 | ADVERSARIAL TEST | Ataca a própria implementação | `adversarial-review` + skills relevantes |
@@ -92,6 +96,29 @@ uncertainty + impact + irreversibility
 ```
 
 quanto maior, maior o nível de pesquisa (`none` / `proportional` / `full`).
+
+### 2.3 Criação e redesign frontend
+
+O `research-router` envia criação/reconstrução de interface para
+`design-library-research`. A skill produz Product Interaction Map, Library Survey,
+Candidate Matrix, Component-to-Flow Map, UI Composition Plan e Implementation Plan.
+Ela pesquisa por necessidade do fluxo, percorre categorias e candidatos relevantes
+nas fontes oficiais de `references/frontend.yaml` e só então implementa.
+
+Depois da implementação, as responsabilidades permanecem separadas:
+
+```text
+design-library-research (descobre e seleciona)
+        ↓
+implementation
+        ↓
+ux-review + interaction-design + animation-review
++ visual-quality-review + accessibility-review + react-doctor-audit (React)
+```
+
+`animation-review` valida motion; `interaction-design` valida estados;
+`visual-quality-review` valida craft. Nenhuma delas substitui sourcing e comparação.
+Tarefas backend e mudanças triviais já especificadas pulam este estágio.
 
 ---
 

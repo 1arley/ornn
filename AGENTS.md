@@ -173,6 +173,32 @@ Para uma auditoria (não apenas uma implementação), o fluxo é:
 * **ADVERSARIAL TEST** — testa a implementação como um usuário adversarial
   (repeat, reverse, replay, concurrent). Ver `adversarial-review`.
 
+Para execução geral, use o pipeline conceitual:
+
+```text
+1. DISCOVER
+2. AUDIT
+3. PLAN
+4. RESEARCH ROUTER
+5. DESIGN LIBRARY RESEARCH (somente frontend/UI relevante)
+6. IMPLEMENT
+7. VERIFY
+8. REVIEW
+9. FINALIZE
+```
+
+Quando a tarefa envolver criação, redesign, composição, interação ou motion de
+frontend, o estágio 5 é obrigatório e usa
+`skills/frontend/design-library-research/`. Ele mapeia produto, fluxos, estados e
+transições, consulta `references/frontend.yaml`, compara múltiplos candidatos e
+produz o plano de composição antes de implementar. Em tarefas backend ou mudanças
+visuais triviais e já especificadas, não execute pesquisa visual.
+
+Após implementação frontend, `design-library-research` não faz o papel das reviews:
+aplique `ux-review`, `interaction-design`, `animation-review`,
+`visual-quality-review`, `accessibility-review` e, para React,
+`react-doctor-audit`, considerando e justificando qualquer etapa N/A.
+
 ---
 
 ## 5. Síntese de pesquisa
@@ -259,4 +285,6 @@ defeito, consolidar em um único finding com a análise combinada.
 | Catálogo de referências | `references/*.yaml` |
 | Template de relatório de auditoria | `templates/audit-report.md` |
 | Template de bug report | `templates/bug-report.md` |
+| Pesquisa de design libraries | `skills/frontend/design-library-research/SKILL.md` |
+| Mapas e composição frontend | `templates/product-interaction-map.md`, `templates/library-survey.md`, `templates/component-matrix.md`, `templates/ui-composition-plan.md` |
 | Validação (lint de skills/refs) | `scripts/validate.py` |

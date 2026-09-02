@@ -74,7 +74,8 @@ PLAN_SKILLS = {
     "gamification-audit",
     # frontend
     "ux-review", "visual-quality-review", "interaction-design",
-    "animation-review", "accessibility-review",
+    "animation-review", "accessibility-review", "react-doctor-audit",
+    "design-library-research",
     # research
     "reference-research", "github-reference-research", "market-research",
     "implementation-research",

@@ -62,6 +62,11 @@ graph TD
     visual-quality-review[visual-quality-review] --> reference-research[reference-research]
     interaction-design[interaction-design] --> ux-review[ux-review]
     interaction-design[interaction-design] --> animation-review[animation-review]
+    design-library-research[design-library-research] --> interaction-design[interaction-design]
+    design-library-research[design-library-research] --> animation-review[animation-review]
+    design-library-research[design-library-research] --> visual-quality-review[visual-quality-review]
+    design-library-research[design-library-research] --> accessibility-review[accessibility-review]
+    design-library-research[design-library-research] --> react-doctor-audit[react-doctor-audit]
     interaction-design[interaction-design] --> accessibility-review[accessibility-review]
     animation-review[animation-review] --> interaction-design[interaction-design]
     animation-review[animation-review] --> accessibility-review[accessibility-review]
@@ -80,4 +85,5 @@ graph TD
     research-router[research-router] --> skill-router[skill-router]
     research-router[research-router] --> reference-research[reference-research]
     research-router[research-router] --> implementation-research[implementation-research]
+    research-router[research-router] --> design-library-research[design-library-research]
 ```

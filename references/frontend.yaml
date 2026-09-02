@@ -102,12 +102,12 @@
   type: implementation
   category: frontend
   authority: community
-  last_verified: 2026-08-28
+  last_verified: 2026-09-01
   status: active
   use_when:
-    - implementing or reviewing concrete animation components
-    - referencing real transition and motion patterns
-    - auditing animation-review findings against working examples
+    - sourcing open-code React primitives, components, and icons powered by Motion
+    - researching accessible animated behavior compatible with Tailwind and shadcn registries
+    - comparing concrete transition and motion patterns before React implementation
   avoid_when:
     - needing animation principles over code
     - when reduced-motion accessibility is the primary concern
@@ -173,6 +173,7 @@
     - building marketing/section components with motion
   avoid_when:
     - needing framework-agnostic (Vue/Svelte) primitives
+    - needing application behavior or accessibility primitives rather than marketing visuals
     - when only review of existing UI, not creation
   search_queries:
     - "magic ui components"
@@ -187,9 +188,9 @@
   last_verified: 2026-09-01
   status: active
   use_when:
-    - sourcing reusable React building blocks and snippets
-    - implementing interactive/animated components to adapt
-    - finding ready React patterns for a UI need
+    - sourcing reusable creative React components, interactions, and visual effects
+    - researching animated lists, cards, navigation, text, and feedback patterns
+    - comparing Tailwind or vanilla CSS implementations before adapting
   avoid_when:
     - Vue/Svelte targets
     - needing framework-agnostic primitives
@@ -206,9 +207,9 @@
   last_verified: 2026-09-01
   status: active
   use_when:
-    - sourcing animated, motion-triggered components
-    - implementing interactive components to adapt to a design
-    - referencing real hover/scroll-triggered motion patterns
+    - sourcing React and Tailwind components, sections, and interaction patterns
+    - researching hover, navigation, tabs, cards, modals, loaders, and notifications
+    - comparing Motion, JavaScript, and keyframe-based implementations
   avoid_when:
     - static-only review
     - requiring framework-agnostic primitives
@@ -225,9 +226,9 @@
   last_verified: 2026-09-01
   status: active
   use_when:
-    - implementing motion/animation primitives in React (Framer Motion successor)
-    - referencing production animation APIs, variants, and transitions
-    - calibrating animation-review against a real animation library
+    - implementing the official React animation system via motion/react
+    - researching layout and shared-layout transitions, enter/exit, gestures, and interruption
+    - implementing reduced-motion policy and performance-conscious animation primitives
   avoid_when:
     - no-animation task
     - when reduced-motion accessibility is the sole concern
@@ -263,11 +264,11 @@
   last_verified: 2026-09-01
   status: active
   use_when:
-    - sourcing a clean, minimal component library
-    - implementing simple components to adapt to a design system
-    - referencing low-motion UI components
+    - sourcing shadcn-registry source-code components, blocks, and templates
+    - researching practical UI for apps, dashboards, ecommerce, forms, and marketing
+    - adapting polished interactions without adding a wrapper-library runtime
   avoid_when:
-    - needing extensive animation libraries
+    - treating it as an npm component library rather than copied source code
     - needing framework-agnostic (beyond supported) primitives
   search_queries:
     - "pace ui components"
@@ -282,16 +283,16 @@
   last_verified: 2026-09-01
   status: active
   use_when:
-    - sourcing Svelte (shadcn-style) components
-    - implementing Svelte UI to adapt to a design system
-    - finding Svelte component builders
+    - sourcing animated React and TypeScript components and effects
+    - researching Tailwind CSS and Motion patterns compatible with shadcn-style stacks
+    - adapting landing-page components, blocks, and microinteractions for React products
   avoid_when:
-    - React/Vue targets
+    - Svelte or Vue targets requiring native framework components
     - review-only tasks
   search_queries:
-    - "eldora ui svelte"
-    - "eldora ui components"
-    - "eldora ui shadcn"
+    - "eldora ui React components"
+    - "eldora ui TypeScript Tailwind Motion"
+    - "eldora ui shadcn React"
 
 - name: Headless UI
   url: https://headlessui.com/
@@ -302,7 +303,7 @@
   status: active
   use_when:
     - implementing accessible, unstyled React/Vue primitives
-    - building a11y-correct interactive components (menu, dialog, listbox, toggle)
+    - building accessible tabs, menus, dialogs, popovers, listboxes, disclosures, and forms
     - adding behaviour without committed visuals to style via a design system
   avoid_when:
     - needing styled/visual components
