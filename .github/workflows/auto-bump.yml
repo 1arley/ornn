@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   bump:
@@ -70,3 +71,9 @@ jobs:
           git commit -m "chore(release): v${NEW_VER} [skip ci]"
           git tag "v${NEW_VER}"
           git push origin main "v${NEW_VER}"
+
+      - name: Trigger release workflow
+        if: steps.bump.outputs.type != 'none'
+        run: gh workflow run release.yml --ref "v${NEW_VER}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
