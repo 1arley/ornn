@@ -11,7 +11,7 @@ The project has two attack surfaces worth reporting:
 
 Please report privately. Do **not** open a public issue for a security
 vulnerability. Use the GitHub security advisory flow
-(<https://github.com/1arley/1arley-agent-skills/security/advisories/new>) or email
+(<https://github.com/1arley/ornn/security/advisories/new>) or email
 the maintainers privately.
 
 ## What counts as a security issue

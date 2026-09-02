@@ -1,24 +1,23 @@
 # Reference Authoring
 
-Como adicionar fontes externas ao catálogo. As referências são centralizadas em
-`references/` — nunca embutidas em skills — para que o `research-router` possa
-despachar para elas e o `scripts/validate.py` possa validar o schema.
+How to add external sources to the catalog. References are centralized in
+`references/` — never embedded in skills — so the `research-router` can dispatch to
+them and `scripts/validate.py` can verify the schema.
 
-## Por que centralizado
+## Why centralized
 
-Sites, projetos, produtos e documentações externas não ficam espalhados pelas skills.
-Isto evita:
+Sites, products and documentation are not scattered across skills. Centralizing avoids:
 
-* URLs duplicadas e que apodrecem em múltiplas skills;
-* skills que viram um dump de links em vez de raciocínio;
-* inconsistência sobre quais fontes são confiáveis.
+- Duplicate URLs rotting across multiple skills.
+- Skills that become link dumps instead of reasoning.
+- Inconsistency about which sources are trustworthy.
 
 ```text
-skills/        como pensar
-references/    onde pesquisar
+skills/        how to think
+references/    where to look
 ```
 
-## Arquivos
+## Files
 
 ```text
 references/
@@ -30,9 +29,9 @@ references/
 └── research.yaml
 ```
 
-Cada arquivo é uma lista YAML de entradas. Um arquivo por domínio.
+Each file is a YAML list of entries. One file per domain.
 
-## Schema de cada entrada
+## Schema per entry
 
 ```yaml
 - name: Example
@@ -50,68 +49,68 @@ Cada arquivo é uma lista YAML de entradas. Um arquivo por domínio.
     - "example flow design patterns"
 ```
 
-| Campo | Tipo | Valores |
+| Field | Type | Values |
 |---|---|---|
-| `name` | string | Nome reconhecível da fonte. |
-| `url` | string | URL canônica. |
+| `name` | string | Recognizable source name. |
+| `url` | string | Canonical URL. |
 | `type` | enum | `methodology` \| `heuristic` \| `inspiration` \| `implementation` \| `discovery` |
-| `category` | string | Domínio — corresponde ao arquivo (`frontend`, `ux`, `engineering`, `security`, `product`, `research`). |
-| `authority` | enum | `established` \| `community` \| `vendor` \| `curated` (ver abaixo). |
-| `use_when` | list[string] | Situações em que a fonte é relevante. |
-| `avoid_when` | list[string] | Situações em que não é útil ou é misleading. |
-| `search_queries` | list[string] | Queries prontas para alimentar busca. |
+| `category` | string | Domain — matches the file it lives in (`frontend`, `ux`, `engineering`, `security`, `product`, `research`). |
+| `authority` | enum | `established` \| `community` \| `vendor` \| `curated` (see below). |
+| `use_when` | list[string] | Situations where the source is relevant. |
+| `avoid_when` | list[string] | Situations where it is not useful or is misleading. |
+| `search_queries` | list[string] | Ready-made queries to feed search. |
 
-## Classes de conhecimento (`type`)
+## Knowledge classes (`type`)
 
-Não tratar todas as fontes como iguais. O `type` diz **que tipo de coisa** a fonte
-oferece:
+Not all sources are equal. `type` says **what kind of thing** the source offers:
 
-| `type` | O que é | Exemplo |
+| `type` | What it is | Example |
 |---|---|---|
-| `methodology` | Um método ou framework estruturado | Laws of UX |
-| `heuristic` | Heurísticas e princípios aplicáveis | Impeccable |
-| `inspiration` | Inspiração visual, não prescritiva | Dribbble |
-| `implementation` | Código/padrões concretos de implementação | Animate UI |
-| `discovery` | Ferramenta de descoberta de mais fontes | LazyWeb, Shoogle |
+| `methodology` | A structured method or framework | Laws of UX |
+| `heuristic` | Heuristics and applicable principles | Impeccable |
+| `inspiration` | Visual inspiration, not prescriptive | Dribbble |
+| `implementation` | Concrete code or patterns | Animate UI |
+| `discovery` | Tool for discovering more sources | LazyWeb, Shoogle |
 
-## Níveis de autoridade (`authority`)
+## Authority levels (`authority`)
 
-Nem toda fonte tem o mesmo peso. O `authority` diz **quanto confiar**:
+Not every source carries the same weight. `authority` says **how much to trust**:
 
-| `authority` | Significado |
+| `authority` | Meaning |
 |---|---|
-| `established` | Autoridade reconhecida, padrão de fato, documentação oficial. Maior peso. |
-| `vendor` | Documentação de um vendor/framework específico. Confiável dentro do seu domínio. |
-| `community` | Sabedoria da comunidade, curadoria coletiva. Útil mas verificar. |
-| `curated` | Coleção curada (galerias, agregadores). Inspiração; não prescritivo. |
+| `established` | Recognized authority, de facto standard, official documentation. Highest weight. |
+| `vendor` | A specific vendor or framework's documentation. Reliable within its domain. |
+| `community` | Community wisdom, collective curation. Useful but verify. |
+| `curated` | Curated collection (galleries, aggregators). Inspiration; not prescriptive. |
 
-Ao sintetizar pesquisa, fontes `established` e `vendor` pesam mais que `curated` e
-`inspiration`. Ver `AGENTS.md` § 5 (síntese) e § 1 (distinguir inspiração de evidência).
+When synthesizing research, `established` and `vendor` sources weigh more than
+`curated` and `inspiration`. See `AGENTS.md` section 5 (synthesis) and section 1
+(distinguish inspiration from evidence).
 
-## Regras
+## Rules
 
-1. **Uma fonte, uma entrada.** Não duplicar URLs entre arquivos. Se uma fonte serve a
-   múltiplos domínios, escolha o domínio primário e referencie-o do router.
-2. **`search_queries` sempre preenchido.** O `research-router` e as research skills
-   usam estas queries; entradas sem queries são inacionáveis.
-3. **`use_when`/`avoid_when` específicos.** "Quando útil" genérico não ajuda o router a
-   decidir entre fontes.
-4. **Inspiração ≠ evidência.** Fontes `type: inspiration` ou `authority: curated`
-   nunca justificam um finding técnico por si só.
-5. **URLs canônicas.** Use a URL raiz ou a página mais estável, não um deep link que
-   pode quebrar.
+1. **One source, one entry.** Do not duplicate URLs across files. If a source serves
+   multiple domains, pick the primary domain and reference it from the router.
+2. **`search_queries` always filled.** The `research-router` and research skills use
+   these queries; entries without queries are inactionable.
+3. **`use_when`/`avoid_when` specific.** Generic "when useful" does not help the router
+   choose between sources.
+4. **Inspiration ≠ evidence.** `type: inspiration` or `authority: curated` sources
+   alone never justify a technical finding.
+5. **Canonical URLs.** Use the root URL or the most stable page, not a deep link that
+   may break.
 
-## Validação
+## Validation
 
 ```bash
 python3 scripts/validate.py
 ```
 
-O validator verifica, para cada `references/*.yaml`:
+The validator checks, for each `references/*.yaml`:
 
-* YAML sintaticamente válido;
-* cada entrada tem todos os sete campos;
-* `type` e `authority` são enums válidos;
-* `category` corresponde ao arquivo em que está;
-* `url` é uma URL absoluta com esquema;
-* `use_when`, `avoid_when`, `search_queries` são listas não-vazias.
+- Syntactically valid YAML;
+- every entry has all seven fields;
+- `type` and `authority` are valid enums;
+- `category` matches the file it lives in;
+- `url` is an absolute URL with a scheme;
+- `use_when`, `avoid_when`, `search_queries` are non-empty lists.
