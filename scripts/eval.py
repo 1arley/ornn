@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic eval harness for the Agent Engineering Skills project.
+"""Deterministic eval harness for Ornn's optional routing methodology.
 
 Subcommands:
   eval.py route [--json] [--out evals/results/...]

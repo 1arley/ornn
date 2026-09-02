@@ -1,0 +1,30 @@
+schema_version: 1
+version: 1.0.0
+name: interactive-card
+description: Make a content summary actionable without ambiguous nested interactions.
+problem: A card must expose content, state and a primary destination while supporting secondary actions.
+interaction: The primary surface opens detail; explicit controls handle secondary actions.
+states:
+  - default
+  - hover
+  - focus-within
+  - pressed
+  - loading
+  - selected
+motion:
+  - restrained-elevation
+  - content-reveal
+  - state-feedback
+accessibility:
+  - semantic-primary-link
+  - no-nested-interactive-elements
+  - visible-focus
+  - touch-targets
+references:
+  - Headless UI
+  - Motion
+  - React Bits
+trade_offs:
+  - Making the entire card clickable can conflict with secondary controls.
+  - Decorative motion can obscure hierarchy and should remain optional.
+

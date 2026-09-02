@@ -1,0 +1,12 @@
+schema_version: 1
+version: 1.0.0
+name: frontend-craft
+description: Product-driven frontend research and high-craft review skills.
+skills:
+  - frontend/design-library-research
+  - frontend/ux-review
+  - frontend/interaction-design
+  - frontend/visual-quality-review
+  - frontend/animation-review
+  - frontend/accessibility-review
+

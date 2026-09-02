@@ -269,7 +269,11 @@ test("legacy --target install still works (backward compat)", () => {
     const target = join(dir, "legacy-skills");
     const r = runIn(dir, ["install", "--target", target, "--dry-run"]);
     assert.equal(r.status, 0);
-    assert.match(r.stdout, /would install: 26/);
+    const sourceCount = readdirSync(join(ROOT, "skills"), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .reduce((count, category) => count + readdirSync(join(ROOT, "skills", category.name), { withFileTypes: true })
+        .filter((entry) => entry.isDirectory() && existsSync(join(ROOT, "skills", category.name, entry.name, "SKILL.md"))).length, 0);
+    assert.match(r.stdout, new RegExp(`would install: ${sourceCount}`));
   } finally {
     cleanup();
   }
@@ -483,8 +487,12 @@ test("doctor missing count derives from source skills, not a hardcoded number", 
     const rows = doctorProviders(dir, ROOT);
     const claude = rows.find((r) => r.provider === "Claude Code");
     assert.ok(claude.target.startsWith(dir), "doctor should use the project-scope target");
-    assert.equal(claude.installedCount, 25);
-    // Missing derives from the real source count (26), not a hardcoded value.
+    const sourceCount = readdirSync(join(ROOT, "skills"), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .reduce((count, category) => count + readdirSync(join(ROOT, "skills", category.name), { withFileTypes: true })
+        .filter((entry) => entry.isDirectory() && existsSync(join(ROOT, "skills", category.name, entry.name, "SKILL.md"))).length, 0);
+    assert.equal(claude.installedCount, sourceCount - 1);
+    // Missing derives from the real source count, not a hardcoded value.
     assert.equal(claude.missingCount, 1);
     assert.ok(claude.target && !claude.healthy, "missing skills must mark unhealthy");
   } finally {

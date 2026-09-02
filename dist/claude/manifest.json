@@ -1,0 +1,117 @@
+{
+  "generated": true,
+  "source": "skills/",
+  "integration": "claude",
+  "version": "1.0.0",
+  "sourceVersion": "1.0.0",
+  "skills": [
+    {
+      "id": "audit/adversarial-review",
+      "name": "adversarial-review"
+    },
+    {
+      "id": "audit/business-logic-audit",
+      "name": "business-logic-audit"
+    },
+    {
+      "id": "audit/edge-case-hunter",
+      "name": "edge-case-hunter"
+    },
+    {
+      "id": "audit/error-flow-audit",
+      "name": "error-flow-audit"
+    },
+    {
+      "id": "audit/state-consistency-audit",
+      "name": "state-consistency-audit"
+    },
+    {
+      "id": "audit/user-flow-audit",
+      "name": "user-flow-audit"
+    },
+    {
+      "id": "frontend/accessibility-review",
+      "name": "accessibility-review"
+    },
+    {
+      "id": "frontend/animation-review",
+      "name": "animation-review"
+    },
+    {
+      "id": "frontend/design-library-research",
+      "name": "design-library-research"
+    },
+    {
+      "id": "frontend/interaction-design",
+      "name": "interaction-design"
+    },
+    {
+      "id": "frontend/react-doctor-audit",
+      "name": "react-doctor-audit"
+    },
+    {
+      "id": "frontend/ux-review",
+      "name": "ux-review"
+    },
+    {
+      "id": "frontend/visual-quality-review",
+      "name": "visual-quality-review"
+    },
+    {
+      "id": "meta/research-router",
+      "name": "research-router"
+    },
+    {
+      "id": "meta/skill-router",
+      "name": "skill-router"
+    },
+    {
+      "id": "product/gamification-audit",
+      "name": "gamification-audit"
+    },
+    {
+      "id": "reliability/data-integrity-audit",
+      "name": "data-integrity-audit"
+    },
+    {
+      "id": "reliability/idempotency-audit",
+      "name": "idempotency-audit"
+    },
+    {
+      "id": "reliability/race-condition-hunter",
+      "name": "race-condition-hunter"
+    },
+    {
+      "id": "research/github-reference-research",
+      "name": "github-reference-research"
+    },
+    {
+      "id": "research/implementation-research",
+      "name": "implementation-research"
+    },
+    {
+      "id": "research/market-research",
+      "name": "market-research"
+    },
+    {
+      "id": "research/reference-research",
+      "name": "reference-research"
+    },
+    {
+      "id": "security/api-abuse-audit",
+      "name": "api-abuse-audit"
+    },
+    {
+      "id": "security/authorization-audit",
+      "name": "authorization-audit"
+    },
+    {
+      "id": "security/input-trust-audit",
+      "name": "input-trust-audit"
+    },
+    {
+      "id": "security/security-audit",
+      "name": "security-audit"
+    }
+  ]
+}

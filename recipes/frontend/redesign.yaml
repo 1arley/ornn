@@ -1,0 +1,23 @@
+schema_version: 1
+version: 1.0.0
+name: frontend-redesign
+description: Research, design and review a substantial frontend redesign.
+skills:
+  - frontend/design-library-research
+  - frontend/ux-review
+  - frontend/interaction-design
+  - frontend/animation-review
+  - frontend/visual-quality-review
+  - frontend/accessibility-review
+references:
+  - frontend
+recommended_order:
+  - design-library-research
+  - implementation-by-consuming-agent
+  - ux-review
+  - interaction-design
+  - animation-review
+  - visual-quality-review
+  - accessibility-review
+execution: external-agent
+

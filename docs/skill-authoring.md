@@ -1,5 +1,9 @@
 # Skill Authoring
 
+Skills are canonical, portable knowledge. They must remain useful when copied to a
+compatible agent without Ornn tooling, project state, a router or an executor.
+Composition and ordering belong in recipes; URLs belong in reference catalogs.
+
 Como escrever uma skill. Toda skill segue um formato padrão para que o `skill-router`
 possa despachar para ela, o `scripts/validate.py` possa verificá-la, e skills possam
 compor entre si sem ambiguidade.

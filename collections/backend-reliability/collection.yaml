@@ -1,0 +1,11 @@
+schema_version: 1
+version: 1.0.0
+name: backend-reliability
+description: State, failure, repetition and concurrency review skills.
+skills:
+  - reliability/idempotency-audit
+  - reliability/race-condition-hunter
+  - reliability/data-integrity-audit
+  - audit/error-flow-audit
+  - audit/state-consistency-audit
+

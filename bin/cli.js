@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * ornn-forge — CLI
+ * Ornn — portable knowledge library CLI
  *
  * Commands:
  *   install [options]   Interactive installer (default) or non-interactive
@@ -56,6 +56,8 @@ import {
 import { readManifest, manifestPath } from "../src/installer/manifest.js";
 import { resolveProjectRoot, resolveManifestRoot } from "../src/installer/paths.js";
 import { findSkillDirs, installTo, planInstall } from "../src/installer/install.js";
+import { loadLibrary, resolveItem, resolveSkillSelection, searchLibrary, sourceSkills } from "../src/library/catalog.js";
+import { buildDistributions } from "../src/library/build.js";
 
 import { promptMultiSelect, promptSelect, promptConfirm, promptLine } from "../src/installer/prompts.js";
 
@@ -70,22 +72,22 @@ function err(msg) { try { process.stderr.write(msg + "\n"); } catch {} }
 // HELP
 // ---------------------------------------------------------------------------
 
-const HELP = `ornn-forge v${PKG.version}
+const HELP = `ornn v${PKG.version}
 
-Modular Agent Skills that teach coding agents to audit systems, find bugs,
-review UX/frontend, and research before reinventing.
+Portable skills, references, patterns and recipes for AI coding agents.
 
 Usage:
-  ornn-forge install [options]   Interactive installer
-  ornn-forge update              Update managed skills
-  ornn-forge uninstall           Remove managed skills
-  ornn-forge validate            Run the repo validator
-  ornn-forge doctor              Diagnose providers and installs
-  ornn-forge list                List cataloged skills
-  ornn-forge graph [--out <f>]   Print a Mermaid graph
-  ornn-forge eval [--json]       Run deterministic routing evals
-  ornn-forge --help              Show this help
-  ornn-forge --version           Show version
+  ornn list [type]                  List library content
+  ornn search <query>               Search all canonical knowledge
+  ornn show <name>                  Show metadata and canonical content
+  ornn install [item ...]           Install all skills or selected collections
+  ornn init                         Detect providers and suggest collections
+  ornn update                       Refresh managed skills
+  ornn build [--providers <list>]   Generate dist/ from canonical source
+  ornn detect [path] [--json]       Run deterministic detectors without an LLM
+  ornn pin <command>                Save an intent shortcut for project discovery
+  ornn doctor                       Diagnose provider integrations
+  ornn validate                     Validate canonical content
 
 Options (install/update/uninstall):
   --scope <scope>       project | global (default: project)
@@ -102,6 +104,9 @@ Short aliases:
   -g  --scope global
   -y  --yes
   -a  --providers
+
+Compatibility commands: graph, eval, uninstall. They are optional tooling, not an
+execution runtime.
 `;
 
 // ---------------------------------------------------------------------------
@@ -205,7 +210,7 @@ function resolveProviders(ids, projectRoot) {
 async function interactiveInstall(projectRoot, packageRoot) {
   const allProviders = getAllProviders();
 
-  log(`\nAgent Engineering Skills v${PKG.version}\n`);
+  log(`\nOrnn skill library v${PKG.version}\n`);
 
   // Scope
   const scopeChoice = await promptSelect({
@@ -318,7 +323,7 @@ async function interactiveInstall(projectRoot, packageRoot) {
     link: false,
   });
 
-  log("\nInstalling Agent Engineering Skills");
+  log("\nInstalling Ornn skills");
   let errored = 0;
   for (const s of result.summary) {
     errored += s.errored || 0;
@@ -337,6 +342,12 @@ async function interactiveInstall(projectRoot, packageRoot) {
 // ---------------------------------------------------------------------------
 
 function nonInteractiveInstall(opts, projectRoot, packageRoot) {
+  let selected;
+  try {
+    selected = sourceSkills(ROOT, resolveSkillSelection(ROOT, opts.positionals));
+  } catch (error) {
+    err(error.message); process.exitCode = 1; return;
+  }
   if (opts.universal) {
     const provider = UNIVERSAL;
     const result = installProviders({
@@ -347,6 +358,8 @@ function nonInteractiveInstall(opts, projectRoot, packageRoot) {
       force: opts.force,
       dryRun: opts.dryRun,
       link: opts.link,
+      skills: selected,
+      selection: opts.positionals,
     });
     if (opts.dryRun) {
       log(`would install: ${result.skills.length} skills`);
@@ -384,7 +397,7 @@ function nonInteractiveInstall(opts, projectRoot, packageRoot) {
   }
 
   if (opts.dryRun) {
-    const plan = buildPlan({ providers, scope: opts.scope, projectRoot, packageRoot, force: opts.force });
+    const plan = buildPlan({ providers, scope: opts.scope, projectRoot, packageRoot, force: opts.force, skills: selected });
     log("Installation plan (dry-run)");
     if (opts.scope === "project") log(`Project: ${projectRoot}`);
     for (const p of plan.plans) {
@@ -401,6 +414,8 @@ function nonInteractiveInstall(opts, projectRoot, packageRoot) {
     force: opts.force,
     dryRun: false,
     link: opts.link,
+    skills: selected,
+    selection: opts.positionals,
   });
   let errored = 0;
   for (const s of result.summary) {
@@ -475,12 +490,12 @@ function runGraph(outFile) {
 }
 
 function runListInstallations(projectRoot, opts) {
-  const catalog = parseCatalogForList();
+  const requestedType = opts.positionals[0]?.replace(/s$/, "") || null;
+  const library = loadLibrary(ROOT).filter((item) => !requestedType || item.type === requestedType);
   const rows = listInstallations(projectRoot);
-  log("name                      category      role            priority  installed");
-  for (const s of catalog) {
-    const mark = rows.find((r) => r.installed > 0) ? "yes" : "no";
-    log(`${(s.name || "").padEnd(26)} ${(s.category || "").padEnd(13)} ${(s.role || "").padEnd(15)} ${(s.priority || "").padEnd(9)} ${mark}`);
+  log("TYPE         NAME                                      VERSION  installed");
+  for (const item of library) {
+    log(`${item.type.toUpperCase().padEnd(12)} ${item.id.padEnd(41)} ${item.version}`);
   }
   log("");
   log("Provider        Scope       Installed");
@@ -489,10 +504,90 @@ function runListInstallations(projectRoot, opts) {
   }
 }
 
+function runSearch(opts) {
+  const query = opts.positionals.join(" ").trim();
+  if (!query) { err("Usage: ornn search <query>"); process.exitCode = 1; return; }
+  const results = searchLibrary(ROOT, query);
+  if (!results.length) { log(`No Ornn knowledge found for "${query}".`); return; }
+  for (const type of ["skill", "pattern", "collection", "recipe", "command"]) {
+    const group = results.filter((item) => item.type === type);
+    if (!group.length) continue;
+    log(`\n${type.toUpperCase()}S`);
+    for (const item of group) log(`  ${item.id}${item.description ? ` — ${item.description}` : ""}`);
+  }
+}
+
+function runShow(opts) {
+  const name = opts.positionals[0];
+  if (!name) { err("Usage: ornn show <name>"); process.exitCode = 1; return; }
+  const item = resolveItem(ROOT, name);
+  if (!item) { err(`No unique library item found: ${name}`); process.exitCode = 1; return; }
+  log(`TYPE: ${item.type.toUpperCase()}`);
+  log(`NAME: ${item.id}`);
+  log(`VERSION: ${item.version}`);
+  log(`SOURCE: ${item.path}`);
+  log("");
+  process.stdout.write(item.content.endsWith("\n") ? item.content : item.content + "\n");
+}
+
+function runBuild(opts) {
+  const providers = opts.providersExplicit ? opts.providers.split(",").map((value) => value.trim()).filter(Boolean) : undefined;
+  for (const row of buildDistributions(ROOT, { providers })) log(`Built ${row.provider}: ${row.skills} skills → ${row.path}`);
+}
+
+function runDetect(opts) {
+  const args = [join(ROOT, "detectors", "run.js"), opts.positionals[0] || process.cwd()];
+  if (opts.json) args.push("--json");
+  const result = spawnSync(process.execPath, args, { stdio: "inherit" });
+  process.exitCode = result.status || 0;
+}
+
+function runPin(opts, projectRoot) {
+  const name = opts.positionals[0];
+  const item = name ? resolveItem(ROOT, `command:${name}`) : null;
+  if (!item || item.type !== "command") { err("Usage: ornn pin <command>"); process.exitCode = 1; return; }
+  const directory = join(projectRoot, ".ornn");
+  const path = join(directory, "pins.json");
+  let data = { version: 1, commands: [] };
+  try { data = JSON.parse(fs.readFileSync(path, "utf8")); } catch {}
+  data.commands = [...new Set([...(data.commands || []), item.id])].sort();
+  fs.mkdirSync(directory, { recursive: true });
+  fs.writeFileSync(path, JSON.stringify(data, null, 2) + "\n");
+  log(`Pinned ${item.id} for discovery in ${path}. This does not execute the command.`);
+}
+
+function detectProjectCollections(projectRoot) {
+  const suggestions = new Set();
+  let packageText = "";
+  try { packageText = fs.readFileSync(join(projectRoot, "package.json"), "utf8"); } catch {}
+  if (/react|next|vite|tailwind/i.test(packageText)) {
+    suggestions.add("frontend-craft"); suggestions.add("accessibility");
+  }
+  if (/react/i.test(packageText)) suggestions.add("react");
+  if (/motion|framer-motion/i.test(packageText)) suggestions.add("motion");
+  return [...suggestions];
+}
+
+async function runInit(opts, projectRoot) {
+  const detected = detectProviders();
+  const suggestions = detectProjectCollections(projectRoot);
+  log("Ornn initialization plan");
+  log(`Project: ${projectRoot}`);
+  log(`Providers detected: ${detected.join(", ") || "none (generic is always available)"}`);
+  log(`Suggested collections: ${suggestions.join(", ") || "none; search or install the full library"}`);
+  log(`PRODUCT.md: ${fs.existsSync(join(projectRoot, "PRODUCT.md")) ? "found" : "optional, not found"}`);
+  log(`DESIGN.md: ${fs.existsSync(join(projectRoot, "DESIGN.md")) ? "found" : "optional, not found"}`);
+  if (!opts.yes) { log("Run `ornn install <collection...> --providers <list>` to apply this recommendation."); return; }
+  const providerIds = opts.providersExplicit ? opts.providers : (detected.length ? detected.join(",") : "generic");
+  const installOpts = { ...opts, providers: providerIds, providersExplicit: true, positionals: suggestions };
+  if (providerIds === "generic") installOpts.universal = true;
+  nonInteractiveInstall(installOpts, projectRoot, ROOT);
+}
+
 function runDoctor(projectRoot, packageRoot) {
   const detected = detectProviders();
   const detectedSet = new Set(detected);
-  log(`\nAgent Engineering Skills doctor v${PKG.version}\n`);
+  log(`\nOrnn integration doctor v${PKG.version}\n`);
   log("Node version: " + process.versions.node);
   log("Project: " + projectRoot);
   log("");
@@ -534,6 +629,7 @@ function parseArgs(argv) {
     destination: null,
     out: null,
     json: false,
+    positionals: [],
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -544,6 +640,8 @@ function parseArgs(argv) {
       else opts.scope = argv[++i] || "project";
     }
     else if (a === "--providers" || a === "-a") { opts.providers = argv[++i] || "detected"; opts.providersExplicit = true; }
+    else if (a.startsWith("--providers=")) { opts.providers = a.slice("--providers=".length); opts.providersExplicit = true; }
+    else if (a.startsWith("--scope=")) { opts.scope = a.slice("--scope=".length); }
     else if (a === "--universal") { opts.universal = true; }
     else if (a === "--destination") { opts.destination = argv[++i] || null; }
     else if (a === "--yes" || a === "-y") { opts.yes = true; }
@@ -555,7 +653,7 @@ function parseArgs(argv) {
     else if (a === "--json") { opts.json = true; }
     else if (a.startsWith("-")) { err(`Unknown option: ${a}\n`); log(HELP); process.exitCode = 1; return null; }
     else if (!opts.command) { opts.command = a; }
-    else { err(`Unknown option: ${a}`); process.exitCode = 1; return null; }
+    else { opts.positionals.push(a); }
   }
   return opts;
 }
@@ -568,7 +666,14 @@ async function main() {
 
   switch (command) {
     case "install": {
-      if (opts.yes || opts.legacyTarget || opts.destination || opts.providers !== "detected" || !isInteractive()) {
+      const shorthand = opts.positionals.length === 1 && (getProvider(opts.positionals[0]) || opts.positionals[0] === "generic");
+      if (shorthand) {
+        const provider = opts.positionals[0];
+        opts.positionals = [];
+        if (provider === "generic") opts.universal = true;
+        else { opts.providers = provider; opts.providersExplicit = true; }
+      }
+      if (opts.yes || opts.positionals.length || opts.legacyTarget || opts.destination || opts.providers !== "detected" || !isInteractive()) {
         if (opts.legacyTarget) {
           const { runInstall } = requireForLegacy();
           runInstall(opts.legacyTarget, { link: opts.link, force: opts.force, dryRun: opts.dryRun });
@@ -580,18 +685,24 @@ async function main() {
       }
       break;
     }
+    case "init": await runInit(opts, projectRoot); break;
+    case "search": runSearch(opts); break;
+    case "show": runShow(opts); break;
+    case "build": runBuild(opts); break;
+    case "detect": runDetect(opts); break;
+    case "pin": runPin(opts, projectRoot); break;
     case "update": {
       const { found, updated } = updateProviders({ scope: opts.scope, projectRoot, packageRoot: ROOT, force: opts.force, dryRun: opts.dryRun });
       if (!found) { log("No installation manifest found. Run install first."); process.exitCode = 1; break; }
       if (opts.dryRun) { log(`Would update managed skills (${updated} refreshed).`); break; }
-      log(`Updated. ${updated} skills refreshed.`);
+      log(`Updated. ${updated} managed skills refreshed; existing local files were preserved unless --force was used.`);
       break;
     }
     case "uninstall": {
       const providers = opts.providers === "detected" ? detectProviders() : opts.providers.split(",").map((s) => s.trim()).filter(Boolean);
       if (providers.length === 0) { err("No providers to uninstall."); process.exitCode = 1; break; }
       if (!opts.yes && isInteractive()) {
-        log("\nRemove Agent Engineering Skills from:");
+        log("\nRemove managed Ornn skills from:");
         for (const id of providers) log(`  ☑ ${id}`);
         const confirmed = await promptConfirm({ prompt: "Continue?", defaultAnswer: "n" });
         if (!confirmed) { log("Cancelled."); break; }

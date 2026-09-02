@@ -1,0 +1,18 @@
+schema_version: 1
+version: 1.0.0
+name: api-security-audit
+description: Compose complementary lenses for an API security review.
+skills:
+  - security/security-audit
+  - security/authorization-audit
+  - security/input-trust-audit
+  - security/api-abuse-audit
+references:
+  - security
+recommended_order:
+  - security-audit
+  - authorization-audit
+  - input-trust-audit
+  - api-abuse-audit
+execution: external-agent
+

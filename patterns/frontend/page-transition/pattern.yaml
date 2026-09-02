@@ -1,0 +1,26 @@
+schema_version: 1
+version: 1.0.0
+name: page-transition
+description: Preserve orientation across navigation without delaying task completion.
+problem: Navigation can feel discontinuous when spatial or hierarchical relationships are lost.
+interaction: Route or view changes replace the primary content region.
+states:
+  - idle
+  - leaving
+  - entering
+  - interrupted
+  - complete
+motion:
+  - shared-layout
+  - directional-enter-exit
+  - reduced-motion-fallback
+accessibility:
+  - focus-restoration
+  - route-announcement
+  - reduced-motion
+references:
+  - Motion
+  - Animate UI
+trade_offs:
+  - Transitions can delay navigation and complicate interrupted state.
+

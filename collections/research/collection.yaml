@@ -1,0 +1,11 @@
+schema_version: 1
+version: 1.0.0
+name: research
+description: Source selection and implementation/product research skills.
+skills:
+  - research/reference-research
+  - research/implementation-research
+  - research/github-reference-research
+  - research/market-research
+  - meta/research-router
+

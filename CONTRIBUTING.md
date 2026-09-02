@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for contributing to Agent Engineering Skills.
+Thanks for contributing to Ornn's portable knowledge library.
 
 ## Before opening a PR
 
@@ -25,8 +25,10 @@ npm pack --dry-run                           # package sanity
 - **Do not add skills just for coverage.** Prefer improving evals, routing,
   metadata, composition, dedup, knowledge, tooling, interoperability, CI, security,
   or documentation.
-- **Keep skills small and operational.** Shared reusable concepts belong in
+- **Keep skills focused and portable.** Shared reusable concepts belong in
   `knowledge/`, not repeated in every `SKILL.md`.
+- **Do not turn composition into execution.** Recipes recommend skill sets; the
+  consuming agent owns workflow and implementation.
 - **Preserve the portable frontmatter.** No proprietary top-level fields.
   Routing lists live in `catalog/skills.yaml`.
 - **Zero runtime dependencies.** Use native APIs; do not add npm dependencies.

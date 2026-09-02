@@ -49,11 +49,12 @@ export function removeManifest(root) {
 /**
  * Write a v2 manifest with destinations.
  */
-export function writeV2Manifest(root, { scope, destinations, packageVersion }) {
+export function writeV2Manifest(root, { scope, destinations, packageVersion, selection = [] }) {
   const manifest = {
     packageVersion,
     manifestVersion: MANIFEST_VERSION,
     scope,
+    selection,
     destinations,
   };
   writeManifest(root, manifest);

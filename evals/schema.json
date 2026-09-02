@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/1arley/1arley-agent-skills/evals/schema.json",
-  "title": "Agent Engineering Skills — eval case schema",
+  "title": "Ornn optional routing — eval case schema",
   "description": "Schema for an individual eval case (routing or findings). A case describes a real-world situation the agent may encounter, the skills it should (and should not) select, and the findings/evidence expectations. Runtime is deterministic; it does not require an external model.",
   "type": "object",
   "required": ["id", "title", "task", "category", "expected_skills"],

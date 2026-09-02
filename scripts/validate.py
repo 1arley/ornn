@@ -34,6 +34,12 @@ ROOT = Path(__file__).resolve().parent.parent
 
 SKILLS_DIR = ROOT / "skills"
 REFERENCES_DIR = ROOT / "references"
+PATTERNS_DIR = ROOT / "patterns"
+RECIPES_DIR = ROOT / "recipes"
+COLLECTIONS_DIR = ROOT / "collections"
+COMMANDS_DIR = ROOT / "commands"
+INTEGRATIONS_DIR = ROOT / "integrations"
+DETECTORS_DIR = ROOT / "detectors"
 EVAL_CASES_DIR = ROOT / "evals" / "cases"
 CATALOG = ROOT / "catalog" / "skills.yaml"
 ROUTER = SKILLS_DIR / "meta" / "skill-router" / "SKILL.md"
@@ -330,6 +336,135 @@ def collect_skill_names() -> set[str]:
     for path in find_skills():
         names.add(path.parent.name)
     return names
+
+
+def collect_skill_ids() -> set[str]:
+    return {
+        str(path.parent.relative_to(SKILLS_DIR)).replace(os.sep, "/")
+        for path in find_skills()
+    }
+
+
+def check_library_content() -> list[str]:
+    """Validate portable patterns, recipes, collections, commands and integrations."""
+    from yaml import parse_yaml
+
+    errors: list[str] = []
+    version_catalog = ROOT / "catalog" / "library.json"
+    if not version_catalog.is_file():
+        errors.append("catalog/library.json missing")
+    else:
+        try:
+            version_data = json.loads(version_catalog.read_text(encoding="utf-8"))
+            if not re.match(r"^\d+\.\d+\.\d+$", str(version_data.get("sourceVersion", ""))):
+                errors.append("catalog/library.json: sourceVersion must be semantic x.y.z")
+        except json.JSONDecodeError as exc:
+            errors.append(f"catalog/library.json invalid JSON: {exc}")
+    skill_ids = collect_skill_ids()
+    specs = [
+        ("pattern", PATTERNS_DIR, "pattern.yaml",
+         {"schema_version", "version", "name", "description", "problem",
+          "interaction", "states", "motion", "accessibility", "references",
+          "trade_offs"}),
+        ("recipe", RECIPES_DIR, None,
+         {"schema_version", "version", "name", "description", "skills",
+          "references", "recommended_order", "execution"}),
+        ("collection", COLLECTIONS_DIR, "collection.yaml",
+         {"schema_version", "version", "name", "description", "skills"}),
+        ("command", COMMANDS_DIR, None,
+         {"schema_version", "version", "name", "description"}),
+    ]
+    discovered: dict[str, list[dict]] = {}
+    for kind, directory, filename, required in specs:
+        if not directory.is_dir():
+            errors.append(f"{directory.relative_to(ROOT)}: directory missing")
+            continue
+        paths = sorted(directory.rglob(filename or "*.yaml"))
+        if not paths:
+            errors.append(f"{directory.relative_to(ROOT)}: no {kind} definitions")
+        discovered[kind] = []
+        for path in paths:
+            rel = path.relative_to(ROOT)
+            try:
+                doc = parse_yaml(path.read_text(encoding="utf-8"))
+            except YAMLError as exc:
+                errors.append(f"{rel}: YAML parse error: {exc}")
+                continue
+            if not isinstance(doc, dict):
+                errors.append(f"{rel}: must be a mapping")
+                continue
+            discovered[kind].append(doc)
+            missing = required - set(doc)
+            if missing:
+                errors.append(f"{rel}: missing fields: {', '.join(sorted(missing))}")
+            if str(doc.get("version", "")).count(".") != 2:
+                errors.append(f"{rel}: version must be semantic x.y.z")
+            if kind in {"recipe", "collection"}:
+                values = doc.get("skills", [])
+                if not isinstance(values, list) or not values:
+                    errors.append(f"{rel}: skills must be a non-empty list")
+                else:
+                    unknown = set(map(str, values)) - skill_ids
+                    if unknown:
+                        errors.append(f"{rel}: unknown skill ids: {', '.join(sorted(unknown))}")
+            if kind == "recipe" and doc.get("execution") != "external-agent":
+                errors.append(f"{rel}: recipes must declare execution: external-agent")
+
+    names = {kind: {str(doc.get("name")) for doc in docs}
+             for kind, docs in discovered.items()}
+    for path in sorted(COMMANDS_DIR.glob("*.yaml")):
+        try:
+            doc = parse_yaml(path.read_text(encoding="utf-8"))
+        except YAMLError:
+            continue
+        for field, kind in (("skills", "skill"), ("recipes", "recipe"),
+                            ("collections", "collection"), ("patterns", "pattern")):
+            values = doc.get(field, []) if isinstance(doc, dict) else []
+            if values and not isinstance(values, list):
+                errors.append(f"{path.relative_to(ROOT)}: {field} must be a list")
+            if field == "skills":
+                unknown = set(map(str, values or [])) - skill_ids
+            else:
+                # Command identifiers may use domain/name while canonical YAML name
+                # is intentionally shorter; validate by filesystem suffix too.
+                root = {"recipe": RECIPES_DIR, "collection": COLLECTIONS_DIR,
+                        "pattern": PATTERNS_DIR}[kind]
+                unknown = {str(value) for value in values or [] if not any(
+                    candidate.exists() for candidate in (
+                        root / f"{value}.yaml", root / str(value) / f"{kind}.yaml",
+                        root / str(value) / ("collection.yaml" if kind == "collection" else "pattern.yaml"),
+                    )
+                ) and str(value).split("/")[-1] not in names.get(kind, set())}
+            if unknown:
+                errors.append(f"{path.relative_to(ROOT)}: unknown {field}: {', '.join(sorted(unknown))}")
+
+    for integration in ("generic", "claude", "opencode", "codex", "cursor"):
+        descriptor = INTEGRATIONS_DIR / integration / "integration.json"
+        if not descriptor.is_file():
+            errors.append(f"{descriptor.relative_to(ROOT)} missing")
+            continue
+        try:
+            data = json.loads(descriptor.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            errors.append(f"{descriptor.relative_to(ROOT)} invalid JSON: {exc}")
+            continue
+        for field in ("schemaVersion", "version", "name", "adapter", "format"):
+            if field not in data:
+                errors.append(f"{descriptor.relative_to(ROOT)} missing '{field}'")
+
+    rules = DETECTORS_DIR / "frontend" / "rules.json"
+    runner = DETECTORS_DIR / "run.js"
+    if not rules.is_file() or not runner.is_file():
+        errors.append("detectors: rules.json and run.js are required")
+    else:
+        try:
+            rule_doc = json.loads(rules.read_text(encoding="utf-8"))
+            ids = [rule.get("id") for rule in rule_doc.get("rules", [])]
+            if not ids or len(ids) != len(set(ids)):
+                errors.append("detectors/frontend/rules.json: rules need unique ids")
+        except json.JSONDecodeError as exc:
+            errors.append(f"detectors/frontend/rules.json invalid JSON: {exc}")
+    return errors
 
 
 # ---------------------------------------------------------------------------
@@ -729,6 +864,7 @@ def main() -> int:
     errors.extend(ref_errors)
     warnings.extend(ref_warnings)
     errors.extend(check_catalog())
+    errors.extend(check_library_content())
     errors.extend(check_eval_cases())
     errors.extend(check_finding_fixtures())
     e, w = check_router_integrity()

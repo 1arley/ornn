@@ -1,89 +1,42 @@
 # Architecture
 
-This document describes the system as a whole: how a request becomes a routed set of
-skills, how findings are consolidated, and how the layers stay honest. You should not
-need to read every skill to understand the system.
-
-## Pipeline
+Ornn is a portable knowledge layer, not the agent that executes work.
 
 ```text
-REQUEST
-   ↓
-ROUTING          scripts/router.py over catalog/skills.yaml
-   ↓
-RESEARCH DECISION  research-router / research skills when uncertainty is high
-   ↓
-DESIGN RESEARCH    design-library-research for frontend creation/redesign only
-   ↓
-SKILL EXECUTION   selected skills produce raw findings
-   ↓
-EVIDENCE         mechanism + evidence records (type, description, source, result)
-   ↓
-DEDUP            scripts/findings.py groups by semantic identity
-   ↓
-CONFIDENCE       recomputed from consolidated evidence, never max-vote
-   ↓
-REPORT           templates/audit-report.md, templates/bug-report.md
+KNOWLEDGE    skills + references + patterns + templates + collections
+COMPOSITION  recipes + commands
+TOOLING      CLI + detectors + validators
+ADAPTATION   integrations
+EXECUTION    consuming agent
 ```
 
-## Layers
+`skills/` is the canonical skill source. `scripts/build`/the CLI build command applies
+thin provider adapters and writes `dist/<provider>/`; generated output is never an
+authoring surface. The installer can copy either all skills or a selection resolved
+from a collection, recipe or command.
 
-```text
-skills/      = how to think      (mental model, attack patterns, evidence)
-knowledge/   = what to consider  (reusable concepts, progressive disclosure)
-references/  = where to research (catalog with authority and lifecycle)
-catalog/     = how to route      (single source of truth for relationships)
-evals/       = how to prove      (cases, fixtures, baselines, results)
-scripts/     = how to run        (validator, router, eval, findings, health)
-```
+Legacy routing, eval and findings scripts remain optional deterministic tools. They
+may recommend knowledge or consolidate evidence, but they are not the product
+pipeline and no skill depends on them.
 
-For frontend creation, `design-library-research` sits between routing and
-implementation. It converts product flows and state transitions into a documented
-cross-library decision using `references/frontend.yaml`; post-implementation review
-skills remain independent verifiers.
+`catalog/library.json` versions the canonical library release and declares supported
+change classes. Individual patterns, recipes, collections and integrations also carry
+their own semantic versions; provider manifests record the source release.
 
-## Trust boundaries
+## Boundaries
 
-1. **The catalog is the routing truth.** Triggers, roles, costs, composition and
-   overlap live only in `catalog/skills.yaml`. The router derives its decision from
-   it; the validator rejects drift between catalog, filesystem and frontmatter.
-2. **The skill source is portable.** `SKILL.md` uses the Agent Skills shape
-   (`name`, `description`, `license`, `metadata: aes-*`). Routing lists are not
-   duplicated in the frontmatter.
-3. **Confidence is recomputed, not claimed.** `scripts/findings.py` never inherits
-   the highest confidence a skill declared. It derives confidence from mechanism +
-   evidence records. A `CONFIRMED` label without direct evidence cannot survive
-   consolidation.
-4. **The installer is defensive.** `--force` resolves paths, refuses root/home/
-   target/outside-target destinations, and never deletes outside the skill
-   directory being replaced.
+- A skill teaches investigation and verification without invoking other skills.
+- A pattern describes problem, interaction, states, motion, accessibility, references
+  and trade-offs without prescribing project code.
+- A recipe declaratively recommends a composition; `execution: external-agent` is
+  explicit.
+- A collection is an install/discovery bundle.
+- A command is an intent alias pointing to existing content.
+- A detector emits deterministic evidence; an agent or review interprets it.
+- `PRODUCT.md` and `DESIGN.md` belong to consumer projects, never global Ornn memory.
 
-## Files
+## Compatibility
 
-| Path | Purpose |
-|---|---|
-| `scripts/router.py` | deterministic catalog-driven router (v2) |
-| `scripts/router_v1.py` | frozen manual-table baseline for comparison |
-| `scripts/eval.py` | deterministic eval harness and gates |
-| `scripts/findings.py` | dedup, provenance, confidence recalibration |
-| `scripts/validate.py` | repo contracts: skills, catalog, references, evals |
-| `scripts/check_references.py` | offline lifecycle + optional online health |
-| `scripts/yaml_mini.py` | zero-dependency YAML subset parser |
-| `bin/cli.js` | install/validate/doctor/list/graph/eval |
-| `.github/workflows/ci.yml` | PR gates (validator, evals, CLI tests, pack) |
-
-## Verification loop
-
-Every behavior change must be validated end-to-end:
-
-```bash
-python3 scripts/validate.py
-python3 -m unittest discover -s test -p 'test_*.py'
-node --test test/cli.test.js
-python3 scripts/eval.py route --router v2 --check
-python3 scripts/eval.py findings-fixtures
-npm pack --dry-run
-```
-
-CI runs the same suite on every PR. Routing gates (precision ≥ 90%, recall ≥ 90%,
-critical recall 100%, trivial ≤ 1) block merge.
+Provider destinations and installation manifests retain the v2 format. The
+`ornn-forge` executable, graph/eval commands and routing catalog remain available for
+existing users while the primary UX is `ornn list/search/show/install/init/update`.

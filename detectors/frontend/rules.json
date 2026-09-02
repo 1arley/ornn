@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "version": "1.0.0",
+  "rules": [
+    {"id":"outline-none","severity":"warning","extensions":[".css",".scss",".sass",".less",".jsx",".tsx",".vue",".svelte"],"pattern":"(?:outline\\s*:\\s*none|outline-none)","message":"Focus outline is removed; verify an equally visible replacement."},
+    {"id":"missing-alt","severity":"warning","extensions":[".html",".jsx",".tsx",".vue",".svelte"],"pattern":"<img\\b(?![^>]*\\balt\\s*=)[^>]*>","message":"Image element has no alt attribute."},
+    {"id":"suspicious-array-index-key","severity":"info","extensions":[".jsx",".tsx"],"pattern":"key\\s*=\\s*\\{\\s*(?:index|i)\\s*\\}","message":"Array index key may break identity when items reorder."},
+    {"id":"unsafe-animation","severity":"warning","extensions":[".css",".scss",".sass",".less"],"pattern":"animation\\s*:\\s*[^;]*(?:infinite|\\binfinite\\b)","message":"Infinite animation needs purpose, pause behavior and reduced-motion handling."},
+    {"id":"missing-loading-feedback","severity":"info","extensions":[".jsx",".tsx",".vue",".svelte"],"pattern":"await\\s+[^;]+;", "message":"Async interaction found; verify pending, success and error feedback contextually."}
+  ]
+}

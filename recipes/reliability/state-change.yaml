@@ -1,0 +1,18 @@
+schema_version: 1
+version: 1.0.0
+name: reliable-state-change
+description: Review a high-value state transition for repeat, retry and concurrency failures.
+skills:
+  - reliability/idempotency-audit
+  - reliability/race-condition-hunter
+  - reliability/data-integrity-audit
+  - audit/error-flow-audit
+references:
+  - engineering
+recommended_order:
+  - idempotency-audit
+  - race-condition-hunter
+  - data-integrity-audit
+  - error-flow-audit
+execution: external-agent
+

@@ -1,0 +1,7 @@
+schema_version: 1
+version: 1.0.0
+name: research
+description: Discover source-selection and comparative research knowledge.
+collections:
+  - research
+

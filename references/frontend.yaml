@@ -260,7 +260,7 @@
   url: https://paceui.com/
   type: implementation
   category: frontend
-  authority: community
+  authority: vendor
   last_verified: 2026-09-01
   status: active
   use_when:
@@ -270,6 +270,7 @@
   avoid_when:
     - treating it as an npm component library rather than copied source code
     - needing framework-agnostic (beyond supported) primitives
+    - assuming every block is free or redistributable without checking its current license and plan
   search_queries:
     - "pace ui components"
     - "pace ui library"

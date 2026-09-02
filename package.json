@@ -1,20 +1,29 @@
 {
   "name": "ornn-forge",
   "version": "1.3.0",
-  "description": "Modular skills that teach AI agents to audit systems, find bugs, review UX/frontend, and research before reinventing. npx ornn-forge install",
+  "description": "Portable skill library, knowledge base and deterministic tooling for AI coding agents.",
   "license": "MIT",
   "type": "module",
   "bin": {
+    "ornn": "./bin/cli.js",
     "ornn-forge": "./bin/cli.js"
   },
   "files": [
     "bin/",
     "skills/",
+    "patterns/",
+    "recipes/",
+    "collections/",
+    "commands/",
+    "integrations/",
+    "detectors/",
+    "dist/",
     "references/",
     "templates/",
     "examples/",
     "docs/",
-    "scripts/",
+    "scripts/*.py",
+    "scripts/build/",
     "catalog/",
     "evals/",
     "src/",
@@ -26,9 +35,11 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node --test test/prompts.test.js test/cli.test.js test/universal-installer.test.js && python3 -m unittest discover -s test -p 'test_*.py'",
+    "test": "node --test test/prompts.test.js test/cli.test.js test/universal-installer.test.js test/library.test.js && python3 -m unittest discover -s test -p 'test_*.py'",
     "validate": "python3 scripts/validate.py",
-    "eval": "python3 scripts/eval.py route --router v2 --check"
+    "eval": "python3 scripts/eval.py route --router v2 --check",
+    "build": "node bin/cli.js build",
+    "detect": "node detectors/run.js"
   },
   "keywords": [
     "agent-skills",

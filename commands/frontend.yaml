@@ -1,0 +1,11 @@
+schema_version: 1
+version: 1.0.0
+name: frontend
+description: Discover frontend research, patterns and review knowledge.
+collections:
+  - frontend-craft
+patterns:
+  - frontend/animated-tabs
+  - frontend/interactive-card
+  - frontend/page-transition
+

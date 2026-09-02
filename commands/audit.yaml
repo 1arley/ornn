@@ -1,0 +1,8 @@
+schema_version: 1
+version: 1.0.0
+name: audit
+description: Discover broad review knowledge; choose domain-specific lenses proportionally.
+skills:
+  - meta/skill-router
+  - audit/adversarial-review
+

@@ -18,8 +18,7 @@
 | Surface | Screen | Purpose | Trigger | States | Keyboard / focus / reduced motion |
 |---|---|---|---|---|---|
 
-## Mesa Redonda coverage (when applicable)
+## Coverage notes
 
-Cover Home/Feed, Story, Profile, Notifications, Navigation, Search, Filters,
-Comments, Replies, Bookmarks, Reactions, Dialogs, loading/empty/error/success and
-mobile navigation, plus every flow required by `design-library-research` Phase 1.
+List the product-specific screens and flows that establish completeness. Do not encode
+consumer product details into reusable Ornn templates.

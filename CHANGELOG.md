@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased — portable knowledge architecture
+
+### Added
+
+- Canonical patterns, recipes, collections, intent commands and version catalog.
+- Generic, Claude, OpenCode, Codex and Cursor source-to-dist builds.
+- Cross-type `list`, `search`, `show`, collection-aware install, `init`, `build`,
+  `pin` and deterministic `detect` CLI capabilities.
+- Optional `PRODUCT.md` and `DESIGN.md` project-context conventions.
+- Deterministic frontend detectors and cross-layer validators.
+
+### Changed
+
+- Ornn is defined as a portable skill/knowledge library; execution belongs to the
+  consuming agent.
+- Skill and research routers are optional selection methodologies.
+- Provider installation remains compatible while collections constrain managed
+  skill sets and updates preserve the original selection.
+- Frontend references, including Eldora UI and Pace UI, were reverified.
+
 All notable changes to this project are documented here.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) — Added, Changed, Fixed,

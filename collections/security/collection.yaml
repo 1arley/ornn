@@ -1,0 +1,10 @@
+schema_version: 1
+version: 1.0.0
+name: security
+description: Server-side trust, authorization and abuse auditing skills.
+skills:
+  - security/security-audit
+  - security/authorization-audit
+  - security/input-trust-audit
+  - security/api-abuse-audit
+

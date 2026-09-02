@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "sourceVersion": "1.0.0",
+  "versioning": "library-release",
+  "content": ["skills", "references", "patterns", "recipes", "collections", "integrations"],
+  "changeTypes": ["added", "changed", "deprecated", "removed"]
+}

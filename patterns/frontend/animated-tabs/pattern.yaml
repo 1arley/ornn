@@ -1,0 +1,32 @@
+schema_version: 1
+version: 1.0.0
+name: animated-tabs
+description: Preserve context while switching between related views.
+problem: Switching between related content while preserving context and orientation.
+interaction: Selection changes the active tab and its associated panel.
+states:
+  - default
+  - hover
+  - focus
+  - pressed
+  - selected
+  - entering
+  - exiting
+motion:
+  - active-indicator
+  - directional-transition
+  - continuity
+accessibility:
+  - arrow-key-navigation
+  - visible-focus
+  - selected-state-semantics
+  - reduced-motion
+references:
+  - Animate UI
+  - Motion
+  - Aceternity UI
+  - Headless UI
+trade_offs:
+  - Directional motion improves orientation but adds interruption and state coordination.
+  - A headless primitive improves semantics but requires visual and motion composition.
+
