@@ -58,6 +58,38 @@ Deprecated, Removed, Security.
 - Data-driven destination profiles in `catalog/providers.json` (Claude Code,
   Codex, OpenCode, Cursor, Gemini CLI); adding an agent is a catalog entry, not
   a code change.
+
+- `/ornn` Gateway skill (`skills/meta/ornn/SKILL.md`): single public semantic
+  interface — interprets natural language, selects minimum relevant knowledge,
+  hands execution to the consuming agent.
+- `src/library/gateway.js`: `planKnowledge()` + `loadKnowledgePlan()` pipeline
+  with intent normalization, deterministic router, shortcut/pin resolution, and
+  lazy loading.
+- `ornn discover <request> [--debug]` CLI command to preview the Gateway's
+  Knowledge Plan.
+- `.ornn/` project context layer: `context.md`, `project.md`, `preferences.md`,
+  `pins.yaml` — optional routing signals, never canonical knowledge.
+- Pin system: declarative shortcuts (include/exclude) over the normal routing
+  pipeline, sharing the same normalization, selection and lazy-loading stages.
+- Portuguese and natural-language intent aliases. The Gateway normalizes
+  `refatore`, `segurança`, `acessibilidade`, `otimize`, `backend`, `api`, etc.
+- `catalog/skills.yaml` entry for `ornn` (meta/router, high priority, stable).
+- Validator extended: `ornn` added to `PLAN_SKILLS`.
+- Every distribution (generic, claude, opencode, codex, cursor) includes the
+  ornn Gateway skill.
+
+### Changed
+
+- CLI help text updated: `/ornn <what you want to accomplish>` as primary
+  user interface.
+- Resolver (`src/library/catalog.js`): distinguishes ambiguous identifiers
+  like `command:security` vs `collection:security` by prefix scoping.
+- `resolveSkillSelection` prefixes children (`skill:`, `recipe:`,
+  `collection:`) to avoid cross-type ambiguity.
+- Documentation rewritten: `docs/architecture.md`, `docs/routing.md`,
+  `docs/commands.md`, `docs/getting-started.md`, `docs/agent-integration.md`,
+  `docs/project-context.md` all reflect Gateway-first design.
+- `README.md` updated: `/ornn` examples, `discover` command, `.ornn/` context.
 - Isolated adapters in `src/installer/adapters/` (`identity`, `claude`),
   referenced by name from the catalog with validation against unknown adapters.
 - Interactive flow shows evidence per destination (`configured` / `command

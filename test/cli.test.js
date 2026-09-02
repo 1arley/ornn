@@ -29,6 +29,17 @@ test("--help lists install, doctor, list, graph and eval", () => {
   for (const word of ["install", "doctor", "list", "graph", "eval", "validate"]) {
     assert.ok(r.stdout.includes(word), `help should mention ${word}`);
   }
+  assert.match(r.stdout, /\/ornn <what you want to accomplish>/);
+});
+
+test("discover previews the gateway plan and debug observability", () => {
+  const r = run(["discover", "revise a segurança dessa API", "--debug"]);
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.stdout, /Intent:/);
+  assert.match(r.stdout, /Selected:.*security/);
+  assert.match(r.stdout, /Candidates:/);
+  assert.match(r.stdout, /Loaded by plan:/);
+  assert.match(r.stdout, /Execution: consuming agent/);
 });
 
 test("install --dry-run makes no filesystem changes", () => {

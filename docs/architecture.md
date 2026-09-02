@@ -4,6 +4,7 @@ Ornn is a portable knowledge layer, not the agent that executes work.
 
 ```text
 KNOWLEDGE    skills + references + patterns + templates + collections
+DISCOVERY    ornn Gateway + catalog + internal router + resolver
 COMPOSITION  recipes + commands
 TOOLING      CLI + detectors + validators
 ADAPTATION   integrations
@@ -18,6 +19,17 @@ from a collection, recipe or command.
 Legacy routing, eval and findings scripts remain optional deterministic tools. They
 may recommend knowledge or consolidate evidence, but they are not the product
 pipeline and no skill depends on them.
+
+The public Gateway is a thin layer over that existing infrastructure:
+
+```text
+/ornn request → intent normalization → catalog/router → Knowledge Plan
+              → selected files only → consuming agent executes
+```
+
+`planKnowledge()` is metadata-first and `loadKnowledgePlan()` is the explicit lazy
+loading boundary. This separation prevents routing from requiring the entire library
+in context and leaves future semantic ranking as an optional layer, not a dependency.
 
 `catalog/library.json` versions the canonical library release and declares supported
 change classes. Individual patterns, recipes, collections and integrations also carry

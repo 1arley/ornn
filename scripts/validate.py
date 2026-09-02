@@ -86,7 +86,7 @@ PLAN_SKILLS = {
     "reference-research", "github-reference-research", "market-research",
     "implementation-research",
     # meta
-    "skill-router", "research-router",
+    "ornn", "skill-router", "research-router",
 }
 
 REQUIRED_FRONTMATTER = ["name", "description", "category", "triggers", "priority"]

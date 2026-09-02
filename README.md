@@ -1,18 +1,15 @@
 # Ornn
 
-> Portable knowledge for AI coding agents. Skills teach how to think, references show
-> where to look, patterns transfer solutions, recipes suggest compositions, and
-> detectors emit deterministic signals.
+> **Install Ornn, then tell your agent what you want with `/ornn`.**
 
 [![npm version](https://img.shields.io/npm/v/ornn-forge.svg?label=npm)](https://www.npmjs.com/package/ornn-forge)
 [![CI](https://img.shields.io/github/actions/workflow/status/1arley/ornn/ci.yml?branch=main&label=CI)](https://github.com/1arley/ornn/actions/workflows/ci.yml)
 [![License](https://img.shields.io/npm/l/ornn-forge.svg)](LICENSE)
 [![Node](https://img.shields.io/node/v/ornn-forge)](https://nodejs.org)
 
-Ornn is a vendor-neutral knowledge library that makes coding agents better at
-engineering, frontend, UX, security, reliability, product and research. Content is
-portable Agent Skills source, installable into Claude Code, OpenCode, Codex, Cursor,
-Gemini CLI or a generic `.agents/skills` directory.
+`/ornn` is the universal discovery gateway. It interprets intent, selects and lazily
+loads a compact set of canonical knowledge, then hands control back to the consuming
+agent. Ornn is not an autonomous coder, workflow engine or mandatory orchestrator.
 
 The consuming agent executes the work. Ornn provides the knowledge. It is not an
 autonomous coder, a workflow engine or a mandatory orchestrator — there is no runtime
@@ -38,12 +35,31 @@ dependencies.
 
 ```bash
 npm install -g ornn-forge
+ornn init
+ornn install --providers claude,codex,opencode
+```
+
+Then, in the installed agent:
+
+```text
+/ornn review the security of this endpoint
+/ornn improve the accessibility of this interface
+/ornn refactor this backend
 ```
 
 Or run it on the spot with `npx ornn-forge ...`. Content can also be copied straight
 from `skills/` without the CLI.
 
 ## Quick start
+
+The normal user interface is `/ornn <request>`. Developers can preview its plan:
+
+```bash
+ornn discover "review the security of this API"
+ornn discover "review the security of this API" --debug
+```
+
+Catalog inspection remains available for maintainers and advanced users:
 
 ```bash
 ornn init                                            # detect providers, suggest collections
@@ -84,9 +100,9 @@ Detector output is evidence for review, never an automatic verdict.
 
 ## Project context
 
-Consumer projects may keep durable product facts in `PRODUCT.md` and design decisions
-in `DESIGN.md`. Ornn recognizes them when present and adapts to them, but never copies
-project-specific content into its global library.
+Projects may keep durable facts in `PRODUCT.md` and design decisions in `DESIGN.md`,
+plus optional routing context and pins under `.ornn/`. Ornn recognizes them when
+present but never stores project-specific memory globally.
 See [project context](docs/project-context.md).
 
 ## Documentation

@@ -19,6 +19,26 @@
 #             the skill becomes relevant (matches the skill-budget risk scale).
 # Lifecycle:  experimental | stable | deprecated
 
+- name: ornn
+  category: meta
+  role: router
+  priority: high
+  risk_floor: trivial
+  triggers:
+    - "use ornn for a task"
+    - "discover knowledge for this request"
+    - "ornn gateway"
+  requires_signals:
+    - routing-decision
+  composes_with:
+    - skill-router
+    - research-router
+  overlaps_with:
+    - skill-router
+  reasoning_cost: low
+  research_cost: low
+  lifecycle: stable
+
 - name: adversarial-review
   category: audit
   role: generator

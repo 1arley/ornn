@@ -58,6 +58,7 @@ import { resolveProjectRoot, resolveManifestRoot } from "../src/installer/paths.
 import { findSkillDirs, installTo, planInstall } from "../src/installer/install.js";
 import { loadLibrary, resolveItem, resolveSkillSelection, searchLibrary, sourceSkills } from "../src/library/catalog.js";
 import { buildDistributions } from "../src/library/build.js";
+import { planKnowledge } from "../src/library/gateway.js";
 
 import { promptMultiSelect, promptSelect, promptConfirm, promptLine } from "../src/installer/prompts.js";
 
@@ -74,11 +75,13 @@ function err(msg) { try { process.stderr.write(msg + "\n"); } catch {} }
 
 const HELP = `ornn v${PKG.version}
 
-Portable skills, references, patterns and recipes for AI coding agents.
+Portable knowledge discovery for AI coding agents. After installation, use:
+  /ornn <what you want to accomplish>
 
 Usage:
   ornn list [type]                  List library content
   ornn search <query>               Search all canonical knowledge
+  ornn discover <request>           Preview the /ornn knowledge plan
   ornn show <name>                  Show metadata and canonical content
   ornn install [item ...]           Install all skills or selected collections
   ornn init                         Detect providers and suggest collections
@@ -530,6 +533,23 @@ function runShow(opts) {
   process.stdout.write(item.content.endsWith("\n") ? item.content : item.content + "\n");
 }
 
+function runDiscover(opts, projectRoot) {
+  const request = opts.positionals.join(" ").trim();
+  if (!request) { err("Usage: ornn discover <request> [--debug] [--json]"); process.exitCode = 1; return; }
+  const plan = planKnowledge(ROOT, request, { projectRoot });
+  if (opts.json) { log(JSON.stringify(opts.debug ? plan : { intent: plan.intent, knowledge: plan.knowledge, strategy: plan.strategy, project: plan.project }, null, 2)); return; }
+  log(`Intent: ${plan.intent.task}`);
+  log(`Selected: ${[...plan.knowledge.primary, ...plan.knowledge.supporting].join(", ") || "none"}`);
+  log(`References: ${plan.knowledge.references.join(", ") || "none"}`);
+  log("Execution: consuming agent");
+  if (opts.debug) {
+    log("\nCandidates:");
+    for (const candidate of plan.debug.candidates) log(`  ${candidate.name.padEnd(28)} ${candidate.score.toFixed(3)}  ${(candidate.reasons || []).join("; ")}`);
+    log("\nLoaded by plan:");
+    for (const artifact of plan.artifacts) log(`  ${artifact.type}:${artifact.id} → ${artifact.path}`);
+  }
+}
+
 function runBuild(opts) {
   const providers = opts.providersExplicit ? opts.providers.split(",").map((value) => value.trim()).filter(Boolean) : undefined;
   for (const row of buildDistributions(ROOT, { providers })) log(`Built ${row.provider}: ${row.skills} skills → ${row.path}`);
@@ -629,6 +649,7 @@ function parseArgs(argv) {
     destination: null,
     out: null,
     json: false,
+    debug: false,
     positionals: [],
   };
   for (let i = 0; i < argv.length; i++) {
@@ -651,6 +672,7 @@ function parseArgs(argv) {
     else if (a === "--target") { opts.legacyTarget = resolve(argv[++i] || ""); }
     else if (a === "--out") { opts.out = argv[++i] || null; }
     else if (a === "--json") { opts.json = true; }
+    else if (a === "--debug") { opts.debug = true; }
     else if (a.startsWith("-")) { err(`Unknown option: ${a}\n`); log(HELP); process.exitCode = 1; return null; }
     else if (!opts.command) { opts.command = a; }
     else { opts.positionals.push(a); }
@@ -687,6 +709,7 @@ async function main() {
     }
     case "init": await runInit(opts, projectRoot); break;
     case "search": runSearch(opts); break;
+    case "discover": runDiscover(opts, projectRoot); break;
     case "show": runShow(opts); break;
     case "build": runBuild(opts); break;
     case "detect": runDetect(opts); break;
