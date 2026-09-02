@@ -1,6 +1,6 @@
 {
   "name": "ornn-forge",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Portable skill library, knowledge base and deterministic tooling for AI coding agents.",
   "license": "MIT",
   "type": "module",
