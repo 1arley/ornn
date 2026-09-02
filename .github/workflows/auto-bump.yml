@@ -74,6 +74,6 @@ jobs:
 
       - name: Trigger release workflow
         if: steps.bump.outputs.type != 'none'
-        run: gh workflow run release.yml --ref "v${NEW_VER}"
+        run: gh workflow run release.yml --ref "v${NEW_VERSION}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
