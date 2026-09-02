@@ -69,4 +69,4 @@ jobs:
           git add package.json
           git commit -m "chore(release): v${NEW_VER} [skip ci]"
           git tag "v${NEW_VER}"
-          git push origin main --follow-tags
+          git push origin main "v${NEW_VER}"
