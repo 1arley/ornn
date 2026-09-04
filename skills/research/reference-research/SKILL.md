@@ -1,6 +1,6 @@
 ---
 name: reference-research
-description: Discovers which external sources from the references catalog (methodology, heuristic, inspiration, implementation, discovery) are relevant to the current task and synthesizes findings into actionable patterns, not just a link list.
+description: Selects relevant sources from the references catalog by knowledge type, authority, use and avoidance conditions, then synthesizes verified patterns instead of returning links.
 license: MIT
 metadata:
     aes-category: research
@@ -11,172 +11,98 @@ metadata:
 
 ## Objective
 
-Ensinar o agente a **consultar o catálogo centralizado de referências** (`references/`)
-para descobrir quais fontes externas são relevantes para a tarefa, e a sintetizar o que
-encontrou em um formato acionável, nunca apenas uma lista de links.
+Use Ornn's centralized reference catalog to select, verify, and synthesize the smallest sufficient set of external sources for a task.
 
 ## When to Use
 
-* No início de qualquer tarefa não-trivial que se beneficiaria de saber como outros
-  resolveram o mesmo problema.
-* Quando o `research-router` despacha para o catálogo de referências.
-* Quando o `skill-router` indica que pesquisa é necessária (tarefas de arquitetura,
-  UX, animação, segurança).
-* **Composição:** a skill de entrada de pesquisa. Ativa o `research-router` e alimenta
-  `github-reference-research`, `market-research`, e `implementation-research`. Skills
-  de frontend/UX/engenharia referenciam fontes que esta skill consulta.
+Use this skill when the task needs external methodology, heuristics, inspiration, implementation references, or discovery and the catalog can guide source selection. It is especially useful across domains or when source type and authority need explicit control.
+
+Do not invoke it automatically for every non-trivial task or for facts already established by local code and documentation. It selects and interprets cataloged sources; `implementation-research` owns a concrete technical decision, `github-reference-research` owns repository-level mechanism comparison, and `market-research` owns observable product behavior. Compose only when those additional lenses answer a distinct unresolved question.
 
 ## Mental Model
 
-O catálogo em `references/*.yaml` é a primeira fonte de pesquisa. A pergunta é:
-
-> "Alguém já resolveu este problema?"
-
-E a resposta é uma busca no catálogo por `use_when` que corresponde ao problema, por
-`type` que corresponde ao tipo de conhecimento necessário (metodologia vs inspiração),
-e por `authority` que corresponde ao peso que a fonte deve ter.
-
-Classes de conhecimento (do `plan.md` §12 e `docs/reference-authoring.md`):
+The catalog is an index, not evidence by itself:
 
 ```text
-methodology    — frameworks estruturados (Laws of UX, OWASP, Reforge)
-heuristic      — princípios aplicáveis (Impeccable, Interfaces)
-inspiration    — referência visual, não prescritiva (Dribbble, dark.design)
-implementation — padrões de código concretos (Animate UI, GitHub)
-discovery      — ferramentas para achar mais fontes (LazyWeb, Shoogle)
+task question -> knowledge needed -> catalog candidates
+    -> use_when/avoid_when + type + authority
+    -> inspect primary content -> extract claim/pattern
+    -> corroborate as risk requires -> adapt or reject
 ```
 
-O `type` da fonte determina **como usar** o que ela oferece: metodologias são
-referenciadas como fundamento, inspiração só calibra gosto, implementações são
-referências de código (não para copiar cegamente — ver `AGENTS.md` § 1).
+Treat `type` as a usage constraint: methodology structures work, heuristics guide judgment, inspiration broadens options, implementation reveals mechanisms, and discovery finds candidates. Treat `authority` as a prior, not a guarantee. Authority depends on the claim: official documentation may define an API, while direct product observation best supports current behavior. URLs belong in `references/`, not in this skill.
 
 ## Investigation Procedure
 
-1. **Entender o problema** — qual domínio, qual tipo de conhecimento falta.
-2. **Consultar o catálogo** — ler os `references/*.yaml` relevantes para o domínio.
-   Para cada candidato, comparar `use_when` e `avoid_when` com o problema.
-3. **Selecionar as fontes** mais relevantes — priorizar pelo `authority`
-   (established > vendor > community > curated).
-4. **Visitar/acessar cada fonte** — ler o conteúdo relevante para o problema.
-5. **Extrair padrões, princípios, decisões, trade-offs** — nunca copiar código,
-   layout, branding, conteúdo, ou componentes proprietários (ver `AGENTS.md` § 1).
-6. **Sintetizar** no formato obrigatório (ver §17 do `plan.md` e "Output Format"
-   abaixo) — nunca apenas uma lista de links.
-7. **Fornecer recomendação** — o que deve ser adotado, adaptado, ou ignorado.
+1. State the decision or knowledge gap and the consequence of being wrong.
+2. Decide the minimum research depth: none for a reversible known task, one authoritative source for a narrow stable fact, or corroborated research for uncertain/high-impact decisions.
+3. Inspect only relevant `references/*.yaml` files and filter candidates by `use_when`, `avoid_when`, `type`, category, and authority.
+4. Select sources that answer different necessary claims; do not collect redundant sources for appearance of rigor.
+5. Open the relevant primary content. Record version/date, scope, and what was actually inspected.
+6. Extract claims, mechanisms, constraints, and trade-offs. Distinguish observation, source assertion, and your inference.
+7. Seek independent corroboration or contradictory evidence when impact, uncertainty, novelty, or irreversibility warrants it.
+8. Compare findings with current project constraints and state what transfers, what needs adaptation, and what does not apply.
+9. Stop when additional research is unlikely to change the decision; identify residual uncertainty.
 
 ## Questions to Ask
 
-* Qual domínio do problema? (ux/frontend/engineering/security/product/research)
-* Que tipo de conhecimento é necessário? (metodologia/heurística/inspiração/
-  implementação/descoberta)
-* Quais fontes no catálogo têm `use_when` correspondente?
-* Qual a autoridade de cada fonte? (established > community > curated)
-* A fonte oferece metodologia, princípio, código, ou inspiração?
-* O que é extraível sem copiar? (princípio, padrão, trade-off, decisão)
-* Como a fonte se aplica a este contexto específico?
-* Que problemas ela introduziria? (trade-offs)
-* Devo buscar mais fontes? (se necessário, despachar para `discovery` type)
+* What exact decision will this research inform?
+* What evidence class can answer it: specification, methodology, implementation, observation, evaluation, or inspiration?
+* Which catalog entries match both `use_when` and current context, and which `avoid_when` exclusions apply?
+* Is the source primary for the claim, current for the relevant version, and independent of other sources?
+* What content was inspected rather than inferred from the catalog description?
+* Do sources disagree, and can context or version explain the conflict?
+* What project constraint changes the applicability of the pattern?
+* Would another source plausibly change the recommendation enough to justify its cost?
 
 ## Attack Patterns
 
-A skill de research não "ataca" o sistema, mas os padrões de investigação são as
-perguntas de despacho:
-
 ```text
-problema não-trivial
-    ↓
-consultar catálogo (references/*.yaml do domínio)
-    ↓
-cruzar use_when × problema → selecionar fontes
-    ↓
-visitar fontes selecionadas
-    ↓
-extrair padrão/princípio/trade-off (não copiar)
-    ↓
-sintetizar (nunca lista de links)
-    ↓
-recomendar
+catalog authority laundering
+    catalog labels source established -> source does not support the claim
+    -> reject the claim or find direct evidence
 
-fontes insuficientes no catálogo
-    ↓
-despachar para discovery (LazyWeb, Shoogle, Hacker News)
-    ↓
-nova busca no catálogo (ou github/market/implementation-research)
+type confusion
+    inspiration screenshot -> technical or usability conclusion
+    -> downgrade; obtain behavioral or methodological evidence
+
+confirmation-only search
+    select sources supporting the initial preference
+    -> search for alternatives, limitations, and counterexamples
+
+version drift
+    source applies to version N; project uses N+3
+    -> verify current behavior and record the mismatch
+
+link accumulation
+    many URLs, no extracted claims or decision change
+    -> consolidate by pattern and stop redundant collection
+
+catalog gap
+    no entry answers the question
+    -> use a discovery source or hand off to the appropriate research specialist
 ```
 
 ## Evidence Requirements
 
-* **Nomear a fonte e seu `type`/`authority`** — para que o leitor saiba o peso.
-* **Mostrar o padrão extraído** — não só o link, mas o que a fonte diz.
-* **Explicitar a adaptação** — não é "copie isto", é "aplique assim".
-* **Escalar confiança (Research):**
-  * `CONFIRMED` — padrão replicável e verificado em fonte de alta autoridade.
-  * `HIGH CONFIDENCE` — padrão claro de fonte de autoridade média-alta.
-  * `POSSIBLE` — padrão sugestivo, fonte de autoridade baixa.
-  * `SPECULATIVE` — especulação sobre o que a fonte pode oferecer sem ter lido.
+For every material claim, name the source, catalog type/authority, direct location, relevant version/date, and inspected content. State whether the claim is quoted/paraphrased observation or inference, and connect it to a project constraint. Use `CONFIRMED` only when the claim was directly verified in suitable primary evidence; `HIGH CONFIDENCE` for strong corroborated evidence with limited uncertainty; `POSSIBLE` when applicability or verification is incomplete; `SPECULATIVE` for unverified hypotheses that cannot block work. Source count alone never raises confidence.
 
 ## False Positives
 
-* **Fonte no catálogo mas irrelevante** — o `use_when` não corresponde à tarefa.
-  Não citar fontes irrelevantes só para mostrar cobertura.
-* **Inspiração tratada como evidência** — Dribbble é inspiração, não metodologia.
-  Não usar para justificar decisão técnica. Ver `AGENTS.md` § 1.
-* **Fonte de baixa autoridade citada como verdade** — community/curated são úteis
-  mas não substituem established/vendor para decisões críticas.
-* **Cópia em vez de adaptação** — extrair código pronto sem contexto ou adaptação
-  viola o princípio do repositório. Ver `AGENTS.md` § 1.
-* **Pesquisa excessiva para tarefa trivial** — um botão simples não precisa de
-  referências. Ver `AGENTS.md` § 6 (proporcionalidade).
+Catalog inclusion does not make a source relevant or correct. High authority in one domain does not transfer to unrelated claims. Vendor material may be definitive about its API but biased in product comparisons. Community implementation may be useful despite low formal authority when code directly proves a mechanism. Convergent sources may share one upstream claim and are not independent corroboration. Inspiration is valid for option generation but not proof. Do not research beyond what the decision's risk justifies, and do not treat inability to access a source as negative evidence.
 
 ## Output Format
 
-Nunca retornar apenas uma lista de links. Usar o formato de síntese do `plan.md` §17:
+Never return a link dump. Organize synthesis by decision-relevant pattern, consolidating sources that support the same claim:
 
 ```markdown
-## Research
-
-### Reference
-[Name]
-
-### Relevant Pattern
-O que foi encontrado.
-
-### Why It Matters
-Por que este padrão é útil.
-
-### Adaptation
-Como ele poderia se aplicar ao projeto atual.
-
-### Trade-offs
-Que problemas ele introduz.
-
-### Recommendation
-O que deve de fato ser adotado.
+### Pattern or finding
+**Evidence:** <source, type/authority, version/date, direct support>
+**Relevance:** <why it matters to the current decision>
+**Adaptation:** <what must change for this project>
+**Trade-offs / contrary evidence:** <limits and alternatives>
+**Confidence:** <level and unresolved uncertainty>
+**Recommendation:** <adopt, test, defer, or reject; with next action>
 ```
 
-Para cada fonte consultada, produza um bloco de síntese. Se múltiplas fontes dão a
-mesma recomendação, consolide em um bloco e cite as fontes.
-
-### Evidence Requirements
-
-* **Nomear a fonte e seu `type`/`authority`** — para que o leitor saiba o peso.
-* **Mostrar o padrão extraído** — não só o link, mas o que a fonte diz.
-* **Explicitar a adaptação** — não é "copie isto", é "aplique assim".
-* **Escalar confiança (Research):**
-  * `CONFIRMED` — padrão replicável e verificado em fonte de alta autoridade.
-  * `HIGH CONFIDENCE` — padrão claro de fonte de autoridade média-alta.
-  * `POSSIBLE` — padrão sugestivo, fonte de autoridade baixa.
-  * `SPECULATIVE` — especulação sobre o que a fonte pode oferecer sem ter lido.
-
-### False Positives
-
-* **Fonte no catálogo mas irrelevante** — o `use_when` não corresponde à tarefa.
-  Não citar fontes irrelevantes só para mostrar cobertura.
-* **Inspiração tratada como evidência** — Dribbble é inspiração, não metodologia.
-  Não usar para justificar decisão técnica. Ver `AGENTS.md` § 1.
-* **Fonte de baixa autoridade citada como verdade** — community/curated são úteis
-  mas não substituem established/vendor para decisões críticas.
-* **Cópia em vez de adaptação** — extrair código pronto sem contexto ou adaptação
-  viola o princípio do repositório. Ver `AGENTS.md` § 1.
-* **Pesquisa excessiva para tarefa trivial** — um botão simples não precisa de
-  referências. Ver `AGENTS.md` § 6 (proporcionalidade).
+End with sources considered but excluded and the reason, plus the research stopping condition. Put any newly proposed permanent URL in the appropriate reference catalog through its separate authoring workflow, not inline in the skill.

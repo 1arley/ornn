@@ -12,126 +12,106 @@ metadata:
 
 ## Objective
 
-Ser a única interface pública semântica do Ornn: receba `/ornn <tarefa>`, descubra
-o menor conjunto suficiente de conhecimento e entregue esse contexto ao agente
-consumidor. O Gateway não executa a tarefa, não controla ferramentas e não é runtime.
+Serve as Ornn's public semantic entry point: turn an explicit Ornn request into a small, traceable knowledge plan, load only the selected artifacts, and return control to the consuming agent for execution.
 
 ## When to Use
 
-Use quando o usuário invocar `/ornn`, com linguagem natural ou shortcut. O usuário
-não precisa conhecer skills, recipes, references, catálogo, resolver ou routers.
-Pedidos triviais podem resultar em zero skills; pedidos compostos podem selecionar
-mais de uma. Subcomandos e pins são sinais fortes para este mesmo pipeline, nunca um
-sistema paralelo.
+Use when the user explicitly invokes Ornn, such as `/ornn <task>`, or calls the installed `ornn` gateway skill. Natural-language shortcuts, commands, and project pins enter the same discovery path. A trivial request may select no specialist skill.
+
+Do not make the gateway a mandatory prelude to ordinary tasks, an agent runtime, or a second source of routing rules. In the default distribution profile this is the only public skill and specialist skills are private reference modules; the `full` profile preserves direct specialist installation.
 
 ## Mental Model
 
+Keep discovery separate from execution:
+
 ```text
-request + project context
-        ↓
-normalize intent (metadata only)
-        ↓
-catalog → internal skill-router → resolver
-        ↓
-Knowledge Plan
-        ↓
-load only selected files
-        ↓
-consuming agent reasons and executes
+request + bounded project signals
+        → normalize intent
+        → rank catalog metadata
+        → resolve explicit selections
+        → Knowledge Plan
+        → lazy-load selected artifacts
+        → consuming agent decides and executes
 ```
 
-Conhecimento canônico vive no Ornn. Contexto específico vive em `PRODUCT.md`,
-`DESIGN.md` ou `.ornn/`. Não copie contexto do projeto para a biblioteca.
+The catalog is the cross-skill source of truth. `skill-router` explains selection policy; `research-router` explains source selection after external knowledge is justified. Recipes compose skills and collections package them; neither executes work. Project context may influence ranking but must not modify canonical Ornn knowledge.
 
 ## Investigation Procedure
 
-1. Remova o prefixo `/ornn` e preserve a solicitação original.
-2. Leia apenas metadata do catálogo e, quando existirem, sinais de `PRODUCT.md`,
-   `DESIGN.md`, `.ornn/context.md`, `.ornn/project.md`, `.ornn/preferences.md` e
-   `.ornn/pins.yaml`.
-3. Normalize shortcut, pin e linguagem natural numa única intenção.
-4. Use `reference/catalog/skills.yaml` (em uma instalação gateway) ou
-   `catalog/skills.yaml` (no repositório) e o `skill-router` interno para rankear por triggers,
-   required signals, prioridade, risco, custo, composição e overlap.
-5. Resolva commands, collections e recipes pelo resolver existente; trate-os como
-   composição declarativa, não execução.
-6. Construa um Knowledge Plan com primary, supporting, references, load e avoid.
-7. Só então leia os módulos em `reference/modules/<domínio>/<nome>.md` (ou os
-   `SKILL.md` canônicos no repositório), recipes, knowledge e catálogos listados.
-8. Componha um contexto compacto, removendo orientação redundante.
-9. Entregue o contexto ao agente consumidor, que decide, usa ferramentas e executa.
-10. Mostre scores/candidatas/arquivos somente quando o usuário usar `--debug`.
+1. Preserve the original request while removing only the explicit gateway prefix.
+2. Read metadata before bodies. In the repository use `catalog/skills.yaml`; in a gateway distribution use `reference/catalog/skills.yaml`.
+3. Read only bounded project signals that exist: `PRODUCT.md`, `DESIGN.md`, `.ornn/context.md`, `.ornn/project.md`, `.ornn/preferences.md`, `.ornn/pins.yaml`, and lightweight stack indicators.
+4. Normalize supported aliases and project signals without replacing the user's intent. Treat negation and explicit exclusions as constraints.
+5. Rank candidates with the existing catalog/router policy: triggers, required signals, risk floor, domain, overlap, composition, and cost. Do not infer that `composes_with` is required.
+6. Resolve explicit command, recipe, collection, skill, and pin selectors through the library resolver where the environment exposes them. Merge explicit and ranked skills once and honor exclusions.
+7. Build a Knowledge Plan containing selected skills, related artifacts, references, load targets, exclusions, project signals, and optional debug evidence.
+8. Load only planned files. In gateway packages specialist content is under `reference/modules/<category>/<skill>.md`; canonical repository content remains under `skills/<category>/<skill>/SKILL.md`.
+9. Remove redundant guidance and present the compact context needed for the consuming agent to complete the original task.
+10. Expose candidates, scores, budget, and loaded paths only for debugging or when the user requests the rationale.
 
-Quando `src/library/gateway.js` estiver disponível, use `planKnowledge()` antes de
-`loadKnowledgePlan()`. Em uma distribuição somente de skills, aplique o mesmo fluxo
-lendo primeiro `reference/catalog/skills.yaml`; os módulos privados ficam em
-`reference/modules/` e não são skills públicas. Como fallback, leia apenas
-frontmatter e nomes disponíveis; nunca leia todos os módulos integralmente para decidir.
+When repository code is available, `planKnowledge()` is the metadata-first boundary and `loadKnowledgePlan()` is the lazy-loading boundary. In portable environments, reproduce the boundary with available metadata; do not require Ornn's Node or Python tooling.
 
 ## Questions to Ask
 
-* Qual resultado o usuário quer, independentemente dos nomes internos?
-* Quais sinais vêm do pedido e quais vêm do projeto?
-* Cada artefato selecionado adiciona uma lente ou capacidade distinta?
-* Um required signal foi realmente observado ou apenas inferido?
-* Um pin inclui ou exclui conhecimento explicitamente?
-* O plano ainda é útil se o artefato de menor ganho marginal for removido?
+- What outcome does the original request seek, independent of Ornn terminology?
+- Which signals came from the user, project context, explicit selectors, or pins?
+- Was every required signal observed rather than guessed?
+- Does each selected artifact add distinct decision value?
+- Are exclusions and negated context honored after merging explicit and ranked selections?
+- Can the lowest-value artifact be removed without losing needed coverage?
+- Is external research justified, and if so should `research-router` guide source choice?
+- Does the plan remain executable by a consuming agent without an Ornn runtime?
 
 ## Attack Patterns
 
-### Skill explosion
-
-Um domínio amplo não autoriza carregar uma coleção inteira. Aplique budget, custo e
-overlap e mantenha somente cobertura marginal real.
-
-### Shortcut bypass
-
-`/ornn security` não usa outro router: o shortcut apenas fortalece sinais e entra no
-mesmo pipeline de normalização, seleção e lazy loading.
-
-### Context contamination
-
-Preferências do projeto ajustam ranking; não alteram a fonte canônica nem se tornam
-memória global.
-
-### Runtime creep
-
-Se o Gateway começa a executar shell, controlar ferramentas, manter loop ou decidir
-findings, pare. Essas responsabilidades pertencem ao agente consumidor.
+- **Repeat:** normalize and plan the same request twice; equivalent inputs should produce equivalent selections.
+- **Negate:** add “no external research,” “no permissions,” or explicit pin exclusions and confirm they suppress rather than strengthen signals.
+- **Override:** combine shortcut, command, include, and exclude pins; verify deterministic precedence and no duplicate skills.
+- **Ambiguate:** use broad terms such as “state,” “access,” or “review” and reject keyword-only skill explosion.
+- **Remove:** delete the lowest marginal selection and test whether any required lens disappears.
+- **Relocate:** run from a project with no context files or optional tooling; discovery should degrade explicitly and remain portable.
+- **Separate:** ensure the gateway never executes shell commands, applies fixes, assigns confidence, or turns hypotheses into findings.
 
 ## Evidence Requirements
 
-Uma descoberta é rastreável quando o modo debug consegue informar intenção, contexto
-detectado, candidatas e scores, selecionadas, rejeições por overlap/signal/custo e
-arquivos efetivamente carregados. No modo normal exponha apenas o necessário para a
-tarefa, sem despejar essa telemetria no usuário.
+A gateway plan is supported when its output can be traced to the preserved request, detected project signals, catalog entries, explicit selectors, exclusions, router result, and actual loaded paths. Debug mode should expose candidates, scores, budget, and rejection reasons available from the implementation. Do not claim deterministic equivalence when using a manual fallback, and do not claim an artifact was loaded without reading it. Routing evidence establishes relevance only; it never establishes a downstream finding.
 
 ## False Positives
 
-* Carregar todas as skills porque a solicitação é vaga.
-* Tratar nome de categoria como prova suficiente sem trigger ou sinal.
-* Ignorar `risk_floor`, `requires_signals` ou contexto negado.
-* Duplicar relações do catálogo dentro desta skill.
-* Transformar `composes_with` em dependência obrigatória.
-* Confundir descoberta de conhecimento com execução da tarefa.
-* Exigir que o usuário invoque `skill-router` ou saiba nomes internos.
+- A broad category match alone does not justify loading every related skill.
+- `composes_with` is a relevance hint, not a dependency edge.
+- A related recipe, collection, pattern, or reference is not automatically required.
+- Project context is a bounded signal source, not global memory or permission to widen the task.
+- Explicit selection may intentionally exceed an automatic budget; report it instead of silently discarding user intent.
+- Failure of optional deterministic tooling does not make specialist knowledge unusable; use a disclosed metadata-only fallback.
+- Do not expose internal telemetry by default or require users to know internal skill names.
+- Do not confuse planning and loading knowledge with executing the requested work.
 
 ## Output Format
 
-Internamente, produza algo equivalente a:
+Internally produce a Knowledge Plan equivalent to:
 
 ```yaml
 intent:
-  task: "<pedido original>"
+  task: "<original request>"
+  normalized: "<routing text>"
+  shortcut: "<resolved shortcut or null>"
+  category: "<dominant category>"
+  risk: "<risk>"
 knowledge:
-  primary: ["<artefato principal>"]
-  supporting: ["<somente cobertura complementar>"]
-  references: ["<catálogo relevante>"]
+  primary: ["<skill id>"]
+  supporting: ["<skill id>"]
+  recipes: ["<related recipe id>"]
+  collections: ["<related collection id>"]
+  patterns: ["<related pattern id>"]
+  references: ["<reference catalog>"]
 strategy:
-  load: ["<arquivos selecionados>"]
-  avoid: ["<exclusões e overlaps>"]
+  load: ["<typed artifact id>"]
+  avoid: ["<excluded skill>"]
+project:
+  files: ["<context file read>"]
+  signals: ["<detected signal>"]
 execution: consuming-agent
 ```
 
-Não é obrigatório mostrar esse plano. Use-o para carregar contexto seletivamente e
-depois deixe o agente consumidor realizar a solicitação original.
+The exact serialized shape may vary outside the repository implementation. Usually do not show the plan; use it to load a compact context, state material limitations, and let the consuming agent perform the original request.

@@ -1,6 +1,6 @@
 ---
 name: race-condition-hunter
-description: Hunts for READ → DECISION → WRITE sequences and asks what happens if another request modifies the shared state between the read and the write, exposing double-spend, over-limit grants, and counter inflation under concurrency.
+description: Hunts for non-atomic decisions over shared mutable state and proves invariant violations with controlled interleavings, including lost updates, write skew, double spend, oversell, and duplicate grants.
 license: MIT
 metadata:
     aes-category: reliability
@@ -11,173 +11,104 @@ metadata:
 
 ## Objective
 
-Ensinar o agente a reconhecer o padrão canônico de race condition e a testar se o
-sistema sobrevive a dois requests simultâneos sobre o mesmo estado:
-
-```text
-READ
-  ↓
-DECISION
-  ↓
-WRITE
-```
-
-A pergunta central (do `plan.md` §8):
-
-> "O que acontece se outro request modificar o estado entre essas operações?"
+Find shared-state decisions whose correctness depends on timing, model a violating interleaving, and verify whether the real storage and isolation boundaries preserve the invariant under concurrency.
 
 ## When to Use
 
-* Sempre que uma operação lê estado, decide baseada no que leu, e escreve — sem lock ou
-  atomicidade.
-* Em fluxos com valor: saldo, estoque, cota/limite, contador, reward, voto, convite.
-* Quando há "check-then-act": checa saldo → debita; checa limite → concede; checa
-  unicidade → cria.
-* Quando o pedido menciona "race condition", "concurrency", "simultaneous", "double
-  spend", "TOCTOU", "check then act".
-* **Composição:** pareia com `idempotency-audit` (retry concorrente), `business-logic-audit` (limite/invariant que dependem de read-then-write), `data-integrity-audit`
-  (constraint/lock que deve defender), `error-flow-audit` (estado parcial após falha
-  concorrente), `gamification-audit` (reward farming concorrente).
+Use this skill when two or more requests, workers, transactions, tabs, or services can observe and mutate related state concurrently. Prioritize balance, inventory, quotas, uniqueness, grants, votes, counters, scheduling, and ownership transitions. Trigger it for concurrency, TOCTOU, intermittent duplicates, oversell, double spend, lost update, write skew, and check-then-act behavior.
+
+Do not use it for failures that occur sequentially with no shared mutable state. Compose with `data-integrity-audit` for database defenses, `idempotency-audit` when duplicate logical operations are involved, `business-logic-audit` to establish the invariant, `state-consistency-audit` for stale copies, and `gamification-audit` for concurrent reward abuse. Report under the race skill when timing-dependent interleaving is the root cause; cross-reference rather than duplicate.
 
 ## Mental Model
 
-Uma race condition não é sobre *velocidade* — é sobre **janela entre leitura e escrita**.
-Se dois requests leem o mesmo estado (ambos veem "ok"), ambos decidem "permitido", e
-ambos escrevem, o invariant é violado — mesmo que cada um isoladamente esteja correto.
+A race exists when correctness depends on an ordering the system does not guarantee:
 
 ```text
-request A: READ  balance=100   (≥50? yes)
-request B: READ  balance=100   (≥50? yes)   ← mesma leitura, A ainda não commitou
-request A: WRITE balance=50
-request B: WRITE balance=50    ← saldo real = 50, mas dois débitos de 50 = -50 efetivo
+shared state S satisfies invariant I
+A observes S ---- B observes S
+A decides      -- B decides
+A writes       -- B writes
+final state or emitted effects violate I
 ```
 
-O defeito é a **ausência de atomicidade** entre read e write. As defesas:
-* **lock** (pessimistic) — ninguém lê/escreve entre;
-* **conditional update / CAS** (optimistic) — `UPDATE … WHERE balance=100` falha se
-  mudou;
-* **unique constraint** — o banco impede a duplicata;
-* **serializable transaction / SELECT FOR UPDATE** — o banco isola.
+Look beyond simple read/modify/write. Lost updates overwrite work; check-then-act duplicates effects; write skew lets transactions update different rows after reading a shared predicate; stale caches and replicas widen observation gaps. A transaction is not automatically safe: actual isolation, lock scope, query shape, connection boundaries, retries, and external effects determine protection.
 
-A skill procura a janela e pergunta qual defesa (se alguma) a fecha.
+Valid defenses include a single atomic conditional statement, compare-and-swap with checked failure, correctly scoped row/advisory locks, a unique or exclusion constraint, serialization, or a queue/actor that truly owns the key. Verify the defense on the deployed datastore rather than recognizing its name.
 
 ## Investigation Procedure
 
-> **Shared knowledge:** for read-modify-write, locking and atomic update patterns,
-> read `knowledge/engineering/concurrency.md` and `knowledge/engineering/transactions.md`
-> before designing the confirmation test.
-
-
-
-1. **Encontrar sequências READ → DECISION → WRITE.** Para cada operação que muta
-   estado baseada em leitura, mapeie as três etapas.
-2. **Identificar o estado compartilhado** — linha de DB, contador, cache, arquivo.
-3. **Identificar o invariant** que a decisão protege (saldo ≥ 0, limite ≤ N, único,
-  estoque ≥ 0).
-4. **Determinar a atomicidade** — há transação? lock? CAS? constraint? ou read e write
-   em momentos separados sem proteção?
-5. **Modelar a intercalação** — dois requests (ou mais) lêem o mesmo estado antes de
-   qualquer write. Ambos passam pela decisão?
-6. **Confirmar com evidência** — se possível, reproduza (dois requests simultâneos,
-   ou raciocínio sobre o SQL mostrando que o `WHERE` não guarda a condição).
-7. **Verificar a defesa** — o `UPDATE` é condicional ao valor lido? Há `SELECT FOR
-   UPDATE`? Unique constraint? Se sim, a janela está fechada.
-8. **Reportar** via `templates/audit-report.md`.
+1. State the invariant precisely and identify the shared records, keys, predicates, caches, and external effects that participate.
+2. Enumerate all concurrent actors and entry points, including jobs and alternate APIs, and establish whether they share the same coordination boundary.
+3. Trace observations, decisions, writes, commits, and effects. Record transaction boundaries and database isolation.
+4. Construct the smallest interleaving in which both actors make locally valid decisions from compatible snapshots but the combined result violates the invariant.
+5. Inspect defenses and their scope: conditional predicates, affected-row checks, locks, constraints, serialization retries, queue partition keys, and external idempotency.
+6. Build a deterministic test with barriers or hooks around the critical window. Avoid relying on a high-volume timing lottery when synchronization is possible.
+7. Run enough controlled trials to distinguish a real interleaving from test noise. Capture inputs, timestamps/order, transaction outcomes, emitted effects, and final authoritative state.
+8. Repeat against alternate writers and realistic isolation/configuration. Verify that error and retry handling does not turn safe rejection into duplication.
+9. Recommend the narrowest correct defense and add a regression test that forces the interleaving.
 
 ## Questions to Ask
 
-* A operação lê estado e depois escreve baseada no que leu? Qual o invariant?
-* Entre o READ e o WRITE, outro request pode modificar o mesmo estado?
-* Há transação? Ela é serializable / usa SELECT FOR UPDATE, ou só agrupa queries?
-* O UPDATE é condicional (`WHERE balance = :lido`) ou incondicional (`SET balance = :novo`)?
-* Há unique constraint que impediria a duplicata mesmo sem lock de aplicação?
-* O limite/cota é checado em read-then-write, ou decrementado atomicamente?
-* Dois requests simultâneos passam ambos pela checagem de saldo/limite/estoque?
-* O cache é a fonte da leitura? (race entre cache e DB — conecta a `state-consistency-audit`)
+* What invariant must hold before and after both operations commit?
+* Which actors can access the same logical state, and do they use the same database, lock namespace, or queue partition?
+* Which observations drive the decision, and can either become stale before commit?
+* Is this a lost update, check-then-act, write skew, duplicate effect, or stale-copy race?
+* What isolation level is effective, and does the query acquire the intended lock?
+* Does a conditional update check affected rows and retry/reject correctly?
+* Does the constraint cover the right composite or tenant scope?
+* Are locks held through commit and released on every failure path?
+* Can external effects escape before conflict detection or transaction commit?
+* Can automatic retries re-run non-idempotent logic?
 
 ## Attack Patterns
 
 ```text
-double-spend (balance)
-    A: READ balance=100 (ok ≥50)   B: READ balance=100 (ok ≥50)
-    A: WRITE balance=50            B: WRITE balance=50
-    → dois saques de 50 sobre saldo 100; saldo real deveria ser 0, ficou 50 (ou -50)
+lost update
+    A reads count=10; B reads count=10
+    A writes 11; B writes 11 -> one increment disappears
 
-over-limit grant
-    A: READ claims_today=4/5 (ok)  B: READ claims_today=4/5 (ok)
-    A: WRITE 5/5 + reward          B: WRITE 5/5 + reward
-    → 6/5, limite violado
+double spend or oversell
+    A and B both observe sufficient balance/stock
+    both emit value before either makes the condition false
 
-duplicate creation (uniqueness check-then-insert)
-    A: SELECT (slug exists? no)    B: SELECT (slug exists? no)
-    A: INSERT slug=x               B: INSERT slug=x
-    → dois criados; defesa = unique constraint (se houver)
+check-then-insert
+    A and B both observe no row for key K
+    both insert K -> duplicate unless authoritative uniqueness rejects one
 
-counter inflation
-    A: READ count=10               B: READ count=10
-    A: WRITE count=11              B: WRITE count=11
-    → deveria ser 12, ficou 11 (increment perdido)
-    defesa = UPDATE count = count + 1 (atômico)
+write skew
+    A and B read predicate "at least one approver remains"
+    each disables a different approver -> predicate becomes false
 
-reward double-grant (concurrent same action)
-    A: react + XP                  B: react (same target) + XP
-    → se "already reacted?" check é read-then-write, ambos concedem
+quota or reward grant
+    synchronize requests after eligibility check
+    both grant before usage/dedup state is atomically claimed
 
-stock oversell
-    A: READ stock=1 (ok)           B: READ stock=1 (ok)
-    A: WRITE stock=0 + order       B: WRITE stock=0 + order
-    → dois pedidos, 1 item
+lock-scope mismatch
+    service A locks local key K; service B uses another process/namespace
+    both enter the critical section
 
-cache-then-db race
-    A: read cache (miss) → read DB=100 → write cache=100
-    B: write DB=50 (invalida cache?)
-    → cache serviu 100 após DB virar 50 (state-consistency overlap)
+conflict plus retry
+    datastore rejects B, but retry repeats an already emitted external effect
 ```
+
+Use disposable state and bounded concurrency. Do not stress production or perform financial/irreversible operations without explicit authorization.
 
 ## Evidence Requirements
 
-* **Nomear o invariant** e a sequência READ → DECISION → WRITE.
-* **Mostrar a janela** — onde está o READ, onde o WRITE, e por que nada os atomiza.
-* **Mostrar a intercalação** que viola o invariant (os dois requests lendo o mesmo
-  estado).
-* **Verificar a defesa ausente** — sem CAS, sem lock, sem constraint, sem transaction
-  serializable. Ou a defesa existe mas não cobre (ex: transação sem `FOR UPDATE`).
-* **Escalar confiança:**
-  * `CONFIRMED` — reproduziu com requests simultâneos e observou a violação (saldo
-    negativo, 6/5, duplicata).
-  * `HIGH CONFIDENCE` — código mostra read-then-write sem atomicidade em estado
-    compartilhado, invariant claro; sem reprodução manual.
-  * `POSSIBLE` — padrão presente, estado compartilhado plausível, não confirmado.
-  * `SPECULATIVE` — "pode ter race" sem mapear a sequência.
-* Races sobre valor transferível (saldo/estoque/reward) = mínimo `HIGH CONFIDENCE` se o
-  padrão for claro.
+Name the invariant, actors, shared state, actual isolation/configuration, and exact interleaving. Show the critical observation and write/effect for each actor, the defense that is absent or ineffective, and the authoritative final state. Distinguish final stored state from external effects; either may violate the invariant.
+
+`CONFIRMED` requires a controlled or reliably reproduced interleaving with observed invariant violation. `HIGH CONFIDENCE` requires a reachable timing-independent code/storage proof and a complete violating schedule. `POSSIBLE` means actor overlap, configuration, or outcome is unresolved. `SPECULATIVE` is not blocking. Static read-then-write shape alone is insufficient if an effective downstream constraint closes the window.
 
 ## False Positives
 
-* **CAS / conditional update fecha a janela** — `UPDATE … WHERE balance = :lido` faz B
-  falhar se A mudou. Confirmar o `WHERE` guarda a condição antes de reportar.
-* **Unique constraint** — mesmo sem lock de aplicação, o banco rejeita a duplicata.
-  "Duplicate creation" é defendido se a constraint existe.
-* **SELECT FOR UPDATE / serializable** — a transação isola; a janela não existe.
-  Confirmar o nível de isolamento real.
-* **Incremento atômico** — `UPDATE count = count + 1` é atômico no DB; "counter
-  inflation" não aplica. Aplica só se o app lê e reescreve o valor calculado.
-* **Estado não é compartilhado** — se cada request opera sobre sua própria linha
-  (isolada por chave), não há race no mesmo estado.
-* **Cache com invalidação síncrona** — se a escrita invalida o cache antes de servir a
-  próxima leitura, a race cache-DB é defendida. Relacionado a `state-consistency-audit`.
-* **Limite é soft** — se o limite é orientativo, "6/5" pode ser tolerado por design.
-  Marcar `POSSIBLE` e levantar como decisão de produto.
+Do not report a race merely because code contains multiple statements or a transaction. Verify concurrent reachability and the effective defense. Atomic increments, correctly checked conditional updates, properly scoped locks, and authoritative constraints may preserve the invariant. Conversely, do not dismiss a race because a transaction exists without checking isolation. A soft quota may permit bounded overshoot by design; compare against the explicit error budget. Per-key state that cannot overlap is not shared. A flaky concurrency test without captured interleaving is evidence to investigate, not confirmation. Duplicate logical requests with no timing dependency belong primarily to `idempotency-audit`.
 
 ## Output Format
 
-Para cada read-then-write sem atomicidade que viola um invariant sob concorrência, um
-finding via `templates/audit-report.md`. Em **Reproduction**, dê a intercalação dos
-dois requests (com timestamps/ordem) e o estado final observado. Em **Affected flow**,
-nomeie o invariant (saldo ≥ 0, limite ≤ N, único). Em **Root cause**, diga o que falta
-(transaction + FOR UPDATE, CAS, unique constraint, incremento atômico). Em
-**Recommendation**, indique a defesa apropriada (preferir constraint/CAS no DB quando
-possível — o banco é a última linha).
+Use `templates/audit-report.md` for each distinct invariant violation. Include invariant, actors and entry points, effective isolation, synchronized reproduction, interleaving, final state/effects, root cause, impact, evidence level, provenance, and the proposed atomicity mechanism plus regression test.
 
-Apresente cada sequência como diagrama READ/DECISION/WRITE com a janela marcada.
-Double-spend e over-limit primeiro; counter e cache-DB depois.
+```text
+actor A | actor B | observation | decision | write/effect | commit/order
+```
+
+Prioritize money, entitlements, inventory, authorization, and irreversible effects before counters or cosmetic drift. Cross-reference integrity, idempotency, and state-consistency findings.

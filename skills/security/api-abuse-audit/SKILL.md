@@ -11,164 +11,71 @@ metadata:
 
 ## Objective
 
-Ensinar o agente a **tratar a API como diretamente acessível**, ignorando a UI. O
-usuário malicioso não clica em botões; ele chama endpoints. Esta skill procura abuso
-que o servidor falha em prevenir quando o request é construído à mão: repetição, replay,
-manipulação de IDs, campos extras, endpoints alternativos, ausência de rate limiting, e
-bypass da UI.
+Treat every API operation as directly callable and verify that server-side controls prevent unauthorized, automated, repeated, replayed, and economically abusive use without relying on the client UI.
 
 ## When to Use
 
-* Em qualquer auditoria onde existe uma API por trás de um frontend.
-* Quando uma ação sensível (grant, create, transfer, redeem, vote) é exposta por
-  endpoint.
-* Quando o pedido menciona "API abuse", "rate limiting", "bypass UI", "direct API
-  calls", "replay", "mass assignment".
-* **Composição:** pareia com `input-trust-audit` (campos extra = valores confiados),
-  `authorization-audit` (ID manipulation = IDOR), `idempotency-audit` (replay/repeat),
-  `race-condition-hunter` (concorrência via API), `gamification-audit` (abuso de
-  reward via API), `business-logic-audit` (limites via API).
+Use for public or authenticated APIs, mobile/web backends, callbacks, GraphQL/RPC operations, uploads, exports, and value-bearing actions. Prioritize endpoints hidden or constrained only by UI.
+
+Focus on abuse of an exposed protocol. Compose with `authorization-audit` for object/action access, `input-trust-audit` for forged authority values, `idempotency-audit` for retries, `business-logic-audit` for limits, and `race-condition-hunter` for concurrency. Test only systems and environments you are authorized to assess.
 
 ## Mental Model
 
-A UI é uma camada de conveniência, não de segurança. Toda proteção que vive só na UI
-(esconder campos, desabilitar botões, limitar cliques, validar no submit) é inexistente
-para quem chama a API direto. O modelo:
+The API—not the interface—is the product boundary. For each operation model:
 
 ```text
-para cada ação exposta:
-    qual request a UI faz?
-    quais campos/IDs/parâmetros o servidor aceita além do que a UI envia?
-    o servidor impõe limite/frequency/idempotência/ownership?
+actor + credential + endpoint + parameters + repetition rate → effect and cost
 ```
 
-O eixo central é: **qual é a diferença entre o que a UI permite e o que a API aceita?**
-Toda diferença é uma superfície de abuso potencial.
-
-Classes de abuso (do `plan.md` §7):
-
-```text
-repetition             — chamar a mesma ação N vezes
-replay                 — reenviar um request capturado
-ID manipulation        — trocar IDs para agir sobre recursos alheios
-extra fields           — enviar campos que a UI não mostra (mass assignment)
-alternative endpoints  — contornar o endpoint protegido por um equivalente desprotegido
-missing rate limiting  — nenhuma frequência imposta
-UI bypass              — fazer pela API o que a UI proíbe/esconde
-```
+Assume callers can craft requests, add fields, change verbs and content types, enumerate identifiers, parallelize, replay tokens, and call undocumented alternatives. A control counts only if it protects the exact server path and effect.
 
 ## Investigation Procedure
 
-1. **Inventariar endpoints** da ação em escopo (e endpoints equivalententes/relacionados).
-2. **Para cada endpoint, capturar o request nominal** — método, path, body, headers,
-   auth. Este é o que a UI envia.
-3. **Testar repetição** — envie N vezes. O efeito escala? Há limite?
-4. **Testar replay** — capture um request válido, reenvie após o efeito esperado ter
-   expirado/consumido. Ainda funciona?
-5. **Testar ID manipulation** — troque o ID do recurso por um alheio. (conecta a
-   `authorization-audit`/IDOR).
-6. **Testar extra fields** — adicione campos não-enviados pela UI (`role`, `xp`,
-   `ownerId`, `status`, `price`). Aceitos? (mass assignment).
-7. **Testar endpoints alternativos** — existe um segundo endpoint que faz o mesmo sem
-   a checagem? (admin/internal/legacy path).
-8. **Testar rate limiting** — burst de requests. Algum é rejeitado (429)? Ou tudo
-   passa?
-9. **Testar UI bypass** — qual ação a UI proíbe (disabled/hidden) cujo endpoint ainda
-   aceita?
-10. **Confirmar com evidência** — reproduza o abuso e observe o efeito.
-11. **Reportar** via `templates/audit-report.md`.
+1. Inventory endpoints/operations, actors, credentials, objects, side effects, and trust boundaries from routes and schemas rather than UI alone.
+2. Classify operations by read/write, value, sensitivity, reversibility, and resource cost.
+3. Establish expected authorization, validation, quota, replay, idempotency, and rate-limit invariants.
+4. Compare equivalent paths, verbs, versions, batch operations, exports, callbacks, and content types for control parity.
+5. Test identifier substitution, unknown or sensitive fields, boundary values, repeat/replay, and safe concurrency.
+6. Verify rate limits by identity dimensions, scope, atomicity, reset, proxy handling, and effect—not only response status.
+7. Observe durable effects, downstream work, audit logs, and retry behavior.
+8. Confirm reachability and controls, classify evidence, and consolidate shared root causes.
 
 ## Questions to Ask
 
-* Quais endpoints servem a ação? Só um, ou há versões alternativas (admin/internal)?
-* O que a UI envia vs o que o servidor aceita? Campos extras são ignorados ou gravados?
-* Repetir o request N vezes — o efeito cresce sem limite?
-* Um request capturado pode ser reenviado depois? (replay / sem nonce ou expiry)
-* Trocar o ID do recurso — acesso alheio permitido?
-* Há rate limiting? Por-IP, por-user, por-recurso? É bypassável (trocar IP, multi-conta)?
-* A UI desabilita uma ação em certo estado — o endpoint correspondente rejeita também?
-* Campos como `role`/`xp`/`price` no body — o servidor lê do payload ou da sessão/DB?
-* Há um endpoint "interno" ou "legacy" sem authz que faz o mesmo efeito?
+* What can a caller do by invoking the endpoint directly?
+* Are authentication, authorization, validation, and limits enforced on every equivalent path?
+* Can IDs, tenant scope, role, price, status, or ownership be substituted?
+* Are unknown fields rejected or safely ignored through an allowlist?
+* Can repeated, replayed, batched, or concurrent calls multiply an effect?
+* Can rate limits be bypassed by account, token, IP/header, endpoint alias, or distributed concurrency?
+* Do expensive rejected requests still consume disproportionate resources?
+* Are callback signatures, freshness, audience, and replay protections verified?
 
 ## Attack Patterns
 
 ```text
-repetition
-    POST /claim  ×100   → 100 rewards? limite imposto?
-
-replay
-    POST /vote {postId:7}  → 200 (registrado)
-    replay same request    → 200 again? voto duplicado / troca-e-vota de novo?
-
-ID manipulation
-    POST /react {targetUserId: <other>}   → reage em nome/para outro?
-
-extra fields (mass assignment)
-    PUT /profile {bio:"x"}
-    PUT /profile {bio:"x", role:"admin"}  → role gravado?
-
-alternative endpoint
-    POST /reactions        (valida "no self-reward")
-    POST /reactions/internal/bulk          (valida? ou é legacy desprotegido?)
-
-missing rate limiting
-    1000 req/s para /redeem   → nenhum 429? drena estoque/cota
-
-UI bypass
-    UI: botão "delete" disabled quando status=="locked"
-    API: DELETE /item/{id}   → aceita mesmo em locked? (validação server-side?)
-
-parameter tampering
-    POST /transfer {amount: 100, currency}
-    POST /transfer {amount: -100}          → inverte fluxo? (edge-case overlap)
-
-verb tampering
-    GET /admin/users bloqueado por authz no GET
-    POST /admin/users (ou HEAD)            → middleware só protegeu um verbo?
+direct call:     invoke hidden/disabled UI action with ordinary credentials
+ID swap:         replace owned object ID with another actor's ID
+extra field:     add role, ownerId, price, status, reward, or isAdmin
+path parity:     protected POST but unprotected PATCH/batch/export/v1 alias
+repeat/replay:   identical request or callback N times → duplicate effect
+concurrent:      burst requests around quota or one-time decision
+rate bypass:     rotate account/token or spoof trusted proxy header
+cost abuse:      huge page/filter/upload or expensive invalid query
 ```
 
 ## Evidence Requirements
 
-* **Nomear o endpoint e o tipo de abuso** (repeat/replay/ID/extra/alternative/rate/UI
-  bypass).
-* **Mostrar o request exato** que abusa (método, path, body, headers) e a resposta.
-* **Mostrar o efeito** — o que o abuso consegue (reward N×, acesso alheio, role
-  alterada, cota drenada).
-* **Escalar confiança:**
-  * `CONFIRMED` — reproduziu o abuso e observou o efeito (request + resposta +
-    consequência).
-  * `HIGH CONFIDENCE` — endpoint visivelmente sem a proteção, sem reprodução manual.
-  * `POSSIBLE` — abuso plausível, não confirmado.
-  * `SPECULATIVE` — "poderia ser abusado" sem rastrear.
-* Abuso que concede valor ou acessa dado alheio = mínimo `HIGH CONFIDENCE` se
-  reproduzido.
+Provide actor and credentials, exact request sequence, expected invariant, observed responses and durable effects, affected path/verb, and control trace with file/line provenance. Rate-limit findings need the limit dimension, window, scope, and demonstrated bypass or exact structural gap.
+
+Use the `AGENTS.md` confidence scale. Endpoint existence or missing UI restriction is not a bug. `CONFIRMED` requires observed unauthorized or abusive effect; exact reachable missing control may support `HIGH CONFIDENCE`.
 
 ## False Positives
 
-* **Rate limiting existe e é eficaz** — se 429 é retornado e o efeito não escala,
-  "repetition" é defendido. Confirmar o limite antes de reportar.
-* **Mass assignment defendido por allowlist** — se o servidor usa uma allowlist de
-  campos atualizáveis e ignora o resto, `role` extra não é gravado. Confirmar.
-* **Replay defendido por nonce/expiry** — se há idempotency key ou nonce com TTL,
-  replay não duplica. Relacionado a `idempotency-audit`; não duplique.
-* **ID manipulation defendido por ownership check** — se o handler valida que o
-  recurso pertence ao caller, IDOR não aplica. Relacionado a `authorization-audit`.
-* **Endpoint alternativo é protegido igual** — se `/internal/*` exige admin real,
-  não é bypass. Confirmar a proteção no endpoint alternativo.
-* **UI bypass é puramente cosmético** — se a ação "disabled" na UI é também rejeitada
-  server-side no mesmo estado, não há bypass.
-* **Ação é pública/idempotente por design** — alguns endpoints públicos sem rate limit
-  são aceitáveis (ex: view counter). Julgar pelo impacto.
+Verify route-level and inherited middleware, gateway/WAF controls, database policies, idempotency records, and downstream deduplication. A public endpoint is not vulnerable merely because it is callable. Unknown fields safely discarded are not mass assignment. A rate limit is not necessarily missing because it is absent from application code. Do not treat documented high-volume service accounts like ordinary users without checking their contract.
 
 ## Output Format
 
-Para cada abuso confirmado/plausível, um finding via `templates/audit-report.md`. Em
-**Reproduction**, dê o request exato (curl-equivalente) e a resposta observada. Em
-**Affected component**, nomeie o endpoint. Em **Root cause**, diga qual proteção falta
-(rate limit / allowlist de campos / ownership check / nonce / proteção no endpoint
-alternativo). Em **Recommendation**, indique a defesa server-side (rate limit por-user
-não só por-IP; allowlist de campos; ownership check; idempotency key; descontinuar
-endpoint legacy).
+Use `templates/audit-report.md`. Include actor, endpoint/verb, invariant, reproduction, expected/actual effect, mechanism, impact, severity, confidence, recommendation, and provenance.
 
-Apresente a matriz (endpoint × tipo de abuso × protegido? × evidência). Abuso que
-concede valor ou acessa alheio primeiro; missing rate limiting e UI bypass depois.
+Add an endpoint coverage matrix containing authn, authz, validation/allowlist, rate/quota, replay/idempotency, alternatives, and tested result. Consolidate endpoints affected by one missing shared control where remediation is common.

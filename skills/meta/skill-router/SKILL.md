@@ -11,201 +11,102 @@ metadata:
 
 ## Objective
 
-Ensinar qualquer agente consumidor a selecionar **o menor conjunto suficiente de
-skills para falsificar as suposições relevantes**. Não maximizar cobertura aparente.
-
-Isto é metodologia opcional de discovery, não controlador, runtime ou pré-requisito.
-`scripts/router.py` pode produzir uma recomendação determinística e
-`catalog/skills.yaml` preserva metadata legada de seleção; o agente decide se usa a
-recomendação. Skills e recipes continuam utilizáveis sem ambos.
+Select the smallest set of specialist lenses that can address or falsify the relevant assumptions in a task, without confusing routing with invocation, execution, or evidence.
 
 ## When to Use
 
-* No início de auditorias ou revisões não triviais.
-* Quando a tarefa mistura domínios (por exemplo security + reliability).
-* Quando é necessário justificar por que uma skill entrou ou ficou fora.
-* Para impedir skill explosion antes de executar trabalho caro.
-* **Composição:** recomenda skills; não as invoca e não produz findings.
+Use when a user asks which skills to use, when a nontrivial task spans domains, when selection rationale matters, or when too many plausible skills would create redundant work. Trivial reversible work may need no skill. The Ornn gateway uses the same policy internally, but this skill is portable methodology and does not require the deterministic router.
 
-Tarefas triviais e reversíveis podem selecionar zero skills.
+This skill recommends and orders skills; it does not invoke them, execute a recipe, perform research, or produce findings. Consult `research-router` only when choosing external source types is itself unresolved.
 
 ## Mental Model
 
-Trate routing como um problema de conjunto mínimo:
+Route against assumptions and verification capabilities, not isolated keywords:
 
 ```text
-relevant assumptions
-        ↓
-minimum lenses that can falsify them
-        ↓
-missing verification roles, if any
-        ↓
-stop when additional skills only repeat coverage
+task and context → risk and domain → candidate signals
+→ marginal coverage minus overlap and cost → ordered sufficient set
 ```
 
-A decisão usa metadata estruturada do catálogo:
+The authoritative cross-skill metadata lives in `catalog/skills.yaml` or the packaged `reference/catalog/skills.yaml`. The deterministic `scripts/router.py` implements a reproducible recommendation using that catalog; its score is a ranking aid, not probability or authority.
 
-```text
-trigger_match
-+ domain_match
-+ risk_unlock
-+ required_signal
-+ composition_bonus
-- overlap_penalty
-- cost_penalty
-```
-
-Isso não é machine learning. O score torna a decisão rastreável e reproduzível.
-
-### Skill budget
-
-| Risco | Budget normal |
-|---|---:|
-| `trivial` | 0–1 |
-| `medium` | 1–2 |
-| `high` | 2–4 |
-| `critical` | 3–6 |
-
-Exceder o budget exige uma justificativa concreta de nova cobertura ou confirmação.
-
-### Ordem por role
-
-```text
-generator → investigator → verifier → reviewer → researcher
-```
-
-Research pode vir primeiro quando incerteza externa é o problema principal.
+The current heuristic budget is 0-1 skills for trivial risk, 1-2 for medium, 2-4 for high, and 3-6 for critical. Treat the range as pressure against over-routing, not a quota. Explicit user selections and demonstrated distinct coverage may justify exceeding it.
 
 ## Investigation Procedure
 
-1. **UNDERSTAND** — reformule tarefa e contexto; inclua fatos, não apenas o título.
-2. **CLASSIFY RISK** — `trivial`, `medium`, `high` ou `critical`.
-3. **CLASSIFY DOMAIN** — audit, security, reliability, product, frontend ou research.
-4. **READ CATALOG** — use `catalog/skills.yaml`; não reproduza relações manualmente.
-5. **MATCH TRIGGERS** — selecione candidatas com evidência lexical ou sinal requerido.
-6. **APPLY RISK FLOOR** — descarte skill cujo `risk_floor` não foi alcançado.
-7. **SCORE** — aplique domínio, custo, composição e overlap.
-8. **ENFORCE BUDGET** — preserve as candidatas de maior score e ganho marginal.
-9. **ORDER BY ROLE** — hipótese antes de investigação e verificação.
-10. **REPORT NEAR MISSES** — no máximo três candidatas plausíveis que ficaram fora.
-11. **SUGGEST RESEARCH** — indique se `research-router` pode ajudar.
-12. **VERIFY TOOLING CHANGES** — ao alterar o recomendador opcional, execute os evals.
+1. Restate the task with concrete context, scope, exclusions, and outcome.
+2. Identify assumptions that may fail and classify risk as trivial, medium, high, or critical.
+3. Identify the dominant domain and meaningful adjacent domains from mechanisms, not vocabulary alone.
+4. Read catalog metadata only: triggers, required signals, risk floor, role, overlap, composition, priority, lifecycle, and costs.
+5. Reject candidates whose required signals are absent, context is negated, risk floor is unmet, or lifecycle makes them unsuitable.
+6. Rank remaining candidates by trigger and domain evidence, distinct verification role, marginal coverage, overlap, and reasoning/research cost.
+7. Apply budget pressure. Remove each candidate in turn; retain it only if a relevant assumption or verification capability becomes uncovered.
+8. Order the selected set so hypotheses are generated before mechanisms are investigated and verified. Put research first only when external uncertainty blocks the work.
+9. Record no more than three genuine near misses and why they were excluded.
+10. If deterministic tooling is available, compare the recommendation with `scripts/router.py --json`; investigate disagreement rather than blindly adopting either result.
+11. When routing metadata or code changes, run routing evals and inspect precision, recall, critical recall, forbidden selections, and trivial over-routing.
 
 ## Questions to Ask
 
-* Qual suposição a tarefa precisa falsificar?
-* Há dinheiro, recompensa, ownership, permissões ou estado compartilhado?
-* Qual skill gera a hipótese e qual consegue confirmar o mecanismo?
-* Esta skill adiciona uma lente nova ou apenas repete outra?
-* O `risk_floor` da skill foi realmente alcançado?
-* O ganho de cobertura justifica o custo de reasoning/research?
-* A tarefa precisa de fonte externa ou pode ser resolvida no projeto?
-* Se uma candidata ficar fora, ela é um near miss real ou apenas keyword noise?
+- Which concrete assumptions must be tested?
+- What mechanism, asset, or user consequence raises the risk?
+- Which candidate can generate a hypothesis, and which can verify its mechanism?
+- Is the required signal present, absent, negated, or merely inferred?
+- Does a candidate add distinct coverage or restate another skill?
+- Is a composition relationship useful here, or just generally adjacent?
+- Does the expected marginal value justify reasoning or research cost?
+- Would excluding the candidate leave a critical assumption uncovered?
+- Is external knowledge required, or can repository evidence settle the question?
 
 ## Attack Patterns
 
-### Under-routing
-
-```text
-critical task → one broad generator → no verifier
-```
-
-Ataque: procure mecanismos explícitos (retry, concurrency, ownership, partial failure)
-e verifique se uma skill capaz de confirmá-los entrou.
-
-### Over-routing
-
-```text
-one matching word → every adjacent skill
-```
-
-Ataque: remova cada skill e pergunte se alguma suposição ou capacidade de confirmação é
-perdida. Se nada muda, a skill era redundante.
-
-### Ambiguous language
-
-```text
-"state" in UI feedback ≠ shared-state consistency
-"access" in copy ≠ authorization
-"research" in a routine task ≠ full research workflow
-```
-
-Ataque: use contexto e sinais requeridos, não palavra isolada.
-
-### Negative context
-
-```text
-"no permissions, no shared state"
-```
-
-Ataque: termos negados não devem ativar security/reliability.
-
-### Budget pressure
-
-```text
-7 plausible skills for a high-risk task (budget max 4)
-```
-
-Ataque: mantenha apenas as de maior score e as que adicionam role/lente distinta; mova
-as restantes para `Near misses`.
+- **Remove:** drop each selected skill and name the exact lost assumption or capability; remove it permanently if none is lost.
+- **Negate:** add explicit negative context and verify that matching terms do not route forbidden domains.
+- **Ambiguate:** distinguish UI state from shared-state consistency, copy access from authorization, and routine lookup from deep research.
+- **Swap:** replace a broad generator with a mechanism-specific investigator and compare coverage.
+- **Reverse:** begin from every selected skill and demand task evidence that justifies it.
+- **Budget:** force candidates to compete on marginal coverage instead of filling the maximum.
+- **Replay:** route equivalent paraphrases and investigate unstable selections caused by brittle trigger wording.
 
 ## Evidence Requirements
 
-Uma decisão de routing é sustentada quando inclui:
-
-* tarefa e contexto analisados;
-* risco e categoria dominante;
-* skills selecionadas em ordem;
-* role, score e triggers/sinais de cada seleção;
-* budget usado;
-* no máximo três near misses;
-* decisão de research;
-* resultado dos evals determinísticos quando o routing foi alterado.
-
-Gates iniciais:
-
-```text
-routing_precision >= 90%
-routing_recall >= 90%
-critical_skill_recall = 100%
-trivial selected <= 1
-```
+A routing recommendation must record the task context, dominant category, risk, budget, selected skills in order, role and concrete trigger/signal for each, distinct coverage, up to three near misses, and research decision. If scores are reported, identify them as outputs of the current deterministic heuristic and preserve the tool/version or catalog revision. When routing changes are evaluated, report precision, recall, critical-skill recall, trivial selection count, and concrete regressions. Selection never changes the confidence of a downstream finding.
 
 ## False Positives
 
-* Selecionar todas as skills relacionadas “por segurança”.
-* Promover uma skill só porque sua categoria combina, sem trigger ou sinal.
-* Tratar relação `composes_with` como dependência obrigatória.
-* Ignorar `overlaps_with` e repetir a mesma cobertura.
-* Contar uma skill `useful` como obrigatória em todos os casos.
-* Usar contexto negado (`no permissions`) como sinal positivo.
-* Listar todas as skills rejeitadas; apenas near misses reais importam.
-* Duplicar tabelas globais do catálogo dentro deste arquivo.
+- Category adjacency without a trigger, signal, or uncovered assumption.
+- A matching word used in another sense or under negation.
+- Treating `composes_with` as a mandatory dependency.
+- Treating `overlaps_with` as mutual exclusion rather than a prompt to compare coverage.
+- Treating a `useful` eval label as required in every instance.
+- Filling the budget because capacity remains.
+- Rejecting an explicit user-selected skill solely because automatic risk or budget heuristics disagree.
+- Listing every catalog entry as a near miss.
+- Duplicating catalog relationships in this document and allowing them to drift.
 
 ## Output Format
 
 ```markdown
-## Skill Router — Dispatch
+## Skill Router - Dispatch
 
-**Task:** <tarefa + fatos relevantes>
-**Dominant category:** <audit | security | reliability | product | frontend | research>
+**Task:** <task and relevant context>
+**Dominant category:** <category>
 **Risk:** <trivial | medium | high | critical>
-**Budget:** <min–max; selected N>
+**Budget:** <range; selected N>
 
 ### Selected
-1. `<skill>` — role: `<role>`; score: `<score>`; evidence: `<trigger/signal>`
+1. `<skill>` - role: `<role>`; evidence: <observed trigger/signal>; coverage: <assumption or capability>
 2. ...
 
 ### Near misses
-- `<skill>` — <por que parecia relevante e por que ficou fora>
-- no more than 3
+- `<skill>` - <why plausible; why excluded>
+- no more than three
 
 ### Research routing
-<none | proportional | full; fontes/skill se necessário>
+<none | proportional | full; rationale and research-router recommendation>
 
 ### Budget justification
-<somente quando excedido; caso contrário “within budget”>
+<within budget | explicit reason for exceeding it>
 ```
 
-O agente consumidor decide se e como aplicar as skills selecionadas. Selection não
-promove hipótese a finding, não escolhe confidence e não implica execução.
+The consuming agent decides whether and how to apply the recommendation. Do not imply that selected skills have run, that their hypotheses are findings, or that their composition is mandatory.

@@ -1,6 +1,6 @@
 ---
 name: visual-quality-review
-description: Evaluates typography, spacing, hierarchy, density, contrast, composition, consistency, visual noise, and generic AI slop patterns against a high craft bar.
+description: Evaluates the visual craft and coherence of an implemented interface through typography, spacing, hierarchy, density, composition, color, and product-specific expression.
 license: MIT
 metadata:
     aes-category: frontend
@@ -11,150 +11,71 @@ metadata:
 
 ## Objective
 
-Ensinar o agente a avaliar a **qualidade de execução visual** de uma interface contra
-um bar padrão de craft: tipografia, spacing, hierarquia, densidade, contraste,
-composição, consistência, ruído visual, e padrões genéricos de AI slop.
+Identify evidenced defects in visual execution and coherence while distinguishing craft problems from personal taste, usability, and accessibility.
 
 ## When to Use
 
-* Em qualquer revisão de frontend que não seja só de UX ou interação.
-* Quando uma interface parece "genérica", "feia", "amadora", ou "feita por IA".
-* Quando o pedido menciona "visual quality", "craft", "polish", "typography",
-  "spacing", "hierarchy", "AI slop", "generic", "boring".
-* **Composição:** roda com `ux-review` (UX + visual são complementares) e
-  `interaction-design` (visual + interação = experiência completa). Consulta
-  `references/frontend.yaml` (Impeccable, Impeccable Slop, Dribbble, Interfaces).
+Use when reviewing an implemented interface for polish, typography, spacing, hierarchy, density, composition, color, consistency, visual noise, or generic generated appearance. Do not use to select libraries before implementation or to claim usability and WCAG failures outside this skill's evidence.
 
-* **Separação de responsabilidade:** use `design-library-research` antes da
-  implementação para descobrir e comparar referências e padrões. Esta skill continua
-  sendo a avaliação posterior de craft visual; não seleciona componentes.
+This skill owns visual craft. `ux-review` owns task usability, `accessibility-review` owns conformance, `interaction-design` owns state behavior, and `design-library-research` owns sourcing.
 
 ## Mental Model
 
-Qualidade visual não é subjetiva — é uma execução de princípios de design. Os eixos
-são mensuráveis:
+Evaluate visual decisions as a system:
 
-| Eixo | O que avaliar |
-|---|---|
-| **Tipografia** | hierarchy consistente, escala, line-height, legibilidade, contraste de fonte |
-| **Spacing** | sistema de ritmo, padding interno vs externo, alinhamento vertical/horizontal |
-| **Hierarchy** | peso visual que comunica importância relativa, não só tamanho |
-| **Density** | informação compactada ou espaçada demais? |
-| **Contrast** | texto vs fundo, componentes vs background, modo escuro/claro |
-| **Composition** | balance, grid, alinhamento, margens, corners |
-| **Consistency** | o mesmo padrão visual resolve o mesmo problema em toda a interface |
-| **Visual noise** | elementos decorativos sem função, bordas desnecessárias, cores demais |
-| **AI slop** | padrões genéricos que indicam output de IA sem revisão |
+```text
+product intent → visual hierarchy → repeated rules → component execution → whole-screen composition
+```
+
+A deviation is a defect only when it breaks a declared system, weakens communication, or produces measurable incoherence. “AI slop” is a diagnosis of unsupported generic choices, not a label for a particular gradient, font, or icon set.
 
 ## Investigation Procedure
 
-1. **Avaliar tipografia** — há escala consistente? (h1 > h2 > h3 > body > caption)
-   O line-height é legível? O contraste de fonte é suficiente? A fonte é apropriada
-   para o contexto?
-2. **Avaliar spacing** — há um sistema de ritmo (4px nem sempre, mas consistente)?
-   Elementos relacionados estão próximos? Elementos diferentes estão separados?
-3. **Avaliar hierarchy** — a ação primária é a mais proeminente? Informações de mesmo
-   nível têm o mesmo peso visual? A hierarquia é comunicada por mais de um sinal
-   (tamanho + peso + cor + espaçamento)?
-4. **Avaliar density** — o conteúdo é denso demais? (exaustivo) ou esparso demais?
-   (precisa scroll infinito para ver nada)
-5. **Avaliar contrast** — texto body tem ≥ 4.5:1? O contraste de componentes é
-   suficiente? Modo escuro recalculou cores ou só inverteu?
-6. **Avaliar composition** — grid consistente? Alinhamento vertical/horizontal correto?
-   Margens e paddings consistentes? Corners uniformes?
-7. **Avaliar visual noise** — há elementos decorativos que não servem à função
-   (bordas, ícones, cores, gradientes, sombras)? Há informações redundantes?
-8. **Avaliar AI slop** — padrões genéricos: ícones Lucide sem personalidade, ondas
-   SVG repetitivas, "Build Something Amazing", "Empower Your Team", roxo-azul
-   gradiente, cartões sem conteúdo real, avatares genéricos.
-9. **Sintetizar** — referenciar `references/frontend.yaml` (Impeccable, Impeccable
-   Slop, Interfaces) quando apropriado.
+1. Establish audience, brand, platform, design contract, tokens, and intended density. Inspect `PRODUCT.md`, `DESIGN.md`, and the design system when present.
+2. Capture representative screens at supported viewports and states, using rendered output rather than source alone.
+3. Inventory typography, spacing, grids, radii, color roles, elevation, iconography, imagery, and density. Derive the apparent system before judging deviations.
+4. Evaluate hierarchy and reading order: prominence must match semantic importance.
+5. Measure alignments, rhythm, line length, line height, contrast, overflow, and responsive composition where relevant.
+6. Compare repeated components and states. Determine whether variance encodes meaning or is accidental drift.
+7. Remove decorative layers mentally or experimentally; identify noise that competes with content without supporting brand or hierarchy.
+8. Test whether generic motifs, placeholder copy, arbitrary gradients, excessive cards, or mismatched icons arise from product intent or from absent design decisions.
+9. Reproduce each candidate across contexts, rule out intentional exceptions, and propose changes at token/system level when the pattern repeats.
 
 ## Questions to Ask
 
-* A tipografia tem escala consistente? A fonte é legível no tamanho usado?
-* O spacing é consistente ou parece aleatório? (padding varia sem motivo)
-* A hierarquia visual comunica o que é importante? (ou tudo parece igual)
-* A densidade é apropriada para o conteúdo? (informação compactada vs perdida)
-* O contraste de texto é suficiente (≥ 4.5:1)? O modo escuro recalcula ou é acidental?
-* O grid é consistente? Alinhamentos estão corretos?
-* Há elementos decorativos sem função? (visual noise)
-* A interface parece "genérica"? (mesmo gradiente, mesmo ícone, mesmo "Build
-  Something" — AI slop)
+- What visual system is declared or consistently implied?
+- Does prominence match product and content priority?
+- Are typography, spacing, grid, and color roles internally coherent?
+- Is density appropriate to task frequency and audience expertise?
+- Do responsive states preserve composition rather than merely stack?
+- Does decoration reinforce brand and hierarchy or compete with them?
+- Is a generic-looking choice unsupported by product identity, or simply familiar?
+- Is this defect visual craft, usability, accessibility, or interaction behavior?
+- Can the recommendation fix the system rather than one symptom?
 
 ## Attack Patterns
 
-```text
-typography broken
-    h1 = 32px, h2 = 28px, h3 = 18px  (escala inconsistente — gap de 2px vs 10px)
-    body = 14px com line-height 1.2 (ilegível)
-    fonte display para body text (cansativa)
-
-spacing random
-    padding: 24px em um card, 16px em outro (mesmo tipo)
-    elementos relacionados com 40px de gap; unrelated com 8px
-
-hierarchy flat
-    preço (importante) e "em até 3x sem juros" (secundário) têm mesmo size/weight
-    → usuário não sabe o que é o valor principal
-
-density wrong
-    form com 3 campos + 2 botões ocupando 100% da viewport (esparso demais)
-    tabela com 10 colunas sem scroll horizontal (denso demais)
-
-contrast insufficient
-    gray-400 (#9CA3AF) em gray-50 (#F9FAFB) — 1.8:1, invisível
-    placeholder cinza claro em fundo branco
-
-composition broken
-    margem esquerda 24px, direita 16px (não centrado)
-    grid com gutter inconsistente
-
-AI slop detected
-    "Build Something Amazing" como headline
-    gradiente azul-roxo padrão
-    ondas SVG decorativas sem sentido
-    avatares de usuário genéricos (UI Avatars sem personalização)
-    "Lorem ipsum" em produção
-    tooltip genérico "This is a tooltip"
-    "Empower Your Workflow" como subheading
-```
+- **Compare:** place equivalent screens and components side by side to expose drift.
+- **Resize:** test narrow, wide, zoomed, sparse, and content-heavy states.
+- **Replace content:** use long labels, realistic data, localization, empty values, and errors.
+- **Strip decoration:** remove shadows, gradients, and borders to test structural hierarchy.
+- **Invert context:** inspect light/dark modes and imagery with varied luminance.
+- **Repeat:** enumerate one token or component across the product and find unexplained variants.
 
 ## Evidence Requirements
 
-* **Nomear o eixo** (tipografia/spacing/hierarchy/density/contrast/composition/
-  noise/slop).
-* **Mostrar o elemento exato** e a violação do princípio (ex: "h1=32px, h2=28px no
-  header, mas h2=20px no card — inconsistência de escala").
-* **Referenciar o padrão esperado** (escala, sistema de spacing, grid, WCAG contrast).
-* **Escalar confiança (Visual Quality):**
-  * `CONFIRMED` — violação mensurável (ex: contraste 2.1:1, escala inconsistente, grid
-    quebrado, AI slop identificável).
-  * `HIGH CONFIDENCE` — violação clara de princípio.
-  * `POSSIBLE` — subjetivo, pode ser questão de gosto.
-  * `SPECULATIVE` — preferência pessoal não fundamentada.
+A `CONFIRMED` finding needs an exact element, rendered or computed measurements, the violated project rule or demonstrable internal inconsistency, reproduction context, and impact. `HIGH CONFIDENCE` uses clear structural evidence where measurement is incomplete. Use `POSSIBLE` for taste-sensitive concerns or inferred brand mismatch. Reference galleries and heuristics calibrate options; they do not prove a defect.
 
 ## False Positives
 
-* **Design system define o padrão** — se o design system tem uma escala de tipografia
-  e a interface segue, "inconsistência" é entre a interface e o sistema, não um erro
-  da interface. Reportar como desvio do design system, não como erro visual.
-* **Modo escuro é propositalmente diferente** — algumas cores são intencionalmente
-  diferentes no modo escuro (não-simples inversão). Verificar decisão de design.
-* **AI slop é intencional e não há budget para refinar** — reportar como nota, não
-  como defeito. Marcar `POSSIBLE` e contextualizar.
-* **Density é intencional** — landing pages são esparsas por design; dashboards são
-  densas por design. Avaliar contra o propósito da tela, não contra um padrão absoluto.
-* **Visual noise tem função** — decoração que comunica identidade de marca não é noise.
-  Avaliar se serve a marca ou é só poluição.
+- Intentional exceptions may support hierarchy, campaign identity, or platform convention.
+- Dense layouts can be correct for expert, monitoring, or data-heavy work.
+- Sparse layouts can be correct for focus, storytelling, or infrequent tasks.
+- Decoration that carries brand meaning is not automatically noise.
+- Familiar icons, cards, gradients, or rounded corners are not independently “AI slop.”
+- Dark mode need not be a literal inversion.
+- Contrast failures should be verified and reported under `accessibility-review`; this skill may report weakened visual hierarchy without claiming WCAG failure.
 
 ## Output Format
 
-Para cada violação, um finding via `templates/audit-report.md`. Em **Affected
-component**, nomeie o componente/tela. Em **Reproduction**, mostre o elemento e a
-violação (incluindo valor de contraste, tamanhos, gap). Em **Root cause**, aponte o
-eixo. Em **Recommendation**, dê a correção concreta (escala de fonte, sistema de
-spacing, cor de contraste, remoção de AI slop, grid consistente).
-
-Apresente por eixo. Contrast e typography (impacto direto em legibilidade) primeiro;
-spacing e hierarchy depois; composition e noise/slop em seguida.
+Use `templates/audit-report.md`. Include viewport/state, affected element, visual-system invariant, measured or comparative evidence, expected and actual composition, mechanism, impact, recommendation, provenance, evidence records, and false-positive check. Group repeated symptoms under their shared token or component cause. Prioritize illegibility and broken responsive composition, then hierarchy and consistency, then polish and generic expression.

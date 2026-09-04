@@ -1,6 +1,6 @@
 ---
 name: idempotency-audit
-description: Tests request → request → request and request → response-lost → retry, especially for payments, rewards, creation, webhooks, notifications, and counters, to find operations that duplicate effects on repeat or retry.
+description: Tests whether retries, replays, redeliveries, and concurrent duplicates produce one intended effect for payments, grants, creation, webhooks, notifications, and counters.
 license: MIT
 metadata:
     aes-category: reliability
@@ -11,183 +11,101 @@ metadata:
 
 ## Objective
 
-Ensinar o agente a testar se operações **idempotentes-deveria-ser** continuam
-produzindo efeito único quando repetidas ou reexecutadas após falha/retry:
-
-```text
-request
-request
-request        ← mesmo efeito 1×? ou efeito duplicado N×?
-
-request
-response lost
-retry           ← o retry duplica o efeito que já aconteceu?
-```
-
-Especialmente em (do `plan.md` §8): **pagamentos, rewards, criação, webhooks,
-notificações, contadores.**
+Verify that repeated delivery of the same logical operation converges on one intended effect and one stable outcome, including after lost responses, crashes, redelivery, and concurrency.
 
 ## When to Use
 
-* Em qualquer operação que *cria* algo, *concede* algo, *debita/cobra* algo, ou
-  *incrementa* — se repetida, duplicaria.
-* Em endpoints que recebem webhooks/retries de terceiros (gateway de pagamento,
-  provedores).
-* Quando o usuário pode duplo-submitar (duplo clique, retry manual).
-* Quando o pedido menciona "idempotency", "duplicate", "double charge", "double
-  submit", "webhook replay", "retry".
-* **Composição:** pareia com `error-flow-audit` (retry após falha mid-op),
-  `race-condition-hunter` (retry concorrente), `gamification-audit` (reward duplicada),
-  `api-abuse-audit` (repetição via API), `business-logic-audit` (regra de efeito único).
+Use this skill for operations that create, charge, debit, grant, dispatch, increment, transition, or consume a one-time event; for webhook and queue consumers; and wherever callers or infrastructure retry. Trigger it for duplicate orders, double charges, repeated rewards, duplicate notifications, replayed webhooks, or ambiguous timeout recovery.
+
+Do not assume every identical payload is the same intent: two legitimate purchases may have equal fields. The contract needs stable operation identity or a domain uniqueness rule. Compose with `race-condition-hunter` for simultaneous duplicates, `error-flow-audit` for uncertain outcomes, `data-integrity-audit` for unique enforcement, `gamification-audit` for reward abuse, and `api-abuse-audit` for hostile replay. Give the root cause one primary finding owner.
 
 ## Mental Model
 
-Idempotência não é "aceitar o request duas vezes". É **produzir o mesmo efeito** na
-segunda vez. Um POST que cria um pedido é idempotente só se reenviá-lo (mesma
-idempotency key, mesmo payload) retorna o pedido original sem criar outro.
-
-O que torna um request *candidato* a idempotente: existe uma **chave de idempotência**
-(um identificador estável da intenção — ex: `Idempotency-Key` header, `orderId`,
-`eventId` de webhook) e o servidor **verifica a chave** antes de executar. Sem chave
-verificada, a repetição duplica.
-
-Eixo de investigação:
+Idempotency is a protocol over a logical operation, not an HTTP verb or disabled button:
 
 ```text
-qual é a chave de idempotência?      (se não existe, suspeito)
-o servidor verifica antes de agir?   (lookup por chave antes do efeito)
-o efeito é duplicado no retry?       (quando a chave não é verificada, ou a resposta se perdeu)
+operation identity + authenticated scope + canonical intent
+    -> atomic admission -> one durable outcome and effect set
+    -> every duplicate returns or converges on that outcome
 ```
 
-Áreas críticas (efeito duplicado = consequência real):
-
-```text
-payments      — cobrança duplicada
-rewards       — XP/pontos concedidos 2×
-creation      — recurso criado 2×
-webhooks      — evento processado 2× (sem eventId dedup)
-notifications — email/SMS duplicado
-counters      — incremento dobrado
-```
+The key must have the correct caller and operation scope, be bound to the original intent, be reserved atomically before effects escape, and survive the retry window. Reusing a key with different intent must not silently return an unrelated result. Database deduplication alone cannot undo an external charge or message already sent; the effect boundary and provider guarantees matter.
 
 ## Investigation Procedure
 
-> **Shared knowledge:** for retry/failure semantics and compensation,
-> read `knowledge/engineering/failure-models.md` and `knowledge/engineering/concurrency.md`
-> when retries interact with transactions.
-
-
-
-1. **Listar operações que criam/concedem/debitam/incrementam.**
-2. **Para cada, identificar a chave de idempotência natural** — existe no request
-   (header, idempotency key, eventId) ou no payload?
-3. **Rastrear onde a chave é verificada** — o handler busca o efeito pela chave antes
-   de executar? Ou executa sempre?
-4. **Testar repetição** — envie o mesmo request N vezes (mesma chave/payload). Efeito
-   único ou duplicado?
-5. **Testar response-lost + retry** — envie, ignore a resposta, reenvie. O servidor
-   reconhece e retorna o efeito original, ou executa de novo?
-6. **Testar duplo-submit** — dois POSTs no mesmo instante (double click). Um 200 e um
-   409, ou dois 200 com dois efeitos?
-7. **Testar webhook dedup** — o mesmo evento entregue 2× (retry do provider) é
-   processado 2×?
-8. **Testar concorrência de idempotência** — dois requests com a mesma chave chegam
-   juntos; ambos passam a verificação antes de qualquer um gravar? (race no dedup)
-9. **Confirmar com evidência** — reproduza a duplicação.
-10. **Reportar** via `templates/audit-report.md`.
+1. Inventory non-repeatable effects and duplicate sources: client/proxy retries, worker redelivery, webhook replay, timeout, crash recovery, and hostile replay.
+2. Define logical operation identity, scope, canonical request fields, duplicate response, retention window, and failure behavior.
+3. Trace key validation, reservation, state transitions, effects, result persistence, acknowledgement, and expiry.
+4. Verify atomic admission through a unique constraint or conditional insert; lookup-then-insert is race-prone.
+5. Reuse a key with changed amount, recipient, resource, or tenant and require an explicit mismatch response.
+6. Test sequential duplicates, lost-response retry, and synchronized concurrent duplicates. Inspect responses plus internal and external effect counts.
+7. Inject failure before reservation, after reservation, around external effects, and before result persistence. Check stale `in-progress` recovery.
+8. Test expiry and late redelivery against documented caller, broker, and provider retry windows.
+9. Consolidate evidence by logical operation rather than reporting each duplicate manifestation separately.
 
 ## Questions to Ask
 
-* Qual é a chave de idempotência desta operação? Ela existe?
-* O servidor verifica a chave antes de executar, ou executa e só então grava?
-* Enviar o mesmo request 2× — efeito único ou duplicado?
-* Resposta perdida + retry — o servidor reconhece ou reexecuta?
-* Double click / duplo submit — dois efeitos?
-* Webhook reentregue pelo provider (retry) — processado 2×?
-* A verificação de idempotência é atômica (lock/unique na chave), ou dois requests com
-  a mesma chave podem passar juntos?
-* O efeito é registrado *depois* de um efeito externo irreversível (cobrança)? (se sim,
-  conecta a `error-flow-audit`)
+* What proves two deliveries represent one logical operation rather than equal legitimate intents?
+* Is identity scoped by caller, account, endpoint, operation type, and environment where needed?
+* Is canonical intent stored and compared when a key is reused?
+* Is reservation atomic, and what does a concurrent loser receive?
+* Is the result durable before acknowledgement?
+* What happens after an external effect but before local completion?
+* Does the downstream provider accept the same operation identity?
+* How are `in-progress`, failed, canceled, and unknown states recovered?
+* Does retention cover every retry and redelivery window?
+* Can authorization changes expose another caller's cached result?
 
 ## Attack Patterns
 
 ```text
-creation duplicated
-    POST /orders  → 200 (pedido A)
-    POST /orders  (mesmo payload) → 200 (pedido B)  ← dois pedidos, deveria reusar A
+sequential replay
+    submit K -> success -> submit K again
+    verify one effect and a stable compatible response
 
-payment double charge
-    POST /charge {amount, orderId} → 200 (cobrado)
-    retry (response lost) → 200 (cobrado de novo)  ← sem idempotency key verificado
+intent mismatch
+    submit K with amount=10 -> submit K with amount=100
+    require conflict; never silently reuse the first result
 
-reward double-grant
-    POST /react → +10 XP
-    replay → +10 XP de novo (mesmo target)  ← sem "already reacted" dedup
+lost response
+    complete K -> discard response -> retry K
+    count internal and external effects
 
-webhook reprocessing
-    provider: eventId=evt_123 entregue → processado (pedido pago)
-    provider retry (sem ACK): evt_123 de novo → processado 2× (recompensa 2×)
-    ← falta dedup por eventId
+concurrent duplicate
+    pause A and B before reservation -> release together
+    verify only one execution owner
 
-notification duplicate
-    POST /notify → email enviado
-    retry → email de novo  ← sem dedup por recipient+type+id
+crash window
+    reserve K -> perform external charge -> crash before local completion
+    recover and verify no second charge
 
-counter double increment
-    POST /increment (mesma chave) ×2 → count += 2  ← deveria += 1
+late redelivery
+    process event E -> expire dedup record -> redeliver E
+    compare retention with provider guarantees
 
-race on idempotency key
-    A e B: POST {key:"k1"}  (nenhum gravou ainda)
-    ambos passam lookup (não acham k1)
-    ambos executam → efeito duplicado apesar da chave
-    defesa: unique constraint na chave (segundo INSERT falha)
+cross-scope collision
+    callers A and B submit the same K
+    verify no result leakage and correct independent intent handling
 ```
+
+Use sandbox providers and disposable data for irreversible effects. Repeating a payload without shared operation identity does not establish a defect.
 
 ## Evidence Requirements
 
-* **Nomear a operação e sua chave de idempotência** (ou a ausência dela).
-* **Mostrar o efeito duplicado** — repetição/retry/replay reproduzido, com o efeito 1×
-  vs 2×.
-* **Mostrar onde a chave não é verificada** — o handler executa sem lookup por chave,
-  ou verifica depois de agir.
-* **Verificar a atomicidade do dedup** — a chave tem unique constraint? Ou dois
-  requests simultâneos passam juntos (race)?
-* **Escalar confiança:**
-  * `CONFIRMED` — reproduziu o efeito duplicado (2 pedidos, 2 cobranças, 2 rewards).
-  * `HIGH CONFIDENCE` — handler executa sem verificação de chave em operação de
-    efeito-único; sem reprodução.
-  * `POSSIBLE` — operação candidata, caminho não confirmado.
-  * `SPECULATIVE` — "pode duplicar em retry" sem rastrear.
-* Duplicação de cobrança/reward = mínimo `HIGH CONFIDENCE` se o padrão for claro.
+Document the operation, identity and scope, stored intent, duplicate source, effect boundary, and expected contract. Show the exact sequence and count durable internal and external effects; status codes alone are insufficient. Cite admission code, unique enforcement, lifecycle states, and retention.
+
+`CONFIRMED` requires observed duplicate/mismatched effects for one logical operation or an incorrect cached-result leak. `HIGH CONFIDENCE` requires an exact reachable path by which a duplicate crosses the effect boundary without atomic protection. `POSSIBLE` means identity, reachability, or downstream behavior is unresolved. `SPECULATIVE` is not blocking. Confidence follows evidence, not impact.
 
 ## False Positives
 
-* **Idempotência real** — se há idempotency key + lookup + unique constraint, a
-  repetição retorna o efeito original. Confirmar antes de reportar.
-* **Operação é naturalmente idempotente** — `GET`, `PUT` com valor absoluto (SET), e
-  `DELETE` muitas vezes são idempotentes por natureza. Não reportar.
-* **Duplo-submit defendido** — se o botão desabilita no submit E o servidor tem
-  idempotency, defesa em profundidade. Não reportar.
-* **Webhook com dedup por eventId** — se o provider envia eventId e o servidor dedup
-  por ele (único), reprocessamento é evitado. Confirmar a dedup.
-* **Notificação é fire-and-forget tolerada** — se o produto tolera email duplicado
-  raro (e não há consequência), pode ser aceitável. Julgar pelo impacto.
-* **Contador é aproximado por design** — alguns contadores (views) são eventualmente
-  consistentes e toleram drift. Relacionado a `state-consistency-audit`; não reportar
-  se o produto tolera.
-* **Retry com query-decidida** — se após response lost o sistema consulta o estado
-  real antes de reexecutar, é idempotente por compensação. Não reportar.
+Do not treat equal payloads as duplicates without evidence of shared intent. Naturally idempotent assignment may still emit non-idempotent side effects, so inspect the full effect set. A `409`, cached error, or `in-progress` response may be correct if documented and recoverable. At-least-once delivery is not a bug when consumption deduplicates safely. Approximate analytics may accept duplicates within a measured error budget. Client submit prevention is UX, not server idempotency. Do not report short retention without comparing actual retry contracts and risk.
 
 ## Output Format
 
-Para cada operação que duplica efeito em repetição/retry, um finding via
-`templates/audit-report.md`. Em **Reproduction**, dê a sequência de requests (mesma
-chave/payload) e o efeito observado 1× vs 2×. Em **Affected flow**, nomeie a operação
-(payment/reward/creation/webhook/notification/counter). Em **Root cause**, diga o que
-falta (idempotency key, lookup antes de agir, unique constraint na chave, dedup por
-eventId). Em **Recommendation**, indique a defesa (chave + `INSERT ... ON CONFLICT`/
-unique, lookup + reuso do efeito, dedup por eventId em webhooks).
+Use `templates/audit-report.md` for each affected logical operation. Include identity/scope, canonical intent, retry or failure sequence, internal and external effect counts, responses, root cause, impact, evidence level, provenance, and precise atomic admission and recovery recommendations.
 
-Apresente a tabela por operação (operação | chave de idempotência | verificada antes de
-agir? | dedup atômico? | efeito duplicado? | ✓/✗). Cobranças e rewards primeiro;
-criação, webhooks e notificações depois; contadores por último (impacto menor).
+```text
+operation | identity/scope | intent binding | atomic admission | crash recovery | retention | result
+```
+
+Prioritize money, entitlements, inventory, and durable outbound effects. Cross-reference concurrency, integrity, and failure findings instead of duplicating them.

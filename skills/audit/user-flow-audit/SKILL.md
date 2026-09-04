@@ -11,153 +11,73 @@ metadata:
 
 ## Objective
 
-Ensinar o agente a modelar um fluxo de usuário como uma **máquina de estados** e a
-procurar estados dos quais o usuário não consegue sair, estados impossíveis, passos que
-podem ser pulados, e desyncs causados por refresh/back-button.
-
-A skill trata o fluxo como uma sequência canônica:
-
-```text
-entry → preconditions → action → state change → feedback → next state
-```
+Verify that every supported user journey has reachable entry conditions, valid transitions, truthful feedback, recoverable interruptions, and a clear next state across navigation and repetition.
 
 ## When to Use
 
-* Ao auditar qualquer fluxo multi-passo (onboarding, checkout, criação de personagem,
-  publicação, convites, setup).
-* Quando o pedido menciona "flow", "steps", "wizard", "onboarding", "checkout".
-* Quando há risco de o usuário ficar preso em um estado intermediário.
-* **Composição:** frequentemente junto com `state-consistency-audit` (fluxo vs estado
-  do servidor), `error-flow-audit` (o que acontece quando um passo do fluxo falha),
-  `business-logic-audit` (pré-condições do fluxo = regras de negócio), e
-  `edge-case-hunter` (entrances anômalas no fluxo).
+Use for onboarding, checkout, creation/editing, destructive actions, multi-step forms, authentication, invitations, approvals, and flows with refresh/back behavior or asynchronous completion.
+
+This skill evaluates end-to-end continuity and feedback, not visual polish or authorization depth. Compose with `ux-review` for usability, `state-consistency-audit` for cross-layer disagreement, `error-flow-audit` for partial failure, `business-logic-audit` for invalid transitions, and `accessibility-review` for assistive access.
 
 ## Mental Model
 
-Um fluxo não é uma lista de telas. É uma **máquina de estados**: cada nó é um estado
-persistido (no servidor, no cliente, ou na URL), e cada transição é uma ação que move
-de um estado a outro. Bugs vivem nas transições e nos estados, não nas telas.
+Represent each journey as a state machine:
 
-As duas falhas mais comuns:
+```text
+entry → preconditions → action → state transition → feedback → next state
+```
 
-1. **Estados sem saída** — o usuário chega a um estado do qual nenhuma ação legítima o
-   tira. Dead end.
-2. **Transições implícitas** — o fluxo assume que o estado anterior foi atingido, mas
-   nada o impede de pular direto a um estado posterior. Passo pulável.
-
-O modelo força a pergunta: *de cada estado, para onde o usuário pode ir — e o que o
-impede de ir para onde não deveria?*
+Audit the graph, not one scripted happy path. Every reachable state needs an honest explanation and recovery or next action. Navigation, refresh, retry, duplicate submission, session expiry, and direct URLs are transitions too.
 
 ## Investigation Procedure
 
-> **Shared knowledge:** for modeling flows as state machines and finding dead ends,
-> read `knowledge/engineering/state-machines.md` when the flow has states, guards
-> or refresh/back concerns.
-
-
-
-1. **Desenhar o fluxo nominal** como `entry → preconditions → action → state change →
-   feedback → next state`. Um nó por estado.
-2. **Rotular onde cada estado vive** — servidor, cliente, URL, ou cache. (Isto
-   conecta com `state-consistency-audit`.)
-3. **Para cada transição, listar a pré-condição** que deve ser verdadeira para ela
-   ocorrer.
-4. **Testar pulabilidade:** a pré-condição é *verificada no servidor* ou *assumida*? Se
-   assumida, o passo é pulável via chamada direta ao endpoint do passo seguinte.
-5. **Testar estados sem saída:** para cada estado, existe uma ação legítima que leva a
-   um próximo estado útil? Se não, é dead end.
-6. **Testar refresh:** em cada estado, o que acontece se o usuário recarregar? O estado
-   é reconstruído a partir do servidor, ou perdido/resetado?
-7. **Testar back-button:** o que acontece ao voltar? O usuário reexecuta uma ação
-   não-idempotente? Volta a um estado que não deveria mais ser acessível?
-8. **Testar duplicação:** o usuário pode executar a mesma ação duas vezes (duplo submit,
-   double click) e causar dois efeitos?
-9. **Listar estados impossíveis** — combinações que a máquina deveria proibir mas que
-   podem ser alcançadas por pulo, refresh, ou back.
-10. **Reportar** findings via `templates/audit-report.md`.
+1. Identify actor, goal, entry points, prerequisites, success criteria, and durable effects.
+2. Map states and transitions from product context, routes, UI, API behavior, tests, and persisted state. Separate intended from merely implemented paths.
+3. Walk the primary path and verify feedback matches authoritative state.
+4. Explore alternate entry, cancel, back/forward, refresh, deep link, duplicate submit, timeout, retry, session expiry, and resume.
+5. Test empty, loading, permission-denied, conflict, validation, partial-success, and unavailable states.
+6. Verify irreversible actions have appropriate confirmation and that recovery does not duplicate effects.
+7. Check transitions across devices/tabs or actors when the flow supports them.
+8. Record unreachable states, dead ends, loops, misleading success, and tested paths that work.
 
 ## Questions to Ask
 
-* Quais são todos os estados do fluxo? Onde cada um é persistido?
-* Para cada transição, qual a pré-condição? Ela é checada no servidor?
-* Existe um estado do qual nenhuma ação leva a lugar útil? (dead end)
-* Posso pular direto para um estado avançado sem passar pelos anteriores?
-* O que o refresh faz em cada estado? O estado é recuperado do servidor ou perdido?
-* O back-button reexecuta uma ação? Volta a um estado obsoleto?
-* Um duplo-submit cria dois recursos / duas recompensas?
-* Existem combinações de estado que deveriam ser impossíveis mas são alcançáveis?
-* O feedback dado ao usuário reflete o estado real do servidor?
+* Can every intended actor discover and enter the flow with prerequisites satisfied?
+* What happens when the user deep-links into each step?
+* Can required steps be skipped or completed out of order?
+* Does refresh or back/forward preserve, repeat, or corrupt an operation?
+* Is submit disabled only visually, or is duplicate execution prevented?
+* Does feedback reflect the authoritative result rather than optimistic intent?
+* After validation, conflict, timeout, or session expiry, can the user recover without losing valid work?
+* Are cancel and destructive confirmation semantics clear and reversible where promised?
+* Does every terminal state offer an appropriate next action?
 
 ## Attack Patterns
 
 ```text
-skip preconditions
-    POST /step-final     (pulando /step-1 e /step-2)
-    → efeito concedido sem pré-condições?
-
-dead end
-    state: "payment_failed"
-    → existe botão "retry"? "cancel"? ou o usuário fica preso?
-
-refresh mid-flow
-    state: "form partially submitted"
-    refresh → estado reconstruído? ou volta ao início perdendo dados?
-
-back-button after submit
-    submit → state: "created"
-    back → volta ao form → submit novamente
-    → criação duplicada?
-
-duplicate operation
-    double click em "Submit"
-    → dois requests, dois efeitos?
-
-impossible state reachable
-    resource marcado "deleted" mas ainda listado e editável
-    → combinação proibida alcançada por caminho indireto
-
-stale feedback
-    UI mostra "success" mas servidor reverteu por erro interno
-    → feedback ≠ estado real
+deep link:       open step 3 without steps 1–2
+refresh:         reload during submit or callback
+back/revisit:    complete → back → submit again
+double submit:   click/keypress twice or retry after timeout
+expired session: begin authenticated flow → expire → finish
+stale conflict:  edit old version after another actor changes it
+cancel/resume:   abandon mid-flow → return later with partial state
+partial success: server commits → UI receives error → user retries
+empty/error:     remove last item or deny permission → no recovery path
 ```
 
 ## Evidence Requirements
 
-* **Nomear o estado e a transição** problemáticos (ex: "do estado `submitted` via
-  back-button de volta a `form`").
-* **Mostrar onde o estado vive** (server/client/URL/cache) e onde a pré-condição é (ou
-  não é) verificada.
-* **Reproduzir ou apontar o mecanismo** — sequência de passos/requests, ou o código que
-  assume a pré-condição sem checá-la.
-* **Escalar confiança:**
-  * `CONFIRMED` — reproduziu o dead end / o pulo / o desync.
-  * `HIGH CONFIDENCE` — mecanismo claro no código (ex: handler não checa etapa
-    anterior), sem reprodução manual.
-  * `POSSIBLE` — fluxo parece permitir, caminho plausível, não confirmado.
-  * `SPECULATIVE` — "acho que refresh pode quebrar" sem rastrear o mecanismo.
+Provide the actor, goal, entry state, preconditions, exact transition sequence, expected and actual state/feedback, durable effects, and recovery outcome. Cite routes/components/handlers or include a reproducible interaction trace.
+
+Use the `AGENTS.md` confidence scale. A confusing label alone belongs to UX review unless it causes a wrong transition or blocks completion. `CONFIRMED` requires observed flow behavior; structural evidence can support `HIGH CONFIDENCE` when reachability is exact.
 
 ## False Positives
 
-* **Pré-condição verificada no servidor** — se o handler do passo final valida que os
-  anteriores ocorreram, o "pulo" não produz efeito. Confirmar antes de reportar.
-* **Estado é puramente de UI** — alguns estados "intermediários" são só feedback visual
-  sem estado persistido; "perdê-los" no refresh é aceitável se o servidor é a verdade.
-* **Back-button em fluxo idempotente** — se reexecutar é seguro (idempotência real),
-  não é bug (relacionado a `idempotency-audit`).
-* **Dead end é intencional** — alguns estados terminais são deliberados (ex: "conta
-  banida"). Reportar como tal, não como defeito, ou marcar como `POSSIBLE` para decisão
-  de produto.
-* **Duplicação protegida por disable de botão + server idempotency** — defesa em
-  profundidade; se ambas existem, não reportar.
+Do not report intentional terminal states, documented restart behavior, or unavailable actions correctly explained by permissions or prerequisites. Verify server idempotency before treating a disabled button as the only duplicate defense. Browser back behavior is not defective merely because it returns to a previous view; show repeated effects, invalid state, data loss, or broken expectations. Do not assume drafts must persist unless the product contract requires it.
 
 ## Output Format
 
-Para cada estado/transição problemática, um finding via
-`templates/audit-report.md`. Em **Reproduction**, dê a sequência exata de estados
-visitados (incluindo refresh/back) que leva ao defeito. Em **Affected flow**, nomeie o
-fluxo. Em **Recommendation**, indique *onde* corrigir (validação server-side no handler
-do passo final; bloqueio de estado obsoleto; reconstrução de estado no refresh).
+Use `templates/audit-report.md`. Include actor/goal, affected flow, state transition, reproduction, expected/actual behavior, feedback mismatch, root cause, impact, severity, confidence, recommendation, and provenance.
 
-Anexe um diagrama da máquina de estados com os estados/transições problemáticos
-marcados. Estados sem saída e transições puláveis são os mais graves — liste-os
-primeiro.
+Add a flow map or transition table with entry, preconditions, action, resulting state, feedback, next state, and coverage status. Consolidate multiple dead ends caused by one missing transition or recovery rule.

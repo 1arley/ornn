@@ -1,6 +1,6 @@
 ---
 name: interaction-design
-description: Evaluates hover, focus, pressed, disabled, loading, transitions, feedback, and micro-interactions to verify every state of every interactive element is intentionally designed.
+description: Evaluates whether interactive controls define coherent states, transitions, feedback, and recovery across pointer, keyboard, touch, and asynchronous use.
 license: MIT
 metadata:
     aes-category: frontend
@@ -11,151 +11,69 @@ metadata:
 
 ## Objective
 
-Ensinar o agente a avaliar **cada estado de cada elemento interativo**: hover, focus,
-pressed, disabled, loading, transitions, feedback, e micro-interações. A pergunta
-central: *todo estado que o usuário pode ver está intencionalmente desenhado, ou há
-estados acidentais (sem feedback, sem affordance, sem contraste)?*
+Verify that every interactive element communicates what can happen, what is happening, what happened, and how the user can recover across supported input methods.
 
 ## When to Use
 
-* Em qualquer tela com elementos interativos (botões, links, inputs, dropdowns, cards
-  clicáveis, toggles).
-* Quando o pedido menciona "interaction", "micro-interactions", "hover state",
-  "focus state", "disabled state", "loading state".
-* Em revisões de frontend onde UX e visual são complementares à interação.
-* **Composição:** roda com `ux-review` (a interação serve à UX), `visual-quality-review`
-  (estados são visuais), `animation-review` (transições/motion são interação), e
-  `accessibility-review` (focus/keyboard são acessibilidade E interação).
-* **Separação de responsabilidade:** `design-library-research` pesquisa padrões de
-  estados e interações antes da implementação; `interaction-design` valida depois
-  se os estados descobertos e implementados funcionam. Pesquisa não é review.
+Use for controls, forms, menus, dialogs, drag-and-drop, gestures, optimistic actions, and asynchronous interactions, especially when behavior feels unresponsive, ambiguous, inconsistent, or easy to trigger twice. Do not use for purely static visual critique or a full end-to-end journey audit.
+
+This skill owns local interaction state and feedback. `ux-review` owns task-level comprehension, `animation-review` owns temporal motion quality, and `accessibility-review` owns equivalent access. Consolidate shared symptoms by invariant and root cause.
 
 ## Mental Model
 
-Todo elemento interativo é uma **máquina de estados**: default, hover, focus, pressed,
-disabled, loading, selected, error. O bug de interação é um **estado não-desenhado** —
-o usuário paira, foca, pressiona, desabilita, e nada comunica a mudança. O sistema
-"funciona" mas não *reage*.
-
-O modelo de estados canônicos (do `plan.md` §10):
+Treat every control as a state machine:
 
 ```text
-hover      — indica que o elemento é interativo (mudança de fundo/borda/elevação)
-focus      — indica posição de teclado/assistivo (ring, outline, não removido!)
-pressed    — confirma o pressionamento (escala, escurece, "estou sendo clicado")
-disabled   — comunica indisponibilidade com causa (não só "cinza morto")
-loading    — comunica trabalho em progresso (não congelar sem feedback)
-transitions — mudanças de estado são suaves e legíveis, não teleportadas
-feedback   — resultado da interação é comunicado (não só no DOM)
-micro-interactions — detalhe que encanta e informa (efeito sutil e significativo)
+available → hover/focus → pressed → pending → success | error → recoverable
+                 ↘ disabled, cancelled, interrupted, or stale
 ```
+
+Affordance, input, logical state, and feedback must agree. A visually disabled control that submits, or a pending action that appears idle, is a state mismatch rather than missing polish.
 
 ## Investigation Procedure
 
-1. **Listar elementos interativos** — botões, links, inputs, selects, toggles, cards,
-   tabs, dropdowns, modais, checkboxes.
-2. **Para cada elemento, percorrer os estados:**
-   * **default** — comunica a função? (affordance)
-   * **hover** — muda algo? O que? É distinto o suficiente?
-   * **focus** — há focus ring/outline? Foi removido (culpado — acessibilidade)?
-   * **pressed** — dá feedback de pressionamento? Ou fica estático?
-   * **disabled** — comunica por quê? Ou é indistinguível de erro?
-   * **loading** — durante a ação, o elemento mostra progresso? (spinner/skeleton/
-     mudança de label) ou congela?
-   * **selected/active** — o estado selecionado é visível e distinto?
-   * **error** — a interação que falha comunica o erro?
-3. **Avaliar transitions** — mudanças de estado são suaves? (ou teleportam?) São
-   rápidas demais para perceber ou lentas demais para tolerar?
-4. **Avaliar micro-interactions** — há detalhe que informa (ex: input com check de
-   validação, botão com confirmação)? Algum é *excessivo* (ruído)?
-5. **Verificar focus sequence** — interagir só com teclado funciona? (parcialmente
-   aqui, completo em `accessibility-review`).
-6. **Sintetizar** com o formato de saída.
+1. Identify critical tasks and inventory controls, clickable containers, shortcuts, gestures, and implicit row actions.
+2. Derive reachable states from UI, code, design system, and server behavior: default, hover, focus, active, selected, disabled, pending, success, error, stale, and cancellation where applicable.
+3. Exercise states with pointer, keyboard, and touch. Verify affordance, semantics, target, and feedback match the available action.
+4. Trace each trigger through response. Test latency, failure, optimistic rollback, repeat activation, navigation away, and stale completion.
+5. Compare equivalent controls against `DESIGN.md` or the design system; distinguish intentional hierarchy from divergence.
+6. Test overlays and composite widgets for open, selection, dismissal, outside click, Escape, focus restoration, and nesting conflicts.
+7. Reproduce candidates, identify the failed transition, and rule out platform conventions.
 
 ## Questions to Ask
 
-* Cada elemento interativo comunica sua função no default? (affordance)
-* O hover muda o estado de forma perceptível? (fundo/borda/elevação)
-* O focus tem ring/outline visível? Foi removido com `outline: none`?
-* O pressed dá feedback de pressionamento? (escala/escurece)
-* O disabled comunica a causa ("unavailable — upgrade to pro") ou é um cinza mudo?
-* Durante uma ação, o elemento mostra loading? Ou congela até o fim?
-* O estado selecionado (active/tab/selected) é visível e distinto?
-* Transições são suaves? (ou teleportam entre estados?)
-* Micro-interações informam ou só enfeitam? (alguma é excessiva/ruído?)
-* A interação com teclado completa o fluxo? (focus sequence funciona?)
+- Can users identify the available action before activating it?
+- Does every reachable state have deliberate visual and behavioral representation?
+- Are disabled, read-only, unavailable, and pending states distinct?
+- Does feedback appear at the locus of action and persist long enough?
+- Can repeat, cancellation, failure, or navigation produce duplicate work or stale UI?
+- Do supported input methods reach equivalent outcomes?
+- Is friction proportional to destructive or irreversible consequences?
+- Does apparent inconsistency encode context, or is it accidental?
 
 ## Attack Patterns
 
-```text
-hover without affordance change
-    botão muda cor no hover, mas links/ícones não — o que é clicável é inconsistente
-
-focus removed
-    `:focus { outline: none }` sem substituto
-    → teclado/assistivo não sabe onde está. Acessibilidade E interação quebrada.
-
-pressed feedback absent
-    botão não reage ao clique (sem escala, sem mudança)
-    → usuário não sabe se o clique foi registrado
-
-disabled without cause
-    botão cinza sem tooltip/legenda de "por quê"
-    → usuário pensa que está bugado (ver também `error-flow-audit`)
-
-loading frozen
-    ação disparada, botão congela 3s sem feedback
-    → usuário clica de novo (duplo submit), ou acha que quebrou
-
-selected state invisible
-    tab selecionada e não-selecionada têm o mesmo peso visual
-    → usuário não sabe em que página está
-
-transition too fast/slow
-    0ms (teleport) → desorientado
-    800ms em card grid → frustrante, lento
-
-micro-interaction excessive
-    animação em cada hover de ícone de 24px → ruído visual, distração
-    (ver `animation-review`)
-
-feedback after action absent
-    toggle flip sem "salvo" (o toggle é otimistic e o servidor falhou — ver
-    `state-consistency-audit` — ou a mudança não é comunicada)
-```
+- **Repeat:** double-click or press Enter during latency.
+- **Reverse:** toggle or undo before completion; latest intent should win.
+- **Reorder:** open, select, dismiss, and navigate in unusual order.
+- **Skip:** bypass hover with keyboard or touch.
+- **Interrupt:** blur, resize, go offline, background, or close during work.
+- **Manipulate:** force empty, error, partial, disabled, denied, and stale states.
 
 ## Evidence Requirements
 
-* **Nomear o elemento e o estado** (ex: "botão Save: estado disabled sem explicação").
-* **Mostrar o estado observado** vs o estado esperado (sem focus ring, sem feedback de
-  pressed, congelado em loading).
-* **Escalar confiança (Interaction Design):**
-  * `CONFIRMED` — estado não-desenhado observado (ex: `outline: none` sem substituto,
-    botão congela sem loading).
-  * `HIGH CONFIDENCE` — código/estilo confirma a ausência de estado.
-  * `POSSIBLE` — interação marginalmente inconsistente.
-  * `SPECULATIVE` — preferência pessoal sobre micro-interação.
+A `CONFIRMED` finding requires an exact control, initial state, action sequence, observed state, expected state, and mechanism, with runtime or test evidence. `HIGH CONFIDENCE` requires structural evidence proving a reachable mismatch. `POSSIBLE` fits incomplete states or uncertain impact. Screenshots prove one state, not transition behavior. Preference without an invariant is not a finding.
 
 ## False Positives
 
-* **Plataforma usa padrão diferente** — hover em touch não existe; em desktop touch
-  não aplica. Avaliar por plataforma/dispositivo.
-* **Micro-interação é parte da marca** — animações de marca podem ser mais presentes;
-  avaliar se servem a identidade ou são ruído.
-* **Focus via outro sinal** — focus ring removido mas substituído por outra indicação
-  visível (border, background) em todos os estados. Confirmar antes de reportar.
-* **Disabled com tooltip intencional** — se o disabled tem tooltip/legend explicando
-  causa, não é "cinza mudo". Confirmar.
-* **Loading indireto** — skeleton no lugar do conteúdo é loading válido. Não exigir
-  spinner no botão se o skeleton comunica.
+- Touch devices do not require hover; critical information simply cannot depend on it.
+- Native controls may retain platform-specific treatments.
+- A disabled state may be omitted when an enabled action provides a clear explanation.
+- Truly instantaneous actions do not need visible loading.
+- Different treatments may correctly express destructive, primary, compact, or contextual actions.
+- Library defaults must still be tested in product context.
+- Pure motion-quality defects belong to `animation-review`.
 
 ## Output Format
 
-Para cada estado não-desenhado, um finding via `templates/audit-report.md`. Em
-**Affected component**, nomeie o elemento e o estado. Em **Reproduction**, descreva o
-que o usuário vê vs o que deveria ver (paira/foca/pressiona e nada muda). Em **Root
-cause**, aponte o estado ausente. Em **Recommendation**, dê a correção (adicionar focus
-ring, feedback de pressed, disabled com causa, loading state, selected state).
-
-Apresente por elemento × estado. Focus e feedback (impacto direto em uso) primeiro;
-hover/pressed/disabled depois; transitions e micro-interactions por último.
+Use `templates/audit-report.md`. Name the control, invariant, initial state, trigger, expected and actual next state, recovery, input methods tested, mechanism, impact, fix, provenance, evidence, and false-positive check. Prioritize blocked or duplicate actions, destructive mistakes, unrecoverable state, and missing error feedback before cosmetic inconsistency.

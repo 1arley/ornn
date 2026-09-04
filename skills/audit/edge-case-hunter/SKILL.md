@@ -11,145 +11,72 @@ metadata:
 
 ## Objective
 
-Ensinar o agente a **gerar sistematicamente** casos de fronteira e verificar se o
-sistema trata cada um. Ao contrário de skills que atacam lógica ou fluxo, esta ataca
-**valores** — as entradas nos limites onde suposições sobre formato, magnitude e
-conteúdo quebram.
+Derive high-value boundary and exceptional cases from actual types, invariants, and lifecycle, then verify whether each is rejected, normalized, or handled consistently.
 
 ## When to Use
 
-* Ao auditar qualquer função/campo que recebe input (formulários, APIs, imports,
-  parseadores, cálculos).
-* Antes de confiar em um cálculo (saldo, XP, preço, contador, posição, índice).
-* Quando o pedido menciona "edge cases", "boundary", "what about X values", "stress
-  inputs".
-* **Composição:** complementar, não substitutiva. Rode junto com
-  `input-trust-audit` (esses valores viriam do cliente?), `business-logic-audit`
-  (limites que são regras), `error-flow-audit` (o que acontece quando o edge case
-  quebra), `data-integrity-audit` (o banco aceita esses valores?).
+Use when a flow accepts user or external input, crosses type or serialization boundaries, has limits or lifecycle states, imports data, or fails around empty, extreme, duplicate, Unicode, stale, deleted, or expired values.
+
+Do not generate a generic Cartesian checklist for fields that cannot influence behavior. Compose with `business-logic-audit`, `input-trust-audit`, `data-integrity-audit`, `state-consistency-audit`, and `error-flow-audit` as their boundaries apply.
 
 ## Mental Model
 
-A maioria do código é testada no happy path com valores "redondos" (1, 10, "hello").
-Bugs vivem nas **fronteiras** — onde o input deixa de ser "normal" e expõe uma suposição
-não escrita: "não será nulo", "não será vazio", "será positivo", "cabe em um int",
-"é ASCII", "é único", "ainda existe".
-
-A skill usa uma lista canônica de eixos de fronteira e, para cada campo/entrada
-relevante, pergunta "o que acontece se este valor for `<eixo>`?". É exaustivo por
-intenção, mas **triado por relevância**: nem todo eixo aplica a todo campo.
-
-Eixos canônicos (do `plan.md` §6):
+An edge case is near a semantic boundary, not merely unusual. Derive cases as:
 
 ```text
-null              empty             zero             negative
-huge values       duplicates        Unicode          stale data
-deleted data      expired data      repeated valid actions
+domain → equivalence classes → boundaries → representation changes → lifecycle states
 ```
+
+High-value cases occur where layers disagree: absent versus null, bytes versus characters, local versus UTC time, integer versus floating point, deleted versus missing, duplicate request versus entity, or stale versus current state.
 
 ## Investigation Procedure
 
-1. **Listar entradas.** Identifique todos os campos/parâmetros/entradas que o
-   componente recebe (do cliente, de outra camada, de um job, de um import).
-2. **Para cada entrada, mapear o tipo e as suposições** — número? string? referência a
-   entidade? data? Enumerar o que o código assume sobre ele.
-3. **Gerar casos por eixo.** Para cada entrada × eixo aplicável, formule o caso.
-   Ex: `balance` × `negative` → "saldo -50"; `name` × `Unicode` → "nome com
-   zero-width/emoji/RTR"; `parentId` × `deleted data` → "referencia entidade deletada".
-4. **Executar/verificar cada caso.** O que o sistema faz? Erro limpo? Silent fail?
-   Estado corrompido? Crash? Comportamento errado sem erro?
-5. **Triar.** Descarte casos onde o eixo não aplica (ex: `negative` em um enum).
-   Priorize casos que corrompem estado ou causam comportamento errado silencioso.
-6. **Confirmar com evidência** — reproduza o input e observe a saída/estado.
-7. **Reportar** via `templates/audit-report.md`.
+1. Inventory inputs and states from schemas, types, validators, database definitions, API contracts, and UI constraints.
+2. State the invariant and expected handling for each relevant field or state.
+3. Partition domains: absent/null/empty; zero/negative/min/max/overflow; duplicate; malformed; Unicode; temporal boundary; stale/deleted/expired; repeated action.
+4. Prioritize boundaries that cross layers, affect authority or value, or trigger irreversible effects.
+5. Trace validation and normalization through client, transport, server, persistence, and integrations.
+6. Test immediately below, at, and above each meaningful boundary; include repetition or concurrency only when semantics change.
+7. Observe response, persisted state, side effects, logs, and retry behavior.
+8. Compare with the contract, classify evidence, and record untested partitions.
 
 ## Questions to Ask
 
-* O que acontece se este campo for `null`? E vazio (`""`)? E só whitespace?
-* E se for `0`? E `-1` / negativo?
-* E se for enorme (overflow de int, string de 1MB, array de 10⁶ itens)?
-* E se houver duplicata (dois iguais onde deveria ser único)?
-* E se tiver Unicode exótico (zero-width joiner, RTL, emoji, combinando)?
-* E se o dado referenciado foi deletado? (FK pendente, soft-deleted mas ainda usado)
-* E se o dado está expirado? (token, sessão, oferta, cupom)
-* E se for stale (cache desatualizado vs fonte)?
-* E se a mesma ação válida for repetida N vezes? (limite, contador, reward)
-* O erro (quando ocorre) é limpo e tratado, ou vaza crash/stack trace?
+* Are missing, `null`, empty string, whitespace-only, and empty collection distinct?
+* Is zero valid, absent, or false? Are negative values meaningful?
+* What happens at min-1/min/min+1 and max-1/max/max+1?
+* Are limits measured in bytes, code points, graphemes, rows, or serialized size?
+* How are Unicode normalization, combining marks, emoji, bidi controls, and case folding handled?
+* What defines duplicate identity, and where is uniqueness enforced?
+* Which timezone and clock define expiry, reset, and inclusive boundaries?
+* What happens when referenced data is stale, deleted, or expires mid-flow?
+* Does repetition remain valid, become idempotent, or duplicate effects?
 
 ## Attack Patterns
 
 ```text
-null
-    field: null           → NullPointerException? 500? ou tratado como default?
-
-empty
-    name: ""              → validado? ou aceito e quebra display/sort?
-
-zero
-    quantity: 0           → cálculo de total = 0 ok? ou divisão por zero downstream?
-    price: 0              → checkout grátis "válido"?
-
-negative
-    amount: -50           → transfere -50 (inverte fluxo)? saldo fica negativo?
-
-huge
-    count: 2147483648     → overflow int? loop eterno? OOM?
-    file: 10GB            → limite de upload?
-
-duplicate
-    POST /create {slug:"x"} twice   → 409? ou cria dois?
-
-Unicode
-    name: "a​​b"          → zero-width; igual a "ab"? duplicata invisível?
-    name: "‮"                  → RTL override; rendering invertido
-
-deleted data
-    POST /comment {postId: <deleted>}   → cria comentário órfão?
-
-expired data
-    redeem code expired   → ainda resgata? ou checa expiração?
-
-stale data
-    cache: balance=100, db: balance=50   → usa cache e permite gastar 100?
-
-repeated valid action
-    claim reward 5×       → limite por-janela respeitado? ou farming?
+presence:       omit | null | "" | "   " | [] | {}
+numeric:        -1 | 0 | 1 | limit-1 | limit | limit+1 | huge | NaN/Infinity
+text:           max-length ±1 | Unicode variants | emoji | bidi | NUL
+duplicate:      same logical value with case, whitespace, or Unicode variants
+temporal:       just before/at/after expiry or reset; DST boundary
+lifecycle:      load entity → delete/expire elsewhere → submit stale mutation
+serialization:  number as string; duplicate keys; unknown field; truncation
+repeat:         same valid request multiple times → duplicate side effect?
 ```
 
 ## Evidence Requirements
 
-* **Nomear o eixo e o campo** testados.
-* **Mostrar o input exato** usado (valor literal, não "um valor grande").
-* **Mostrar a saída/estado resultante** — não só "quebra", mas *como* (erro 500,
-  silent success com estado errado, crash, comportamento correto).
-* **Escalar confiança:**
-  * `CONFIRMED` — reproduziu com o input literal e observou o resultado.
-  * `HIGH CONFIDENCE` — código mostra caminho que não trata o eixo, sem reprodução.
-  * `POSSIBLE` — eixo plausível, caminho não confirmado.
-  * `SPECULATIVE` — "pode quebrar com X" sem rastrear.
-* Priorize `silent success com estado errado` — é pior que crash, porque não alerta.
+Tie every finding to a contract or invariant. Show exact input/state, path, expected handling, observed response, persisted result, and side effects. Provide file/line evidence or a reproducible test/request.
+
+Use the `AGENTS.md` confidence scale. An untested inferred boundary is at most `POSSIBLE`; `CONFIRMED` requires observed behavior. Verify framework parser behavior against project configuration and version.
 
 ## False Positives
 
-* **Validação de tipo no boundary do framework** — se o ORM/schema rejeita null/empty
-  antes do handler, o caso é tratado. Confirmar antes de reportar.
-* **Default intencional** — alguns campos legitimamente defaultam null/0 e o código
-  trata downstream. Não reportar "aceita null" se o nulo é intencional e tratado.
-* **Unicode normalizado por design** — se o sistema normaliza (NFC) e colapsa
-  zero-width de propósito, "duplicata invisível" é tratada, não bug.
-* **Soft delete intencional** — referenciar entidade "deletada" (soft) pode ser
-  desejado (histórico). Verificar se é hard ou soft delete antes de reportar.
-* **Limite enorme não é defeito** — se o sistema *deve* aceitar arquivos grandes,
-  "aceita 10GB" não é bug; "não limita e dá OOM" seria.
-* **Caso não aplica** — `negative` em um boolean/enum não aplica; não force.
+Do not report intentionally equivalent representations after canonicalization, documented coercion, harmless message differences, or impossible values rejected before the application boundary. Verify framework and database defaults. Unicode variation is not a defect unless it violates identity, uniqueness, display, security, or product semantics. A theoretical huge input is not actionable without reachability or resource impact.
 
 ## Output Format
 
-Para cada caso que produz comportamento errado (não só erro), um finding via
-`templates/audit-report.md`. Em **Reproduction**, dê o input literal e o comando
-request. Em **Actual behavior**, descreva exatamente o resultado observado. Em
-**Recommendation**, indique validação (onde: schema vs handler vs sanitização).
+Use `templates/audit-report.md`. Include invariant, boundary dimension, exact case, reproduction, expected/actual behavior, affected layers, mechanism, impact, severity, confidence, recommendation, and provenance.
 
-Apresente a matriz de cobertura como tabela (entrada × eixos aplicáveis, marcando
-✓ tratado / ✗ falha / — não aplica). Isto documenta quais eixos foram testados e
-previne retrabalho. Silenciosos (estado errado sem erro) primeiro; crashes depois.
+Add a coverage matrix by input/state and partition with `tested-pass`, `tested-fail`, `protected`, `not applicable`, or `untested`. Group equivalent failures by root cause.

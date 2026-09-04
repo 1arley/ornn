@@ -11,184 +11,102 @@ metadata:
 
 ## Objective
 
-Ensinar qualquer agente a decidir **onde e quanto pesquisar** com base no problema.
-É uma metodologia opcional de source selection. Não é estágio obrigatório, não chama
-outras skills e não controla a sessão do agente consumidor.
+Choose proportionate research depth, evidence classes, and source types for a decision, then route collection to the appropriate research capability without conducting the research itself.
 
 ## When to Use
 
-* Quando uma tarefa não-trivial precisa de pesquisa antes de implementar (estágio
-  "RESEARCH" do workflow).
-* Quando o `skill-router` ativou skills de research ou sinalizou que pesquisa é
-  necessária.
-* Quando você precisa saber a que fontes de `references/` recorrer.
-* **Composição:** pode recomendar `reference-research`, `github-reference-research`,
-  `market-research` ou `implementation-research`. O agente decide. Consome o catálogo
-  em `references/*.yaml`.
+Use when external knowledge is needed and the choice of sources or research depth is non-obvious, when a task spans evidence classes, or when the user asks where or how deeply to research. Do not activate merely because a task contains the word “research,” when repository evidence is sufficient, or as a mandatory stage before implementation.
+
+This skill selects a research strategy. `reference-research`, `github-reference-research`, `market-research`, `implementation-research`, and `design-library-research` collect and synthesize evidence. `skill-router` decides which skills are relevant overall.
 
 ## Mental Model
 
-O router usa **o tipo de problema** para escolher as fontes. Cada tipo de problema tem
-uma combinação de fontes que o resolve melhor:
-
-| Tipo de problema | Fontes (da mais para menos relevante) |
-|---|---|
-| **Animation** | Animate UI, Impeccable, Interfaces, GitHub, real products |
-| **UX** | Laws of UX, Interfaces, real products, design systems |
-| **Visual / craft** | Impeccable, Impeccable Slop, Interfaces, Dribbble, dark.design |
-| **Architecture** | GitHub, official documentation, production implementations, technical literature |
-| **Security** | OWASP, PortSwigger, CWE, GitHub (middleware real) |
-| **Engineering/reliability** | OWASP Cheat Sheet, PortSwigger, GitHub (production), Google Testing Blog |
-| **Product/gamification** | Reforge, Product Hunt, GitHub (reward systems real) |
-| **Implementation técnica (backend)** | official documentation → GitHub/issues → production code → articles |
-| **Implementation técnica (frontend)** | `references/frontend.yaml` component libraries (Magic UI, React Bits, Hover, Motion, Aceternity, Pace, Eldora, Headless, Vue Bits, Inspira, Animate UI) → official docs → GitHub → real products |
-| **Frontend redesign / UI composition / animation / interaction** | `design-library-research` → `references/frontend.yaml` → official component docs → cross-library comparison |
-| **Discovery de fontes** | LazyWeb, Shoogle, Hacker News |
-
-E a **classes de conhecimento** determina como usar a fonte (do `plan.md` §12):
+Start from the decision and its uncertainty:
 
 ```text
-methodology    — fundamento (Laws of UX, OWASP)     → pesa como base
-heuristic      — princípios (Impeccable, Interfaces) → calibra decisão
-inspiration    — estética (Dribbble, dark.design)    → inspira, não decide
-implementation — código (Animate UI, GitHub)         → referência, não cópia
-discovery      — descoberta (LazyWeb, Shoogle)       → acha mais fontes
+decision → unknowns → consequence if wrong → required evidence class
+→ authoritative source types → stopping condition → research skill
 ```
 
-Não tratar todas como igualmente confiáveis (ver `docs/reference-authoring.md` para
-`authority`).
+Source type and authority answer different questions. Methodology frames reasoning; heuristics calibrate judgment; inspiration expands possibilities; implementation demonstrates a concrete approach; discovery sources locate better evidence. None should be promoted beyond what it can support.
+
+Research depth should grow with uncertainty, impact, irreversibility, disagreement, and source volatility. “Full” research is not synonymous with reading every catalog entry.
 
 ## Investigation Procedure
 
-1. **Classificar o problema** — animation / ux / visual / architecture / security /
-   engineering / product / implementation / discovery.
-2. **Consultar o catálogo** — abrir os `references/*.yaml` do domínio. Cruzar o
-   `use_when` de cada entrada com o problema.
-3. **Selecionar as fontes** — pela tabela acima + `authority` (established primeiro).
-4. **Determinar a classe de uso** — o que cada fonte oferece (metodologia/princípio/
-   inspiração/código/descoberta) e como usá-la.
-5. **Despachar** — criação/reconstrução de interface vai para
-   `design-library-research`; demais pesquisas vão para as skills apropriadas
-   (`reference-research`, `market-research`, `implementation-research`, etc.).
-6. **Priorizar** — começar por established/vendor, depois community/curated.
-7. **Justificar** a seleção — quais fontes, por quê, e quais foram descartadas.
+1. Define the decision research must support, what is already known, and what remains uncertain.
+2. Decide whether external research can materially change the answer. If repository or supplied evidence is sufficient, recommend none.
+3. Assess impact, reversibility, volatility, novelty, and evidentiary disagreement. Choose no research, a proportional check, or a full multi-source investigation.
+4. Decompose unknowns into evidence needs: authoritative rules, implementation feasibility, real-world behavior, market practice, user behavior, or aesthetic exploration.
+5. Read only relevant entries from `references/*.yaml` or packaged `reference/catalogs/*.yaml`. Match `use_when`, `avoid_when`, type, category, authority, status, and verification date.
+6. Select primary sources for factual and high-impact claims. Add independent sources when they reduce a specific uncertainty, not to inflate source count.
+7. Assign the collection mode: catalog synthesis to `reference-research`, repository evidence to `github-reference-research`, product comparison to `market-research`, technical solution research to `implementation-research`, or pre-implementation frontend composition to `design-library-research`.
+8. Define search questions, source order, exclusions, stopping condition, and what evidence would change the decision.
+9. Record discarded source classes and residual uncertainty. The consuming agent then performs the selected research.
 
 ## Questions to Ask
 
-* Qual é o tipo de problema? (animation/ux/visual/architecture/security/engineering/
-  product/implementation/discovery)
-* Quais arquivos de `references/` cobrem este domínio?
-* Qual `use_when` corresponde ao problema?
-* Qual a classe de conhecimento necessária? (metodologia/princípio/inspiração/código/
-  descoberta)
-* Qual a autoridade de cada fonte candidata? (established > community > curated)
-* Que research skill pode apoiar a coleta? (reference/github/market/implementation)
-* Quais fontes NÃO ajudam este problema e só adicionariam ruído?
+- What decision will this research change?
+- Which unknowns are factual, normative, implementation-specific, behavioral, or aesthetic?
+- What is the cost of being wrong, and can the decision be reversed?
+- How volatile or contested is the information?
+- Which evidence class can actually support each claim?
+- Which catalog entries match both `use_when` and the required authority?
+- Is a primary source available, and where is independent corroboration valuable?
+- Which research skill matches the object of study?
+- What stopping condition prevents both premature closure and source accumulation?
+- What residual uncertainty should remain explicit?
 
 ## Attack Patterns
 
-Esta metodologia não "ataca" nem despacha; ela recomenda fontes. Padrões úteis:
-
-```text
-Animation problem
-        ↓
-Animate UI
-Impeccable
-Interfaces
-GitHub
-real products
-
-UX problem
-        ↓
-Laws of UX
-Interfaces
-real products
-design systems
-
-Architecture problem
-        ↓
-GitHub
-official documentation
-production implementations
-technical literature
-
-Security problem
-        ↓
-OWASP (Top 10 + Cheat Sheets)
-PortSwigger
-CWE
-GitHub (middleware real)
-
-Implementation problem
-        ↓
-official documentation
-GitHub issues/PRs
-production code
-technical articles
-
-Frontend component/design problem (criação, reconstrução ou composição de UI)
-        ↓
-design-library-research
-        ↓
-references/frontend.yaml
-        ↓
-component libraries → official docs → cross-library comparison
-        ↓
-component-to-flow map → UI composition plan
-
-Discovery problem (fontes insuficientes)
-        ↓
-LazyWeb
-Shoogle
-Hacker News
-```
+- **Remove:** eliminate each source and identify which uncertainty becomes unsupported.
+- **Promote:** attempt to use inspiration or discovery as proof; reject the unsupported promotion.
+- **Contradict:** seek an authoritative source that could falsify the preferred answer.
+- **Stale:** verify date, version, status, and current applicability for volatile claims.
+- **Reverse:** start from the intended recommendation and detect cherry-picked sources.
+- **Escalate:** raise impact or irreversibility and confirm that depth and authority increase.
+- **De-escalate:** make the task trivial and reversible; confirm research shrinks or disappears.
+- **Stop:** test whether additional sources still change confidence or decision criteria.
 
 ## Evidence Requirements
 
-O router produz uma **decisão de despacho**, não um finding. Mas a decisão deve ser
-rastreável:
-
-* **Listar as fontes selecionadas**, com `type` e `authority`.
-* **Citar o tipo de problema** que levou à seleção.
-* **Listar as fontes descartadas** e por quê (não ajuda o problema / autoridade baixa /
-  fora de escopo).
-* **Indicar a research skill** que executará a coleta.
-* **Indicar o nível de pesquisa** (nenhuma / proporcional / completa) — ver `AGENTS.md`
-  § 6.
+A routing decision must name the decision, unknowns, research level, selected source types and catalog entries, their type/authority/status, the claims they can support, source order, assigned research skill, exclusions, stopping condition, and residual uncertainty. Selection is traceable to catalog metadata, not hard-coded source rankings in this skill. Research routing is not a finding and does not itself validate any factual claim.
 
 ## False Positives
 
-* **Consultar tudo sempre** — viola a proporcionalidade. Um problema de UX não precisa
-  de OWASP; um problema de segurança não precisa de Dribbble.
-* **Inspiração tratada como evidência** — fontes `type: inspiration` (Dribbble,
-  dark.design) calibram gosto, não justificam decisão técnica.
-* **Fonte de baixa autoridade como base** — community/curated não substitui
-  established/vendor para decisões críticas.
-* **Despachar para fonte inexistente no catálogo** — o router só pode despachar para o
-  que existe em `references/`. Verificar antes.
-* **Ignorar o catálogo** — o catálogo existe justamente para não espalhar URLs pelas
-  skills; consultá-lo primeiro.
+- External research is unnecessary when current project evidence answers the decision.
+- High source count does not equal strong evidence.
+- Community or curated sources can be appropriate for discovery or implementation examples, but not substitutes for available authoritative rules.
+- Official documentation may define an API yet not demonstrate production trade-offs.
+- GitHub popularity does not prove quality, security, suitability, or maintenance.
+- Real-product prevalence does not establish that a pattern fits this product.
+- Inspiration can guide exploration but cannot establish technical or accessibility claims.
+- `composes_with` does not require every research skill to run.
+- Do not dispatch to catalog entries that are inactive, mismatched by `avoid_when`, or unavailable without stating the limitation.
 
 ## Output Format
 
 ```markdown
-## Research Router — Routing
+## Research Router - Strategy
 
-**Problem type:** <animation | ux | visual | architecture | security | engineering |
-  product | implementation | discovery>
+**Decision:** <decision to support>
+**Unknowns:** <material uncertainties>
 **Research level:** <none | proportional | full>
+**Stop when:** <evidence-based stopping condition>
 
-### Sources selected (ordered)
-1. <fonte> — <type> / <authority> — <por quê: use_when corresponde>
+### Evidence plan
+1. <source/catalog entry> - <type>; <authority>; supports <claim>
 2. ...
 
-### Sources discarded
-- <fonte> — <razão>
+### Research skill
+<reference-research | github-reference-research | market-research |
+implementation-research | design-library-research | none>
 
-### Research skill recommendation
-<design-library-research | reference-research | github-reference-research |
-  market-research | implementation-research>
+### Exclusions
+- <source or class> - <why it cannot help>
+
+### Residual uncertainty
+- <what the planned evidence may not settle>
 ```
 
-Depois da seleção, o agente consumidor pode aplicar uma research skill e sintetizar
-Relevant Pattern, Why It Matters, Adaptation, Trade-offs e Recommendation.
+The consuming agent performs and synthesizes the research. If the level is `none`, explain which available evidence already settles the decision.

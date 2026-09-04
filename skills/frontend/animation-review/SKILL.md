@@ -1,6 +1,6 @@
 ---
 name: animation-review
-description: Evaluates purpose, timing, easing, hierarchy, continuity, interruption, accessibility, and reduced motion compliance of every animation in the interface.
+description: Evaluates implemented interface motion for purpose, timing, continuity, interruption, performance, and reduced-motion behavior without treating animation as decoration by default.
 license: MIT
 metadata:
     aes-category: frontend
@@ -11,162 +11,70 @@ metadata:
 
 ## Objective
 
-Ensinar o agente a avaliar animações contra princípios de motion design: propósito,
-timing, easing, hierarquia, continuidade, interrupção, acessibilidade, e reduced
-motion. Toda animação deve ter uma razão de existir; se não serve à função, é ruído.
+Verify that implemented motion communicates change, preserves spatial and causal continuity, remains responsive under interruption, and avoids accessibility or performance harm.
 
 ## When to Use
 
-* Em qualquer interface com animações, transições, micro-interações, parallax,
-  loaders, ou motion.
-* Quando o pedido menciona "animation", "motion", "transitions", "easing", "timing",
-  "reduced motion", "parallax".
-* **Composição:** roda com `interaction-design` (transições e feedback de estado),
-  `accessibility-review` (reduced motion, vestibular), e `ux-review` (animação que
-  informa vs distrai). Consulta `references/frontend.yaml` (Animate UI, Impeccable,
-  Interfaces).
-* **Separação de responsabilidade:** `design-library-research` decide, antes da
-  implementação, qual padrão, componente ou motion investigar e selecionar.
-  `animation-review` avalia depois se o motion implementado tem propósito, timing,
-  easing, continuidade, interrupção e reduced motion corretos. Esta skill não refaz
-  sourcing nem substitui a comparação cross-library.
+Use when reviewing implemented transitions, gestures, route changes, entrances and exits, loaders, scroll-linked effects, parallax, or micro-animations, or when users report motion that feels slow, confusing, jarring, or uncomfortable. Do not activate merely because a UI has ordinary instantaneous state changes.
+
+This skill owns temporal behavior. `interaction-design` owns control-state completeness, `accessibility-review` owns equivalent access, and `design-library-research` owns pre-implementation sourcing. Consolidate findings that share one mechanism.
 
 ## Mental Model
 
-Animação não é decoração — é **comunicação**. Toda animação deve responder a uma
-pergunta do usuário (o que aconteceu? para onde vai? o que mudou?). Se não responde,
-é ruído visual.
-
-Os eixos (do `plan.md` §10):
+Motion is a state transition made visible:
 
 ```text
-purpose          — a animação comunica algo? (mudança de estado, navegação, feedback)
-timing           — duração correta para o que comunica (muito rápida = imperceptível;
-                   muito lenta = frustrante)
-easing           — a curva de aceleração é natural? (ease-out para entrada, ease-in
-                   para saída, spring para interação)
-hierarchy        — animações mais importantes são mais rápidas/notáveis que as menos
-                   importantes
-continuity       — elementos não teleportam; o movimento é contínuo entre estados
-interruption    — a animação pode ser interrompida? (se o usuário clica de novo, o
-                   que acontece?)
-accessibility    — a animação respeita `prefers-reduced-motion`?
-reduced motion   — cores e transições não causam desconforto visual (vestibular,
-                   epilepsy)
+before state → trigger → trajectory and timing → settled state → interruption path
 ```
+
+Judge motion relative to the task and causal model. Timing presets are not universal evidence. Often the best animation is the least motion that makes change understandable.
 
 ## Investigation Procedure
 
-1. **Inventariar animações** — carregamento, transição de página, hover, expansão,
-   entrada/saída, loader, parallax, scroll-triggered.
-2. **Para cada, avaliar propósito** — comunica uma mudança de estado, direção, hierarquia?
-   Ou é decorativa sem função? ("animation for its own sake")
-3. **Avaliar timing** — durações consistentes? (50-100ms para feedback, 200-300ms para
-   transição de página, > 500ms só para storytelling). Todas as animações similares
-   têm a mesma duração?
-4. **Avaliar easing** — a curva de aceleração é natural? (ease-out para entrada de
-   objetos, ease-in para saída, spring para interação tátil). Ou é linear (robótica)?
-5. **Avaliar hierarchy** — a animação principal é mais rápida que as secundárias? Ou
-   tudo anima junto no mesmo tempo?
-6. **Avaliar continuity** — elementos teleportam entre estados? (não: movimento
-   contínuo é esperado). Exemplo: modal abre sem transição, item some sem fade.
-7. **Avaliar interruption** — se o usuário clica de novo, a animação reinicia ou
-   inverte suavemente? Ou trava/empilha?
-8. **Avaliar reduced motion** — `@media (prefers-reduced-motion: reduce)` é respeitado?
-   Animações sensíveis (parallax, scroll, flutuação) são desligadas? Há botão de
-   desligar motion no app?
-9. **Avaliar desconforto** — parallax acentuado, flutuação constante, scroll-triggered
-   que compete com scroll, loading animation que vibra. Causa desconforto vestibular?
-10. **Sintetizar** — referenciar `references/frontend.yaml` (Animate UI, Impeccable)
-    quando apropriado.
+1. Establish product context, supported devices, performance constraints, design tokens, and critical flows.
+2. Inventory motion by trigger and state pair: hover, press, expand, navigation, reorder, progress, scroll, drag, entrance, and exit.
+3. State the user-relevant purpose of each animation; test removal when no purpose is evident.
+4. Record duration, delay, easing, distance, scale, sequencing, and animated properties. Compare semantically equivalent transitions.
+5. Verify origin, destination, direction, hierarchy, and object permanence against the underlying state change.
+6. Interrupt and reverse repeatedly. Rapid input must converge on the latest state without queues, stale callbacks, flashes, or blocked controls.
+7. Test throttling, background/resume, route changes, and content resizing for dropped frames, layout thrashing, and orphaned animations.
+8. Enable reduced motion and project controls. Replace high-risk spatial effects while preserving essential feedback.
+9. Reproduce candidates and distinguish motion defects from underlying interaction, loading, or state-consistency defects.
 
 ## Questions to Ask
 
-* Esta animação tem propósito? (comunica algo, ou só "enfeita"?)
-* Duração é apropriada? (feedback rápido, transição suave, storytelling lento?)
-* Easing é natural (ease-out/spring) ou linear (robótica)?
-* Animações similares têm a mesma duração e easing? (consistência)
-* A animação mais importante é mais rápida que as secundárias? (hierarchy)
-* Elementos teleportam ou se movem continuamente? (continuity)
-* Se o usuário clica de novo, a animação interrompe suavemente? (interruption)
-* `prefers-reduced-motion` é respeitado? (accessibility)
-* Alguma animação causa desconforto visual? (parallax/scroll não-controlado)
+- What change does the animation explain, and is that information otherwise clear?
+- Do direction, origin, destination, and sequence match causality?
+- Can users act during motion, and does repeated input settle at their latest intent?
+- Are timings proportional to distance, frequency, complexity, and urgency?
+- Does competing motion obscure hierarchy?
+- Are animated properties performant on the supported device floor?
+- Does reduced motion remove vestibular risk without hiding feedback?
+- Is motion the cause, or merely the visible symptom of another defect?
 
 ## Attack Patterns
 
-```text
-purpose absent
-    entrada de sidebar com fade+slide quando o conteúdo não mudou → por quê?
-    (animação decorativa sem função comunicativa)
-
-timing wrong
-    hover de botão: 300ms (muito longo para feedback que deve ser < 100ms)
-    transição de página: 100ms (muito rápido, não comunica navegação)
-    loader: 10s (nunca deve; se > 10s, erro)
-
-easing linear
-    todas as animações usam `ease` ou `linear`
-    → movimento robótico, sem naturalidade; falta spring/ease-out
-
-hierarchy inverted
-    micro-interação de ícone (secundária) anima 300ms
-    transição de página (principal) anima 100ms
-    → hierarquia invertida; o principal parece menos importante
-
-continuity broken
-    modal aparece sem transição (teleport)
-    item some antes de sair da tela (corte abrupto)
-    → desorientação, perda de contexto
-
-interruption broken
-    clique em botão → animação de 300ms
-    clique de novo no meio → animação reinicia do início (trava) ou empilha (2×)
-    → deveria interromper e inverter suavemente
-
-reduced motion ignored
-    parallax no hero com `prefers-reduced-motion: reduce`
-    → ainda anima, causa desconforto vestibular
-
-vestibular risk
-    paralaxe acentuado em background de scroll-triggered
-    flutuação constante de CTA (sobe e desce para sempre)
-    loading spinner com rotação rápida + contraste alto
-```
+- **Repeat:** trigger rapidly and look for queues, duplicate callbacks, or delayed final state.
+- **Reverse:** toggle before completion; motion should retarget from its current state.
+- **Reorder:** change content or route while entrance and exit overlap.
+- **Skip:** disable motion or jump to the end; essential information must remain.
+- **Interrupt:** scroll, resize, navigate, background, or reduce motion mid-animation.
+- **Degrade:** throttle CPU and vary content height, viewport, and refresh conditions.
 
 ## Evidence Requirements
 
-* **Nomear a animação e o eixo** (propósito/timing/easing/hierarchy/continuity/
-  interruption/accessibility/reduced motion).
-* **Mostrar os valores exatos** (timing em ms, easing function, CSS/JS da animação).
-* **Escalar confiança (Animation Review):**
-  * `CONFIRMED` — animação sem propósito, timing errado, easing linear, hierarchy
-    invertida, continuity quebrada, reduced motion não respeitado.
-  * `HIGH CONFIDENCE` — violação clara de princípio.
-  * `POSSIBLE` — questão de nuance (timing marginalmente longo).
-  * `SPECULATIVE` — preferência pessoal.
+A `CONFIRMED` finding needs a reproducible trigger sequence, before/after state, observed temporal defect, exact component or source, and mechanism. Include timing, frame trace, animated property, or reduced-motion results when relevant. `HIGH CONFIDENCE` may use exact structural evidence when runtime reproduction is unavailable. Use `POSSIBLE` for subjective pacing or unverified discomfort. Generic timing guidance and reference animations are rationale, not evidence.
 
 ## False Positives
 
-* **Animação de marca com propósito** — animações de marca (logo, loading) podem ser
-  mais longas e expressivas por design. Avaliar se servem à identidade ou são ruído.
-* **Timing varia por plataforma** — mobile vs desktop podem ter durações diferentes.
-  Não reportar "inconsistência" entre plataformas sem considerar o contexto.
-* **Reduced motion parcial** — se o app respeita reduced motion para as animações
-  principais, omitir de micro-interações pode ser aceitável. Marcar como melhoria.
-* **Parallax com fallback** — se parallax desliga em reduced motion, é aceitável.
-  Confirmar o fallback.
-* **Easing linear intencional** — progress bar, skeleton, ou loader podem ser lineares
-  intencionalmente. Não reportar como erro.
+- Linear easing can suit continuous, mechanical, or progress motion.
+- Long motion can suit deliberate storytelling when it does not delay action.
+- Abrupt changes can be preferable for frequent controls, reduced motion, or urgent feedback.
+- Spring overshoot is not inherently wrong; judge semantic fit and settling behavior.
+- Low-risk opacity or color changes may remain under reduced motion.
+- Capture tooling can create apparent jank; reproduce on the target.
+- Different timings may intentionally encode hierarchy or distance.
 
 ## Output Format
 
-Para cada animação que viola um princípio, um finding via `templates/audit-report.md`.
-Em **Affected component**, nomeie a animação. Em **Reproduction**, descreva o que o
-usuário vê vs o esperado (timing, easing, continuity, etc.). Em **Root cause**, aponte
-o eixo violado. Em **Recommendation**, dê a correção (timing, easing, respectar
-reduced motion, adicionar continuity, interrompção suave, remover animação sem
-propósito).
-
-Apresente por eixo. Reduced motion e vestibular (acessibilidade/desconforto) primeiro;
-purpose e continuity depois; timing/easing/hierarchy em seguida; interruption por
-último.
+Use `templates/audit-report.md`. Include transition pair, trigger and interruption sequence, environment, measurements, expected settled state, actual result, mechanism, impact, recommendation, provenance, evidence records, and false-positive check. Prioritize blocked input, wrong final state, accessibility harm, and severe performance cost before polish. Report taste differences as non-blocking observations.
