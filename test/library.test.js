@@ -40,7 +40,7 @@ test("collection installation installs only selected canonical skills", () => {
 });
 
 test("build derives multiple providers from the same source", () => {
-  const result = run(["build", "--providers=generic,claude,codex"]);
+  const result = run(["build", "--providers=generic,claude,codex", "--profile=full"]);
   assert.equal(result.status, 0, result.stderr);
   const source = readFileSync(join(ROOT, "skills", "frontend", "animation-review", "SKILL.md"), "utf8");
   const generic = readFileSync(join(ROOT, "dist", "generic", "skills", "animation-review", "SKILL.md"), "utf8");
@@ -57,7 +57,11 @@ test("every supported distribution derives the public ornn gateway", () => {
     const gateway = join(ROOT, "dist", provider, "skills", "ornn", "SKILL.md");
     assert.ok(existsSync(gateway), `${provider} must include /ornn`);
     const manifest = JSON.parse(readFileSync(join(ROOT, "dist", provider, "manifest.json"), "utf8"));
+    assert.equal(manifest.profile, "gateway");
+    assert.deepEqual(manifest.skills.map((skill) => skill.name), ["ornn"]);
     assert.ok(manifest.skills.some((skill) => skill.name === "ornn"));
+    assert.ok(existsSync(join(ROOT, "dist", provider, "skills", "ornn", "reference", "modules", "security", "security-audit.md")));
+    assert.ok(existsSync(join(ROOT, "dist", provider, "skills", "ornn", "reference", "patterns", "frontend", "animated-tabs", "pattern.yaml")));
   }
 });
 

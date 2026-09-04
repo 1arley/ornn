@@ -241,6 +241,201 @@ unnecessary_skill_count
 missing_required_skill_count
 ```
 
+---
+
+# 10. Plano arquitetural: Gateway-first inspirado no Impeccable
+
+**Status:** implementado
+**Objetivo:** tornar `ornn` a única skill pública instalada, mantendo o catálogo
+interno rico, componível e carregado progressivamente.
+
+## 10.1 Problema e decisão
+
+Hoje existem duas arquiteturas ao mesmo tempo:
+
+1. o Gateway já planeja e carrega conhecimento seletivamente;
+2. o build e o instalador expõem todas as skills irmãs ao agente.
+
+Isso cria poluição de discoverability e aumenta a chance de o harness considerar
+várias skills ao mesmo tempo. A decisão é adotar o modelo do Impeccable: uma
+interface pública semântica (`/ornn` ou `$ornn`), comandos/shortcuts como entrada,
+e módulos internos resolvidos sob demanda. O README do Impeccable documenta esse
+modelo como “1 skill, 23 commands”, com todos os comandos acessados pela mesma
+skill e referências auxiliares separadas.
+
+Esta decisão não significa fundir todos os textos em um `SKILL.md` gigante. A
+skill pública será um dispatcher pequeno; o conteúdo atual continuará canônico em
+`skills/`, `knowledge/`, `references/`, `recipes/` e `patterns/`.
+
+## 10.2 Arquitetura-alvo
+
+```text
+                    interface pública
+              /ornn <tarefa ou comando>
+                           |
+                 skills/ornn/SKILL.md
+              (contrato, comandos, política)
+                           |
+       metadata-first catalog + router + resolver
+                           |
+                    Knowledge Plan
+          primary / supporting / references / avoid
+                           |
+               lazy loading dos artefatos
+                           |
+                    agente consumidor
+```
+
+Camadas:
+
+* **Pública:** somente `ornn` como skill instalável padrão.
+* **Descoberta:** catálogo, aliases, comandos, pins e router determinístico.
+* **Conhecimento:** skills especialistas e conhecimento compartilhado, sem status
+  de interface pública.
+* **Composição:** recipes, collections e commands declarativos.
+* **Execução:** permanece exclusivamente com o agente consumidor.
+* **Tooling:** CLI, detectores e evals continuam opcionais e separados do Gateway.
+
+## 10.3 Contrato da skill pública
+
+Reescrever `skills/ornn/SKILL.md` para conter apenas:
+
+* quando ativar e quando não ativar;
+* sintaxe `/ornn <descrição>` e shortcuts;
+* sequência `normalize → catalog → plan → load → handoff`;
+* regra explícita de não carregar todas as skills para decidir;
+* formato compacto do Knowledge Plan;
+* política de debug (`--debug` mostra candidatos, scores e arquivos carregados);
+* limites de custo, overlap, `risk_floor` e `requires_signals`;
+* como o agente deve ler os arquivos apontados pelo plano.
+
+Não colocar nessa skill as instruções detalhadas de segurança, UX, concorrência ou
+pesquisa. Essas continuam sendo módulos internos selecionados pelo plano.
+
+## 10.4 Modelo de distribuição
+
+Adicionar perfis de distribuição explícitos:
+
+```text
+gateway (padrão)
+└── skills/ornn/
+
+full (desenvolvimento/legado)
+└── skills/ornn/ + skills especialistas/
+```
+
+* `ornn build --profile gateway` gera apenas `ornn` para Codex e integrações
+  genéricas.
+* `ornn build --profile full` mantém a distribuição atual para desenvolvimento,
+  migração e clientes que desejam skills diretas.
+* `ornn install` usa `gateway` por padrão.
+* `ornn install --profile full` é explícito e opt-in.
+* O manifest registra `profile`, seleção resolvida e versão do catálogo.
+
+O perfil gateway precisa transportar o catálogo e os módulos internos necessários
+para lazy loading, sem apresentá-los ao harness como skills independentes. Quando
+o provider não permitir esse transporte, o instalador deve embutir os módulos como
+dados internos da skill ou manter um diretório privado fora da raiz descoberta de
+skills.
+
+## 10.5 Mudanças por componente
+
+### Catálogo e metadados
+
+Adicionar metadados de superfície, por exemplo `public: true|false`, `entrypoint`,
+`load_policy` e `audience`. O catálogo deve distinguir:
+
+* artefatos instaláveis/publicamente descobertos;
+* módulos internos resolvíveis pelo Gateway;
+* artefatos declarativos e referências.
+
+O `ornn` deve ser o único `public: true` no perfil gateway. O router continua usando
+metadata antes de ler conteúdo integral.
+
+### Build
+
+Alterar `src/library/build.js` para aceitar perfil e seleção. Não remover a
+capacidade de construir todas as skills; torná-la não padrão. O manifest deve
+permitir que `doctor` verifique se o payload público corresponde ao perfil.
+
+### Installer e compatibilidade
+
+Alterar `src/installer/orchestrator.js` para resolver o perfil antes de chamar
+`sourceSkills()`. Instalações antigas devem continuar atualizáveis e removíveis
+por meio do manifest v2. Atualizações gateway não devem apagar skills legadas que
+não pertençam à seleção registrada.
+
+### Comandos e pins
+
+Seguir o padrão do Impeccable: `/ornn audit`, `/ornn security`, `/ornn research` e
+demais aliases continuam sendo entradas do mesmo Gateway. Pins podem criar atalhos
+de conveniência, mas não devem instalar novas skills públicas nem criar um segundo
+router.
+
+### Contexto do projeto
+
+Manter `PRODUCT.md`, `DESIGN.md` e `.ornn/` fora do payload canônico. O Gateway pode
+usá-los para ranking, mas deve registrar apenas sinais detectados no plano; nunca
+transformar preferências do projeto em memória global.
+
+## 10.6 Migração incremental
+
+### Fase A — contrato e observabilidade
+
+* definir schema de perfil e campos públicos/privados;
+* adicionar `profile` ao manifest;
+* criar evals comparando gateway versus full;
+* medir quantidade de skills descobertas e tokens carregados;
+* documentar o fluxo e o comportamento de fallback.
+
+### Fase B — gateway opt-in
+
+* implementar `--profile gateway` no build/installer;
+* instalar gateway por padrão apenas em uma integração de teste;
+* validar loading real de security, frontend, reliability e research;
+* adicionar smoke tests por provider.
+
+### Fase C — gateway como padrão
+
+* tornar gateway o perfil padrão;
+* preservar `--profile full` e compatibilidade com manifestos anteriores;
+* atualizar README e guias de instalação;
+* emitir aviso apenas quando uma instalação antiga depender de skills diretas.
+
+### Fase D — redução de superfície
+
+* remover duplicações entre a skill pública e os módulos;
+* revisar nomes e descrições das skills internas para ranking, não discoverability;
+* medir regressões de recall, latência e qualidade dos findings;
+* considerar `full` como perfil avançado, não como instalação recomendada.
+
+## 10.7 Critérios de aceitação
+
+* uma instalação padrão mostra somente `ornn` como skill pública;
+* uma tarefa de segurança carrega apenas o conjunto selecionado pelo plano;
+* uma tarefa trivial não carrega skills especialistas desnecessárias;
+* `--debug` identifica intenção, candidatas, rejeições e arquivos carregados;
+* `full` reproduz a distribuição atual quando solicitado;
+* update/uninstall funcionam para manifestos novos e antigos;
+* nenhum módulo interno é executado automaticamente pelo Gateway;
+* evals demonstram que o gateway não reduz o recall dos casos críticos;
+* o payload público não contém catálogo ou instruções suficientes para induzir
+  carregamento indiscriminado de toda a biblioteca.
+
+## 10.8 Riscos e decisões em aberto
+
+* **Provider sem payload privado:** escolher entre dados embutidos na skill e
+  diretório privado acompanhado por loader.
+* **Agentes que só descobrem arquivos `SKILL.md`:** oferecer fallback explícito,
+  sem transformar todas as skills em interfaces públicas.
+* **Instalações legadas:** manter seleção registrada no manifest e não fazer
+  remoções implícitas.
+* **Custo do catálogo:** distribuir metadata compactada e carregar conteúdo somente
+  após a seleção.
+* **Segurança:** tratar módulos e catálogos como instruções confiáveis somente após
+  instalação/trust do provider, e manter o Gateway sem shell, loop ou controle de
+  ferramentas.
+
 ### Gates iniciais
 
 * [x] `critical_skill_recall = 100%` nos casos críticos da suíte.

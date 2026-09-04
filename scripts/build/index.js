@@ -6,6 +6,8 @@ import { buildDistributions } from "../../src/library/build.js";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const providersArg = process.argv.find((arg) => arg.startsWith("--providers="));
 const providers = providersArg ? providersArg.slice("--providers=".length).split(",").filter(Boolean) : undefined;
-for (const result of buildDistributions(root, { providers })) {
+const profileArg = process.argv.find((arg) => arg.startsWith("--profile="));
+const profile = profileArg ? profileArg.slice("--profile=".length) : "gateway";
+for (const result of buildDistributions(root, { providers, profile })) {
   process.stdout.write(`Built ${result.provider}: ${result.skills} skills → ${result.path}\n`);
 }

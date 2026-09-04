@@ -128,3 +128,40 @@ export function sourceSkills(root, selectedIds = []) {
     src: dirname(item.path),
   }));
 }
+
+export const DISTRIBUTION_PROFILES = ["gateway", "full"];
+
+function gatewayPrivateFiles(root) {
+  const files = [];
+  const addTree = (sourceRoot, destinationRoot, renameSkill = false) => {
+    for (const source of walk(sourceRoot)) {
+      const rel = relative(sourceRoot, source).split(sep).join("/");
+      const destination = renameSkill && basename(source) === "SKILL.md"
+        ? `${destinationRoot}/${relative(sourceRoot, dirname(source)).split(sep).join("/")}.md`
+        : `${destinationRoot}/${rel}`;
+      files.push({ src: source, dest: destination });
+    }
+  };
+  addTree(join(root, "skills"), "reference/modules", true);
+  addTree(join(root, "knowledge"), "reference/knowledge");
+  addTree(join(root, "references"), "reference/catalogs");
+  addTree(join(root, "recipes"), "reference/recipes");
+  addTree(join(root, "collections"), "reference/collections");
+  addTree(join(root, "commands"), "reference/commands");
+  addTree(join(root, "patterns"), "reference/patterns");
+  addTree(join(root, "templates"), "reference/templates");
+  for (const name of ["skills.yaml", "library.json"]) {
+    const src = join(root, "catalog", name);
+    if (fs.existsSync(src)) files.push({ src, dest: `reference/catalog/${name}` });
+  }
+  return files.filter((file) => file.dest !== "reference/modules/meta/ornn.md");
+}
+
+/** Resolve the public skill surface for an install/build profile. */
+export function distributionSkills(root, { profile = "gateway", selectedIds = [] } = {}) {
+  if (!DISTRIBUTION_PROFILES.includes(profile)) throw new Error(`Unknown distribution profile: ${profile}`);
+  if (profile === "full" || selectedIds.length) return sourceSkills(root, selectedIds);
+  const gateway = sourceSkills(root, ["meta/ornn"])[0];
+  if (!gateway) throw new Error("Public Ornn gateway skill not found");
+  return [{ ...gateway, privateFiles: gatewayPrivateFiles(root) }];
+}

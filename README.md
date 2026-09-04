@@ -75,17 +75,22 @@ starts an autonomous session. Use `--yes` to apply detected recommendations.
 
 ```bash
 ornn list [type]                    # list skills, patterns, recipes, collections...
-ornn install [item ...]             # all skills or a selection from a collection/recipe
+ornn install                        # public gateway + private knowledge payload
+ornn install --profile full         # direct access to every specialist skill
+ornn install [item ...]             # explicit selection from a collection/recipe
 ornn install --scope global --providers claude,codex
 ornn update                         # refresh managed skills
 ornn uninstall                      # remove managed skills
 ornn doctor                         # diagnose providers and installations
 ```
 
-Installations are additive and recorded in a manifest; existing directories are
+The default installation exposes only the `ornn` gateway. Specialist knowledge is
+packaged privately and loaded on demand, so Ornn does not crowd the harness skill
+list. Installations are additive and recorded in a manifest; existing directories are
 preserved unless `--force` is explicit. `--dry-run` previews without writing, and
 filesystem guardrails reject unsafe `--force` destinations. Compatible options:
-`--scope project|global`, `--providers`, `--universal`, `--destination`, `--link`.
+`--scope project|global`, `--providers`, `--universal`, `--destination`, `--link`,
+`--profile gateway|full`.
 
 ## Deterministic detectors
 

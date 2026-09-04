@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import { join, resolve } from "node:path";
 import { getAdapter } from "../installer/adapters/index.js";
-import { sourceSkills } from "./catalog.js";
+import { distributionSkills } from "./catalog.js";
 
 function copyTree(src, dest, adapter) {
   fs.mkdirSync(dest, { recursive: true });
@@ -16,10 +16,18 @@ function copyTree(src, dest, adapter) {
   }
 }
 
-export function buildDistributions(root, { providers = ["generic", "claude", "opencode", "codex", "cursor"], clean = true } = {}) {
+function copyPrivateFiles(files, dest) {
+  for (const file of files || []) {
+    const target = join(dest, ...file.dest.split("/"));
+    fs.mkdirSync(join(target, ".."), { recursive: true });
+    fs.copyFileSync(file.src, target);
+  }
+}
+
+export function buildDistributions(root, { providers = ["generic", "claude", "opencode", "codex", "cursor"], clean = true, profile = "gateway" } = {}) {
   const dist = join(root, "dist");
   fs.mkdirSync(dist, { recursive: true });
-  const skills = sourceSkills(root);
+  const skills = distributionSkills(root, { profile });
   const library = JSON.parse(fs.readFileSync(join(root, "catalog", "library.json"), "utf8"));
   const built = [];
   for (const provider of providers) {
@@ -30,7 +38,11 @@ export function buildDistributions(root, { providers = ["generic", "claude", "op
     if (clean && fs.existsSync(providerOutput)) fs.rmSync(providerOutput, { recursive: true, force: true });
     const adapter = getAdapter(descriptor.adapter);
     const providerRoot = join(providerOutput, "skills");
-    for (const skill of skills) copyTree(skill.src, join(providerRoot, skill.name), adapter);
+    for (const skill of skills) {
+      const destination = join(providerRoot, skill.name);
+      copyTree(skill.src, destination, adapter);
+      copyPrivateFiles(skill.privateFiles, destination);
+    }
     fs.mkdirSync(join(dist, provider), { recursive: true });
     fs.writeFileSync(join(dist, provider, "manifest.json"), JSON.stringify({
       generated: true,
@@ -38,6 +50,7 @@ export function buildDistributions(root, { providers = ["generic", "claude", "op
       integration: provider,
       version: descriptor.version,
       sourceVersion: library.sourceVersion,
+      profile,
       skills: skills.map((skill) => ({ id: skill.id, name: skill.name })),
     }, null, 2) + "\n");
     built.push({ provider, skills: skills.length, path: resolve(dist, provider) });

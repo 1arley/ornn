@@ -56,7 +56,7 @@ import {
 import { readManifest, manifestPath } from "../src/installer/manifest.js";
 import { resolveProjectRoot, resolveManifestRoot } from "../src/installer/paths.js";
 import { findSkillDirs, installTo, planInstall } from "../src/installer/install.js";
-import { loadLibrary, resolveItem, resolveSkillSelection, searchLibrary, sourceSkills } from "../src/library/catalog.js";
+import { distributionSkills, loadLibrary, resolveItem, resolveSkillSelection, searchLibrary, sourceSkills } from "../src/library/catalog.js";
 import { buildDistributions } from "../src/library/build.js";
 import { planKnowledge } from "../src/library/gateway.js";
 
@@ -83,10 +83,10 @@ Usage:
   ornn search <query>               Search all canonical knowledge
   ornn discover <request>           Preview the /ornn knowledge plan
   ornn show <name>                  Show metadata and canonical content
-  ornn install [item ...]           Install all skills or selected collections
+  ornn install [item ...]           Install the Ornn gateway (or a selection)
   ornn init                         Detect providers and suggest collections
   ornn update                       Refresh managed skills
-  ornn build [--providers <list>]   Generate dist/ from canonical source
+  ornn build [--providers <list>]   Generate gateway-first dist/ from canonical source
   ornn detect [path] [--json]       Run deterministic detectors without an LLM
   ornn pin <command>                Save an intent shortcut for project discovery
   ornn doctor                       Diagnose provider integrations
@@ -101,6 +101,7 @@ Options (install/update/uninstall):
   --dry-run             Preview without writing
   --force               Overwrite existing skills
   --link                Create symlinks instead of copying
+  --profile <profile>   gateway (default) | full
   --target <dir>        Legacy: single-target install (use --destination instead)
 
 Short aliases:
@@ -297,6 +298,7 @@ async function interactiveInstall(projectRoot, packageRoot) {
     projectRoot,
     packageRoot,
     force: false,
+    profile: "gateway",
   });
 
   log("\nInstallation plan");
@@ -324,6 +326,7 @@ async function interactiveInstall(projectRoot, packageRoot) {
     force: false,
     dryRun: false,
     link: false,
+    profile: "gateway",
   });
 
   log("\nInstalling Ornn skills");
@@ -347,9 +350,15 @@ async function interactiveInstall(projectRoot, packageRoot) {
 function nonInteractiveInstall(opts, projectRoot, packageRoot) {
   let selected;
   try {
-    selected = sourceSkills(ROOT, resolveSkillSelection(ROOT, opts.positionals));
+    const selectedIds = opts.positionals.length ? resolveSkillSelection(ROOT, opts.positionals) : [];
+    selected = distributionSkills(ROOT, { profile: opts.profile, selectedIds });
   } catch (error) {
     err(error.message); process.exitCode = 1; return;
+  }
+  if (opts.link && opts.profile === "gateway" && opts.positionals.length === 0) {
+    err("Gateway profile cannot be symlinked because its private payload is generated. Use copy mode or --profile full.");
+    process.exitCode = 1;
+    return;
   }
   if (opts.universal) {
     const provider = UNIVERSAL;
@@ -363,6 +372,7 @@ function nonInteractiveInstall(opts, projectRoot, packageRoot) {
       link: opts.link,
       skills: selected,
       selection: opts.positionals,
+      profile: opts.positionals.length ? "full" : opts.profile,
     });
     if (opts.dryRun) {
       log(`would install: ${result.skills.length} skills`);
@@ -400,7 +410,7 @@ function nonInteractiveInstall(opts, projectRoot, packageRoot) {
   }
 
   if (opts.dryRun) {
-    const plan = buildPlan({ providers, scope: opts.scope, projectRoot, packageRoot, force: opts.force, skills: selected });
+    const plan = buildPlan({ providers, scope: opts.scope, projectRoot, packageRoot, force: opts.force, skills: selected, profile: opts.profile });
     log("Installation plan (dry-run)");
     if (opts.scope === "project") log(`Project: ${projectRoot}`);
     for (const p of plan.plans) {
@@ -419,6 +429,7 @@ function nonInteractiveInstall(opts, projectRoot, packageRoot) {
     link: opts.link,
     skills: selected,
     selection: opts.positionals,
+    profile: opts.positionals.length ? "full" : opts.profile,
   });
   let errored = 0;
   for (const s of result.summary) {
@@ -552,7 +563,7 @@ function runDiscover(opts, projectRoot) {
 
 function runBuild(opts) {
   const providers = opts.providersExplicit ? opts.providers.split(",").map((value) => value.trim()).filter(Boolean) : undefined;
-  for (const row of buildDistributions(ROOT, { providers })) log(`Built ${row.provider}: ${row.skills} skills → ${row.path}`);
+  for (const row of buildDistributions(ROOT, { providers, profile: opts.profile })) log(`Built ${row.provider} (${opts.profile}): ${row.skills} skills → ${row.path}`);
 }
 
 function runDetect(opts) {
@@ -599,7 +610,7 @@ async function runInit(opts, projectRoot) {
   log(`DESIGN.md: ${fs.existsSync(join(projectRoot, "DESIGN.md")) ? "found" : "optional, not found"}`);
   if (!opts.yes) { log("Run `ornn install <collection...> --providers <list>` to apply this recommendation."); return; }
   const providerIds = opts.providersExplicit ? opts.providers : (detected.length ? detected.join(",") : "generic");
-  const installOpts = { ...opts, providers: providerIds, providersExplicit: true, positionals: suggestions };
+  const installOpts = { ...opts, providers: providerIds, providersExplicit: true, positionals: [], profile: "gateway" };
   if (providerIds === "generic") installOpts.universal = true;
   nonInteractiveInstall(installOpts, projectRoot, ROOT);
 }
@@ -650,6 +661,7 @@ function parseArgs(argv) {
     out: null,
     json: false,
     debug: false,
+    profile: "gateway",
     positionals: [],
   };
   for (let i = 0; i < argv.length; i++) {
@@ -669,6 +681,8 @@ function parseArgs(argv) {
     else if (a === "--dry-run") { opts.dryRun = true; }
     else if (a === "--force") { opts.force = true; }
     else if (a === "--link") { opts.link = true; }
+    else if (a === "--profile") { opts.profile = argv[++i] || "gateway"; }
+    else if (a.startsWith("--profile=")) { opts.profile = a.slice("--profile=".length); }
     else if (a === "--target") { opts.legacyTarget = resolve(argv[++i] || ""); }
     else if (a === "--out") { opts.out = argv[++i] || null; }
     else if (a === "--json") { opts.json = true; }

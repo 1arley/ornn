@@ -1,20 +1,23 @@
 # Build
 
-`ornn build` generates provider-specific skill distributions from the single canonical
-source in `skills/`.
+`ornn build` generates gateway-first provider distributions from the canonical
+library. The default exposes one public skill and carries the remaining knowledge as
+private reference files.
 
 ```bash
 ornn build                         # build all providers
 ornn build --providers claude,codex # build specific providers
+ornn build --profile full          # compatibility/development distribution
 ```
 
 ## What happens
 
-1. The catalog scans `skills/` for all `SKILL.md` directories.
-2. For each provider, the corresponding adapter transforms `SKILL.md` content.
-3. Output is written to `dist/<provider>/skills/<category>/<skill-name>/`.
-4. A `manifest.json` is written to `dist/<provider>/` recording source identity,
-   provider name and skill list.
+1. The catalog scans canonical skills and supporting library artifacts.
+2. The `gateway` profile selects `ornn` as the only public skill.
+3. Specialist skills become ordinary `.md` files under `ornn/reference/modules/`;
+   catalogs, commands, recipes, patterns and shared knowledge remain private payload.
+4. The provider adapter transforms the public `SKILL.md`.
+5. `manifest.json` records source identity, provider, profile and public skill list.
 
 ## Adapters
 
@@ -32,10 +35,10 @@ no transformation is needed.
 dist/
 ├── generic/
 │   ├── manifest.json
-│   └── skills/           # exact copy of skills/
+│   └── skills/ornn/      # public gateway + private reference payload
 ├── claude/
 │   ├── manifest.json
-│   └── skills/           # SKILL.md files transformed for Claude
+│   └── skills/ornn/      # public SKILL.md transformed for Claude
 ├── opencode/
 ├── codex/
 └── cursor/
@@ -50,7 +53,8 @@ Each `manifest.json` contains:
   "integration": "claude",
   "version": "1.0.0",
   "sourceVersion": "1.0.0",
-  "skills": [{ "id": "audit/adversarial-review", "name": "adversarial-review" }]
+  "profile": "gateway",
+  "skills": [{ "id": "meta/ornn", "name": "ornn" }]
 }
 ```
 
@@ -60,5 +64,6 @@ Each `manifest.json` contains:
   edit `dist/` directly.
 - **Deterministic.** The same source produces the same output. No external calls, no
   randomness.
+- **Small public surface.** `gateway` is the default; `full` is explicit.
 - **Provider count is not fixed.** Adding a provider is a catalog + integration change,
   not a build system change. See [providers](providers.md).

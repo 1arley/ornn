@@ -56,6 +56,16 @@ function copyDir(src, dest, adapter, dryRun) {
   }
 }
 
+function copyPrivateFiles(files, dest, dryRun) {
+  for (const file of files || []) {
+    const target = join(dest, ...file.dest.split("/"));
+    if (!dryRun) {
+      fs.mkdirSync(join(target, ".."), { recursive: true });
+      fs.copyFileSync(file.src, target);
+    }
+  }
+}
+
 /**
  * Build a plan for what would happen during install, without writing.
  * Returns { skills, existing, wouldOverwrite, wouldSkip, wouldInstall, byProvider }.
@@ -110,8 +120,8 @@ export function installTo(skills, target, adapter, { force, dryRun, link, anchor
       continue;
     }
     copyDir(skill.src, dest, adapter, dryRun);
+    copyPrivateFiles(skill.privateFiles, dest, dryRun);
     results.push({ name: skill.name, status: "installed", dest });
   }
   return results;
 }
-

@@ -13,8 +13,10 @@ EXECUTION    consuming agent
 
 `skills/` is the canonical skill source. `scripts/build`/the CLI build command applies
 thin provider adapters and writes `dist/<provider>/`; generated output is never an
-authoring surface. The installer can copy either all skills or a selection resolved
-from a collection, recipe or command.
+authoring surface. The default `gateway` profile exposes only `ornn` and packages
+specialist skills as private `.md` modules under `ornn/reference/`. The explicit
+`full` profile preserves direct installation of all skills, while named selections
+still install only the resolved canonical skills.
 
 Legacy routing, eval and findings scripts remain optional deterministic tools. They
 may recommend knowledge or consolidate evidence, but they are not the product
@@ -30,6 +32,14 @@ The public Gateway is a thin layer over that existing infrastructure:
 `planKnowledge()` is metadata-first and `loadKnowledgePlan()` is the explicit lazy
 loading boundary. This separation prevents routing from requiring the entire library
 in context and leaves future semantic ranking as an optional layer, not a dependency.
+
+```text
+harness discovery       ornn/SKILL.md
+                              |
+private catalog         ornn/reference/catalog/skills.yaml
+                              |
+lazy knowledge          ornn/reference/modules/<domain>/<skill>.md
+```
 
 `catalog/library.json` versions the canonical library release and declares supported
 change classes. Individual patterns, recipes, collections and integrations also carry

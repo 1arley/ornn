@@ -1,7 +1,54 @@
+# Dependencies
 node_modules/
+
+# Environment & local config
+.env
+.env.local
+.env.*.local
 .npmrc
 *.local
+
+# Logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build output
+dist/
+
 # Python bytecode
 __pycache__/
 *.py[cod]
+*$py.class
+
+# Python virtual environments
+.venv/
+venv/
+ENV/
+
+# Testing & coverage
+coverage/
+.nyc_output/
+*.cover
+*.py,cover
+htmlcov/
+
+# IDE & editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# OS files
+.DS_Store
+._*
+
+# Optional dependencies
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

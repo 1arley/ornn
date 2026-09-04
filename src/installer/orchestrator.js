@@ -19,7 +19,7 @@ import { getAdapter } from "./adapters/index.js";
 import { findSkillDirs, installTo, planInstall } from "./install.js";
 import { readManifest, writeV2Manifest, isV2Manifest, manifestPath, removeManifest } from "./manifest.js";
 import { resolveProjectRoot, resolveManifestRoot, safeDestFor } from "./paths.js";
-import { resolveSkillSelection, sourceSkills } from "../library/catalog.js";
+import { distributionSkills, resolveSkillSelection, sourceSkills } from "../library/catalog.js";
 
 const require = createRequire(import.meta.url);
 const PKG = require("../../package.json");
@@ -81,8 +81,8 @@ export function resolveInstallTarget(provider, scope, projectRoot) {
  * Plan an installation for a set of providers/destinations.
  * Returns a structured plan (no writes).
  */
-export function buildPlan({ providers, scope, projectRoot, packageRoot, force, skills: selectedSkills = null }) {
-  const skills = selectedSkills || listSourceSkills(packageRoot);
+export function buildPlan({ providers, scope, projectRoot, packageRoot, force, skills: selectedSkills = null, profile = "gateway" }) {
+  const skills = selectedSkills || distributionSkills(packageRoot, { profile });
   const plans = [];
   for (const provider of providers) {
     const anchor = provider.type === "custom" ? null : installAnchor(scope, projectRoot);
@@ -110,8 +110,8 @@ function destinationFor(provider, target, skillNames) {
 /**
  * Execute an installation. Returns a summary and writes a v2 manifest.
  */
-export function installProviders({ providers, scope, projectRoot, packageRoot, force, dryRun, link, skills: selectedSkills = null, selection = [] }) {
-  const { skills, plans } = buildPlan({ providers, scope, projectRoot, packageRoot, force, skills: selectedSkills });
+export function installProviders({ providers, scope, projectRoot, packageRoot, force, dryRun, link, skills: selectedSkills = null, selection = [], profile = "gateway" }) {
+  const { skills, plans } = buildPlan({ providers, scope, projectRoot, packageRoot, force, skills: selectedSkills, profile });
   const manifestRoot = resolveManifestRoot(scope, projectRoot);
   const skillNames = skills.map((s) => s.name);
   const summary = [];
@@ -138,7 +138,7 @@ export function installProviders({ providers, scope, projectRoot, packageRoot, f
   const destinations = plans.map((plan) => destinationFor(plan.provider, plan.target, skillNames));
 
   if (!dryRun) {
-    writeV2Manifest(manifestRoot, { scope, destinations, packageVersion: PKG.version, selection });
+    writeV2Manifest(manifestRoot, { scope, destinations, packageVersion: PKG.version, selection, profile });
   }
 
   return { skills, summary, manifestRoot, destinations };
@@ -178,9 +178,10 @@ export function updateProviders({ scope, projectRoot, packageRoot, force, dryRun
 
   const manifestRoot = resolveManifestRoot(manifest.scope || scope, projectRoot);
   const anchor = installAnchor(manifest.scope || scope, projectRoot);
+  const profile = manifest.profile || "full";
   const skills = manifest.selection?.length
     ? sourceSkills(packageRoot, resolveSkillSelection(packageRoot, manifest.selection))
-    : listSourceSkills(packageRoot);
+    : distributionSkills(packageRoot, { profile });
   const skillNames = skills.map((s) => s.name);
   let updated = 0;
 
@@ -197,6 +198,7 @@ export function updateProviders({ scope, projectRoot, packageRoot, force, dryRun
       destinations: next,
       packageVersion: PKG.version,
       selection: manifest.selection || [],
+      profile,
     });
   }
 
@@ -231,7 +233,7 @@ export function uninstallProviders({ providerIds, scope, projectRoot, dryRun }) 
   if (!dryRun) {
     const remaining = destinations.filter((d) => !ids.has(d.id));
     if (remaining.length > 0) {
-      writeV2Manifest(manifestRoot, { scope, destinations: remaining, packageVersion: PKG.version });
+      writeV2Manifest(manifestRoot, { scope, destinations: remaining, packageVersion: PKG.version, profile: manifest.profile || "full", selection: manifest.selection || [] });
     } else {
       removeManifest(manifestRoot);
     }
@@ -262,7 +264,7 @@ export function listInstallations(projectRoot) {
 
 export function doctorProviders(projectRoot, packageRoot) {
   const detected = detectProviders();
-  const expected = listSourceSkills(packageRoot || resolveProjectRoot()).length;
+  const expected = distributionSkills(packageRoot || resolveProjectRoot(), { profile: "gateway" }).length;
   const rows = [];
   for (const provider of getAllProviders()) {
     const found = detected.includes(provider.id);

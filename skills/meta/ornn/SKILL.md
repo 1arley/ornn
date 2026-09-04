@@ -50,20 +50,23 @@ Conhecimento canônico vive no Ornn. Contexto específico vive em `PRODUCT.md`,
    `DESIGN.md`, `.ornn/context.md`, `.ornn/project.md`, `.ornn/preferences.md` e
    `.ornn/pins.yaml`.
 3. Normalize shortcut, pin e linguagem natural numa única intenção.
-4. Use `catalog/skills.yaml` e o `skill-router` interno para rankear por triggers,
+4. Use `reference/catalog/skills.yaml` (em uma instalação gateway) ou
+   `catalog/skills.yaml` (no repositório) e o `skill-router` interno para rankear por triggers,
    required signals, prioridade, risco, custo, composição e overlap.
 5. Resolva commands, collections e recipes pelo resolver existente; trate-os como
    composição declarativa, não execução.
 6. Construa um Knowledge Plan com primary, supporting, references, load e avoid.
-7. Só então leia os `SKILL.md`, recipes, patterns e catálogos de references listados.
+7. Só então leia os módulos em `reference/modules/<domínio>/<nome>.md` (ou os
+   `SKILL.md` canônicos no repositório), recipes, knowledge e catálogos listados.
 8. Componha um contexto compacto, removendo orientação redundante.
 9. Entregue o contexto ao agente consumidor, que decide, usa ferramentas e executa.
 10. Mostre scores/candidatas/arquivos somente quando o usuário usar `--debug`.
 
 Quando `src/library/gateway.js` estiver disponível, use `planKnowledge()` antes de
 `loadKnowledgePlan()`. Em uma distribuição somente de skills, aplique o mesmo fluxo
-lendo primeiro o catálogo disponível ou, como fallback, apenas frontmatter e nomes
-das skills irmãs; nunca leia todas integralmente para decidir.
+lendo primeiro `reference/catalog/skills.yaml`; os módulos privados ficam em
+`reference/modules/` e não são skills públicas. Como fallback, leia apenas
+frontmatter e nomes disponíveis; nunca leia todos os módulos integralmente para decidir.
 
 ## Questions to Ask
 
