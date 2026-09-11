@@ -152,7 +152,7 @@ test("--providers all installs into every provider target (dry-run)", () => {
   try {
     const r = runIn(dir, ["install", "--providers", "all", "--scope", "project", "--dry-run"]);
     assert.equal(r.status, 0);
-    for (const p of [".claude", ".codex", ".opencode", ".cursor", ".gemini"]) {
+    for (const p of [".claude", ".codex", ".opencode", ".cursor"]) {
       assert.match(r.stdout, new RegExp(p));
     }
   } finally {

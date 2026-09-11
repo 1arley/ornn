@@ -23,7 +23,7 @@ ornn build --profile full          # compatibility/development distribution
 
 | Adapter | Behavior |
 |---|---|
-| `identity` | Copies files unchanged. Used by Generic, OpenCode, Codex, Cursor, Gemini CLI. |
+| `identity` | Copies files unchanged. Used by Generic, OpenCode, Codex, Cursor. |
 | `claude` | Applies Claude-specific frontmatter transformations. |
 
 Adapters live in `src/installer/adapters/`. The identity adapter is the default when

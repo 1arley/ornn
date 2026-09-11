@@ -57,20 +57,6 @@
         "projectMarkers": [".cursor"],
         "globalMarkers": ["~/.cursor"]
       }
-    },
-    {
-      "id": "gemini",
-      "label": "Gemini CLI",
-      "adapter": "identity",
-      "destinations": {
-        "project": ".gemini/skills",
-        "global": "~/.gemini/skills"
-      },
-      "detection": {
-        "commands": ["gemini"],
-        "projectMarkers": [".gemini"],
-        "globalMarkers": ["~/.gemini"]
-      }
     }
   ]
 }
