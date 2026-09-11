@@ -246,6 +246,14 @@ export function uninstallProviders({ providerIds, scope, projectRoot, dryRun }) 
 // List / Doctor
 // ---------------------------------------------------------------------------
 
+function isExistingDir(p) {
+  try {
+    return fs.statSync(p).isDirectory();
+  } catch {
+    return false; // broken symlink or unreadable entry: ignore, don't crash
+  }
+}
+
 export function listInstallations(projectRoot) {
   const rows = [];
   const allProviders = [...getAllProviders(), UNIVERSAL];
@@ -255,7 +263,7 @@ export function listInstallations(projectRoot) {
     const scope = fs.existsSync(projectTarget) ? "project" : fs.existsSync(globalTarget) ? "global" : "none";
     const target = scope === "project" ? projectTarget : scope === "global" ? globalTarget : null;
     const installed = target && fs.existsSync(target)
-      ? fs.readdirSync(target).filter((e) => fs.statSync(join(target, e)).isDirectory()).length
+      ? fs.readdirSync(target).filter((e) => isExistingDir(join(target, e))).length
       : 0;
     rows.push({ provider: provider.name, scope, installed });
   }
@@ -272,7 +280,7 @@ export function doctorProviders(projectRoot, packageRoot) {
     const globalTarget = resolveInstallTarget(provider, "global", projectRoot);
     const target = fs.existsSync(projectTarget) ? projectTarget : fs.existsSync(globalTarget) ? globalTarget : null;
     const installed = target && fs.existsSync(target)
-      ? fs.readdirSync(target).filter((e) => fs.statSync(join(target, e)).isDirectory())
+      ? fs.readdirSync(target).filter((e) => isExistingDir(join(target, e)))
       : [];
     const missing = Math.max(0, expected - installed.length);
     rows.push({
