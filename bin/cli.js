@@ -94,9 +94,10 @@ Usage:
 
 Options (install/update/uninstall):
   --scope <scope>       project | global (default: project)
-  --providers <list>    comma-separated profile ids, "detected", "all"
+  --providers <list>    claude,codex,opencode,cursor | "detected" (default) | "all"
   --universal           Install to .agents/skills (no provider adapter)
-  --destination <dir>   Install to a custom directory
+  --destination <dir>   Custom directory; alone installs only there,
+                        with explicit --providers installs to both
   --yes / -y            Skip confirmation
   --dry-run             Preview without writing
   --force               Overwrite existing skills

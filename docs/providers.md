@@ -11,7 +11,18 @@ agents automatically.
 | OpenCode | identity | `.opencode/skills` | `~/.config/opencode/skills` |
 | Codex | identity | `.codex/skills` | `~/.codex/skills` |
 | Cursor | identity | `.cursor/skills` | `~/.cursor/skills` |
-| Gemini CLI | identity | `.gemini/skills` | `~/.gemini/skills` |
+
+## Provider selection
+
+Supported `--providers` ids: `claude`, `codex`, `opencode`, `cursor`.
+Special values: `detected` (default, advisory detection) and `all`
+(all four). `--universal` targets `.agents/skills` instead of a provider;
+`--destination <dir>` targets a custom directory.
+
+With `--destination` alone (no explicit `--providers`), only the custom
+directory is installed. With an explicit `--providers` plus
+`--destination`, installation goes to both the providers and the custom
+directory.
 
 ## Adapters
 
